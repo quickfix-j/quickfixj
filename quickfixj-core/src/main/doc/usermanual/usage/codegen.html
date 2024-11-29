@@ -9,86 +9,91 @@
 </div>
 <h2>Customizing Message Code Generation</h2>
 <p>
-QuickFIX/J includes message libraries generated from standard FIX meta data. However,
-there are several ways to customize code generation in QuickFIX/J.
+QuickFIX/J includes message libraries generated from FIX standard meta-data. However, it is very common to need to
+customize the FIX Protocol to suit an organisations specific "Rules of Engagement".
+There is more than one way to customize Message and Field code generation in QuickFIX/J.
 </p>
-<p>
-The simplest customization is to just modify one or more data dictionaries
-(e.g., FIX44.xml) and rebuild QFJ. This allows you to add custom fields,
-define new messages not included in the specification, change whether fields
-are required or optional, and so on.
-</p>
-<p>
-You can also do more advanced customization by using the
-<code>quickfix.codegen.MessageCodeGenerator</code> class. You can define
-code generation tasks (<code>quickfix.codegen.MessageCodeGenerator.Task</code>)
-that customize various aspects of the generation
-process. The types of customizations currently supported include:
-</p>
-
-<table class="settings">
-<tr>
-	<th>Property</th>
-	<th>Description</th>
-</tr>
-<tr>
-	<td>specification</td>
-	<td>path to the XML file containing the FIX meta data (e.g. /my/dir/CUSTOM_FIX.xml)</td>
-</tr>
-<tr>
-	<td>transformDirectory</td>
-	<td>path to the XSLT transforms used to generate the message-related source code. Usually this
-		will reference the standard QFJ XSLT templates in quickfix/codegen. However, you can
-		modify the templates and put the modified templates wherever you want.</td>
-</tr>
-<tr>
-	<td>outputBaseDirectory</td>
-	<td>The base directory where generated source code will be placed.</td>
-</tr>
-<tr>
-	<td>overwrite</td>
-	<td>Controls whether existings files are overwritten. Usually this would be true.</td>
-</tr>
-<tr>
-	<td>messagePackage</td>
-	<td>The Java package for the generated messages. This would be something like "my.message.fix42".
-	In QFJ, for example, the package for the FIX 4.2 generated messages is "quickfix.fix42".</td>
-</tr>
-<tr>
-	<td>fieldPackage</td>
-	<td>The Java package for the generated field. This would be something like "my.message.fix42.fields".
-	In QFJ, the fields are generated in the package "quickfix.fields" for all versions (newer versions
-	overwrite older versions). By changing this property, you could generate fields into separate packages
-	for each specification version.</td>
-</tr>
-<tr>
-	<td>orderedFields</td>
-	<td>Generates message classes where regular (nongroup) body fields are ordered as specified in
-	the meta. Although the FIX specification does not require this ordering, some exchanges do
-	require it. There may be a slight (probably very slight) performance degradation when
-	using this option.</td>
-</tr>
-<tr>
-	<td>decimalGenerated</td>
-	<td>Generates BigDecimals for price, quantity, and similar fields. The default code
-	generation generated doubles to be compatible with the QuickFIX C++ implementation.</td>
-</tr>
-<tr>
-	<td>utcTimestampPrecision</td>
-	<td>The default UtcTimestampPrecision to be used during field code generation.</td>
-</tr>
-</table>
-<p>
-To generate you own message library, you can create a program that uses the <code>MessageCodeGenerator</code>
-to process the <code>Task</code> you have defined. Then use a simple Ant script to do the code
-generation, compile the classes, and create a message JAR file. Depending on the type of customization
-you've done, you may need to write a <code>MessageFactory</code> implementation, include that in the
-JAR file, and then reference the factory in the session configuration. For Ant script examples, see
-the QFJ core build scripts.
-<p>
-The most advanced customization is to modify the XSLT templates used to generate the
-message source code. If you are interested in this level of customization, please look
-at the XSLT template source code for more information.
-</p>
+<ul>
+	<li>For FIX versions prior to  "FIX Latest" :
+		<ul>
+			<li>You may fork the entire QuickFIX/J repository and modify one or more data dictionaries (e.g., FIX44.xml) and rebuild QFJ.
+				This allows you to add custom Fields, define new Messages not included in the specification, change whether Fields are required or optional, and so on.
+				This approach is good for prototyping and/or experimentation but is not recommended in the middle to long term due to the disadvantage of needing to maintain a fork of the QuickFIX/J project.</li>
+			<li>You may create an independent project to build only your QuickFIX/J Messages and Fields using the tools provided by
+				the QuickFIX/J project. See the readme in the  QuickFIX/J Messages module (quickfixj-messages) for further details.
+			    This allows you to manage dependencies on the QuickFIX/J core runtime independent of the custom Message and Field packages
+				(within the scope of binary compatible QuickFIX/J major releases).</li>
+		</ul>
+		<p>You can also do more advanced customization by using the
+		<code>quickfix.codegen.MessageCodeGenerator</code> class. You can define
+		code generation tasks (<code>quickfix.codegen.MessageCodeGenerator.Task</code>)
+		that customize various aspects of the generation
+		process. The types of customizations currently supported include:
+		</p>
+		<table class="settings">
+		<tr>
+			<th>Property</th>
+			<th>Description</th>
+		</tr>
+		<tr>
+			<td>specification</td>
+			<td>path to the XML file containing the FIX meta data (e.g. /my/dir/CUSTOM_FIX.xml)</td>
+		</tr>
+		<tr>
+			<td>transformDirectory</td>
+			<td>path to the XSLT transforms used to generate the message-related source code. Usually this
+				will reference the standard QFJ XSLT templates in quickfix/codegen. However, you can
+				modify the templates and put the modified templates wherever you want.</td>
+		</tr>
+		<tr>
+			<td>outputBaseDirectory</td>
+			<td>The base directory where generated source code will be placed.</td>
+		</tr>
+		<tr>
+			<td>overwrite</td>
+			<td>Controls whether existings files are overwritten. Usually this would be true.</td>
+		</tr>
+		<tr>
+			<td>messagePackage</td>
+			<td>The Java package for the generated messages. This would be something like "my.message.fix42".
+			In QFJ, for example, the package for the FIX 4.2 generated messages is "quickfix.fix42".</td>
+		</tr>
+		<tr>
+			<td>fieldPackage</td>
+			<td>The Java package for the generated field. This would be something like "my.message.fix42.fields".
+			In QFJ, the fields are generated in the package "quickfix.fields" for all versions (newer versions
+			overwrite older versions). By changing this property, you could generate fields into separate packages
+			for each specification version.</td>
+		</tr>
+		<tr>
+			<td>orderedFields</td>
+			<td>Generates message classes where regular (nongroup) body fields are ordered as specified in
+			the meta. Although the FIX specification does not require this ordering, some exchanges do
+			require it. There may be a slight (probably very slight) performance degradation when
+			using this option.</td>
+		</tr>
+		<tr>
+			<td>decimalGenerated</td>
+			<td>Generates BigDecimals for price, quantity, and similar fields. The default code
+			generation generated doubles to be compatible with the QuickFIX C++ implementation.</td>
+		</tr>
+		<tr>
+			<td>utcTimestampPrecision</td>
+			<td>The default UtcTimestampPrecision to be used during field code generation.</td>
+		</tr>
+		</table>
+		<p>The most complex customization for this case is to modify the XSLT templates used to generate the
+			message source code. If you are interested in this level of customization, please look
+			at the XSLT template source code for more information.</p>
+		<p>You can build a QuickFIX/J Dictionary and generate code directly from a FIX Orchestra specification
+			using the new QuickFIX/J project tools. See the readme in the  QuickFIX/J Messages module (quickfixj-messages) for further details.</p>
+	</li>
+	<li>For FIX Latest:
+		<p>It is recommended to create an independent project to build only your QuickFIX/J Messages and Fields using the tools provided by
+			the QuickFIX/J project. See the readme in the  QuickFIX/J Messages module (quickfixj-messages) for further details.
+			This allows you to manage dependencies on the QuickFIX/J core runtime independent of the custom Message and Field packages
+			(within the scope of binary compatible QuickFIX/J major releases).</p>
+	</li>
+	</ul>
 </body>
 </html>

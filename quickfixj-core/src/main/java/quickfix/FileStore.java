@@ -63,7 +63,6 @@ public class FileStore implements MessageStore, Closeable {
     private final String sessionFileName;
     private final boolean syncWrites;
     private final int maxCachedMsgs;
-    private final String charsetEncoding = CharsetSupport.getCharset();
     private RandomAccessFile messageFileReader;
     private RandomAccessFile messageFileWriter;
     private DataOutputStream headerDataOutputStream;
@@ -151,6 +150,14 @@ public class FileStore implements MessageStore, Closeable {
     @Override
     public Date getCreationTime() throws IOException {
         return cache.getCreationTime();
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTimeCalendar()
+     */
+    @Override
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return cache.getCreationTimeCalendar();
     }
 
     private void initializeSequenceNumbers() throws IOException {
@@ -350,7 +357,7 @@ public class FileStore implements MessageStore, Closeable {
             final byte[] data = new byte[size];
             messageFileReader.seek(offset);
             messageFileReader.readFully(data);
-            return new String(data, charsetEncoding);
+            return new String(data, CharsetSupport.getCharset());
         } catch (EOFException eofe) { // can't read fully
             throw new IOException("Truncated input while reading message: messageIndex=" + i
                     + ", offset=" + offset + ", expected size=" + size, eofe);
@@ -363,7 +370,8 @@ public class FileStore implements MessageStore, Closeable {
     @Override
     public boolean set(int sequence, String message) throws IOException {
         final long offset = messageFileWriter.getFilePointer();
-        final int size = message.length();
+        final byte[] messageBytes = message.getBytes(CharsetSupport.getCharset());
+        final int size = messageBytes.length;
         if (messageIndex != null) {
             updateMessageIndex(sequence, offset, size);
         }
@@ -374,7 +382,7 @@ public class FileStore implements MessageStore, Closeable {
         if (syncWrites) {
             headerFileOutputStream.getFD().sync();
         }
-        messageFileWriter.write(message.getBytes(CharsetSupport.getCharset()));
+        messageFileWriter.write(messageBytes);
         return true;
     }
 

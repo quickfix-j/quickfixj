@@ -19,6 +19,9 @@
 
 package quickfix;
 
+import com.zaxxer.hikari.HikariDataSource;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -26,13 +29,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.junit.Assert;
-
-import org.logicalcobwebs.proxool.ProxoolException;
-import org.logicalcobwebs.proxool.ProxoolFacade;
-import org.logicalcobwebs.proxool.admin.SnapshotIF;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JdbcTestSupport {
+
     public static final String HSQL_DRIVER = "org.hsqldb.jdbcDriver";
     public static final String HSQL_CONNECTION_URL = "jdbc:hsqldb:mem:quickfixj";
     public static final String HSQL_USER = "sa";
@@ -42,6 +43,8 @@ public class JdbcTestSupport {
         settings.setString(JdbcSetting.SETTING_JDBC_CONNECTION_URL, HSQL_CONNECTION_URL);
         settings.setString(JdbcSetting.SETTING_JDBC_USER, HSQL_USER);
         settings.setString(JdbcSetting.SETTING_JDBC_PASSWORD, "");
+        // HSQL doesn't support JDBC4 which means that test query has to be supplied to HikariCP
+        settings.setString(JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
     }
 
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
@@ -102,7 +105,7 @@ public class JdbcTestSupport {
         execSQL(connection, "drop table " + tableName + " if exists");
     }
 
-    public static void execSQL(Connection connection, String sql) throws SQLException, IOException {
+    public static void execSQL(Connection connection, String sql) throws SQLException {
         Statement stmt = connection.createStatement();
         stmt.execute(sql);
         stmt.close();
@@ -115,12 +118,24 @@ public class JdbcTestSupport {
         return new String(b);
     }
 
-    static void assertNoActiveConnections() throws ProxoolException {
-        for (String alias : ProxoolFacade.getAliases()) {
-            SnapshotIF snapshot = ProxoolFacade.getSnapshot(alias, true);
-            Assert.assertEquals("unclosed connections: " + alias, 0, snapshot
-                    .getActiveConnectionCount());
-        }
+    static void assertNoActiveConnections(DataSource dataSource) {
+        assertTrue(dataSource instanceof HikariDataSource);
+
+        HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+        assertEquals("Some connections are still alive", 0, hikariDataSource.getHikariPoolMXBean().getActiveConnections());
     }
 
+    static DataSource getTestDataSource(String jdbcDriver, String connectionURL, String user, String password) {
+        SessionID sessionID = new SessionID("TEST", "", "");
+
+        SessionSettings settings = new SessionSettings();
+        // HSQL doesn't support JDBC4 which means that test query has to be supplied to HikariCP
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
+
+        try {
+            return JdbcUtil.getOrCreatePooledDataSource(settings, sessionID, jdbcDriver, connectionURL, user, password);
+        } catch (ConfigError | FieldConvertError e) {
+            throw new RuntimeException("Unable to get or create pooled data source", e);
+        }
+    }
 }

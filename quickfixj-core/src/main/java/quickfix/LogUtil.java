@@ -39,15 +39,22 @@ public class LogUtil {
      * @param t the exception to log
      */
     public static void logThrowable(Log log, String message, Throwable t) {
+        String throwableString = constructThrowableString(message, t);
+        log.onErrorEvent(throwableString);
+    }
+
+    private static String constructThrowableString(String message, Throwable t) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(stringWriter);
         printWriter.println(message);
-        t.printStackTrace(printWriter);
-        if (t.getCause() != null) {
-            printWriter.println("Cause: " + t.getCause().getMessage());
-            t.getCause().printStackTrace(printWriter);
+        if (t != null) {
+            t.printStackTrace(printWriter);
+            if (t.getCause() != null) {
+                printWriter.println("Cause: " + t.getCause().getMessage());
+                t.getCause().printStackTrace(printWriter);
+            }
         }
-        log.onErrorEvent(stringWriter.toString());
+        return stringWriter.toString();
     }
 
     /**
@@ -66,6 +73,52 @@ public class LogUtil {
             // It's possible the session has been deregistered by the time
             // we log the message, so this is the fallback logging.
             log.error(message, t);
+        }
+    }
+    
+    /**
+     * Logs a throwable including the stack trace as a session warning event.
+     * If session cannot be found, the general log is used.
+     * 
+     * @param sessionID sessionID of Session to lookup
+     * @param message the message to log
+     * @param throwable throwable to log
+     */
+    public static void logWarning(SessionID sessionID, String message, Throwable throwable) {
+        String throwableString = constructThrowableString(message, throwable);
+        logWarning(sessionID, throwableString);
+    }
+    
+    /**
+     * Logs a warning as a session event if the session is registered, otherwise
+     * the general log is used.
+     * 
+     * @param sessionID sessionID of Session to lookup
+     * @param message the message to log
+     */
+    public static void logWarning(SessionID sessionID, String message) {
+        final Session session = Session.lookupSession(sessionID);
+        final String messageToLog;
+        if (session != null) {
+            messageToLog = message;
+        } else {
+            messageToLog = message + " sessionID=" + sessionID;
+        }
+        logWarning(session, messageToLog);
+    }
+
+    /**
+     * Logs a warning as a session event if the session is not NULL, otherwise
+     * the general log is used.
+     * 
+     * @param session the session to use
+     * @param message the message to log
+     */
+    static void logWarning(final Session session, String message) {
+        if (session != null) {
+            session.getLog().onWarnEvent(message);
+        } else {
+            log.warn(message);
         }
     }
 

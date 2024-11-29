@@ -19,8 +19,17 @@
 
 package quickfix;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Date;
+
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+
 import quickfix.field.ClOrdID;
 import quickfix.field.ExecInst;
 import quickfix.field.MDUpdateAction;
@@ -31,14 +40,6 @@ import quickfix.field.TradeCondition;
 import quickfix.field.TransactTime;
 import quickfix.fix50.MarketDataIncrementalRefresh;
 import quickfix.fix50.NewOrderSingle;
-
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -89,7 +90,7 @@ public class FieldTest {
         try {
             testFieldCalcuations("\u6D4B\u9A8C\u6570\u636E", 50, 16);
         } finally {
-            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+            CharsetSupport.setDefaultCharset();
         }
     }
 
@@ -269,19 +270,6 @@ public class FieldTest {
         }
     }
 
-    @Test
-    public void testFieldhashCode() throws Exception {
-        assertEqualsAndHash(new IntField(11, 100), new IntField(11, 100));
-        assertEqualsAndHash(new DoubleField(11, 100.0), new DoubleField(11, 100.0));
-        assertEqualsAndHash(new StringField(11, "foo"), new StringField(11, "foo"));
-        assertEqualsAndHash(new BooleanField(11, true), new BooleanField(11, true));
-        assertEqualsAndHash(new CharField(11, 'x'), new CharField(11, 'x'));
-        LocalDateTime date = LocalDateTime.now();
-        assertEqualsAndHash(new UtcDateOnlyField(11, date.toLocalDate()), new UtcDateOnlyField(11, date.toLocalDate()));
-        assertEqualsAndHash(new UtcTimeOnlyField(11, date.toLocalTime()), new UtcTimeOnlyField(11, date.toLocalTime()));
-        assertEqualsAndHash(new UtcTimeStampField(11, date), new UtcTimeStampField(11, date));
-    }
-
     // QFJ-881
     @Test
     public void testMultipleStringValue() throws Exception {
@@ -295,7 +283,7 @@ public class FieldTest {
         md.addGroup(value);
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(md);
+        dd.validate(md, new ValidationSettings());
     }
 
     @Test
@@ -310,7 +298,7 @@ public class FieldTest {
         nos.set(new TransactTime(LocalDateTime.of(2020, 3, 10, 12, 23, 44)));
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(nos);
+        dd.validate(nos, new ValidationSettings());
     }
 
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {

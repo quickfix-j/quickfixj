@@ -20,6 +20,7 @@
 
 package quickfix;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
@@ -31,6 +32,7 @@ import java.util.Date;
 public class NoopStore implements MessageStore {
 
     private Date creationTime = new Date();
+    private Calendar creationTimeCalendar = SystemTime.getUtcCalendar(creationTime);
     private int nextSenderMsgSeqNum = 1;
     private int nextTargetMsgSeqNum = 1;
 
@@ -39,6 +41,10 @@ public class NoopStore implements MessageStore {
 
     public Date getCreationTime() {
         return creationTime;
+    }
+
+    public Calendar getCreationTimeCalendar() {
+        return creationTimeCalendar;
     }
 
     public int getNextSenderMsgSeqNum() {
