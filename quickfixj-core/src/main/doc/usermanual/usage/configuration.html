@@ -407,6 +407,24 @@
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+      <TD><I>FieldValidationLogging</I></TD>
+      <TD>If set to Y, then
+      <ul>
+          <li>
+              if AllowUnknownMsgFields=Y, will print information about detected unknown non user defined fields (field with tag < 5000) and these fields will not be rejected
+          </li>
+          <li>
+              if ValidateUserDefinedFields=Y, will print information about detected unknown user defined fields (field with tag >= 5000) and these fields will not be rejected
+          </li>
+          <li>
+              will print information about fields with unknown Enum values and these fields will not be rejected.
+          </li>
+      </ul>
+      <TD>Y<br>
+          N</TD>
+      <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckCompID</I> </TD>
     <TD> If set to Y, messages must be received from the counterparty with the correct SenderCompID and TargetCompID.
         Some systems will send you different CompIDs by design, so you must set this to N. </TD>

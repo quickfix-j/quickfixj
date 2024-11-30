@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -47,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.xml.XMLConstants;
 
@@ -72,6 +75,8 @@ public class DataDictionary {
 
     private static final String JDK_DOCUMENT_BUILDER_FACTORY_NAME = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
     private static final Supplier<DocumentBuilderFactory> DEFAULT_DOCUMENT_BUILDER_FACTORY_SUPPLIER = createDocumentBuilderFactorySupplier();
+
+    protected static final Logger LOG = LoggerFactory.getLogger(DataDictionary.class);
 
     private static Supplier<DocumentBuilderFactory> createDocumentBuilderFactorySupplier() {
         return () -> {
@@ -108,6 +113,7 @@ public class DataDictionary {
     private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
     private int[] orderedFieldsArray;
+    private static Consumer<String> callback = LOG::warn;
 
     private DataDictionary() {
     }
@@ -616,9 +622,21 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
+    public void validate(Message message, boolean bodyOnly, ValidationSettings settings, Consumer<String> customCallback) throws IncorrectTagValue,
+            FieldNotFound, IncorrectDataFormat {
+        validate(message, bodyOnly ? null : this, this, settings, customCallback);
+    }
+
     public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
         validate(message, bodyOnly ? null : this, this, settings);
+    }
+
+    static void validate(Message message, DataDictionary sessionDataDictionary,
+                         DataDictionary applicationDataDictionary, ValidationSettings settings, Consumer<String> sessionCallback) throws IncorrectTagValue, FieldNotFound,
+            IncorrectDataFormat {
+        callback = sessionCallback;
+        validate(message, sessionDataDictionary, applicationDataDictionary, settings);
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
@@ -670,7 +688,7 @@ public class DataDictionary {
 
             if (hasVersion) {
                 checkValidFormat(settings, field);
-                checkValue(field);
+                checkValue(settings, field);
             }
 
             if (beginString != null) {
@@ -720,8 +738,16 @@ public class DataDictionary {
         boolean fail;
         if (field < USER_DEFINED_TAG_MIN) {
             fail = !messageField && !settings.allowUnknownMessageFields;
+
+            if (settings.fieldValidationLogging && !messageField && settings.allowUnknownMessageFields) {
+                callback.accept("Unknown Message Field " + field + " detected");
+            }
         } else {
             fail = !messageField && settings.checkUserDefinedFields;
+            if (settings.fieldValidationLogging && !messageField && settings.checkUserDefinedFields) {
+                callback.accept("Unknown User Defined Field " + field + " detected");
+            }
+
         }
         return fail;
     }
@@ -788,10 +814,14 @@ public class DataDictionary {
         }
     }
 
-    private void checkValue(StringField field) throws IncorrectTagValue {
+    private void checkValue(ValidationSettings settings, StringField field) throws IncorrectTagValue {
         int tag = field.getField();
         if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
-            throw new IncorrectTagValue(tag);
+            if (settings.fieldValidationLogging) {
+                LOG.warn("Unknown Enum value {} for tag {} is detected", field.getValue(), tag);
+            } else {
+                throw new IncorrectTagValue(tag);
+            }
         }
     }
 
