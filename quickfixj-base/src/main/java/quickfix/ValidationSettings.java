@@ -25,6 +25,7 @@ public class ValidationSettings {
     boolean checkUserDefinedFields = true;
     boolean checkUnorderedGroupFields = true;
     boolean allowUnknownMessageFields = false;
+    boolean firstFieldInGroupIsDelimiter = false;
 
     public ValidationSettings() {}
 
@@ -65,6 +66,10 @@ public class ValidationSettings {
         return allowUnknownMessageFields;
     }
 
+    public boolean isFirstFieldInGroupIsDelimiter() {
+        return firstFieldInGroupIsDelimiter;
+    }
+
     /**
      * Controls whether group fields are in the same order
      *
@@ -94,5 +99,16 @@ public class ValidationSettings {
 
     public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
         allowUnknownMessageFields = allowUnknownFields;
+    }
+
+    /**
+     * Controls whether any field which is
+     * first in the group would be used as delimiter
+     *
+     * @param flag true = use first field from message, false = follow data dictionary
+     * Must be used with disabled {@link #setCheckUnorderedGroupFields(boolean)}
+     */
+    public void setFirstFieldInGroupIsDelimiter(boolean flag) {
+        firstFieldInGroupIsDelimiter = flag;
     }
 }
