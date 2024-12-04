@@ -35,6 +35,7 @@ public class ValidationSettings {
         this.checkUserDefinedFields = validationSettings.checkUserDefinedFields;
         this.checkUnorderedGroupFields = validationSettings.checkUnorderedGroupFields;
         this.allowUnknownMessageFields = validationSettings.allowUnknownMessageFields;
+        this.firstFieldInGroupIsDelimiter = validationSettings.firstFieldInGroupIsDelimiter;
     }
 
     /**
