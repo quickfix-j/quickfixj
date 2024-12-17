@@ -733,7 +733,7 @@ public class Message extends FieldMap {
             throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
         }
         parent.setField(groupCountTag, field);
-        final int firstField = rg.getDelimiterField();
+        int firstField = dds.isFirstFieldInGroupIsDelimiter() ? -1 : rg.getDelimiterField();
         Group group = null;
         boolean inGroupParse = true;
         while (inGroupParse) {
@@ -743,7 +743,9 @@ public class Message extends FieldMap {
                 break;
             }
             int tag = field.getTag();
-            if (tag == firstField) {
+            boolean shouldCreateNewGroup = tag == firstField || (dds.isFirstFieldInGroupIsDelimiter() && firstField == -1);
+            if (shouldCreateNewGroup) {
+                firstField = tag;
                 addGroupRefToParent(group, parent);
                 group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
                 group.setField(field);
