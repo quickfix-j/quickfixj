@@ -457,6 +457,10 @@ public class Message extends FieldMap implements IMessage  {
         header.setUtcTimeStamp(field, value, timestampPrecision);
     }
 
+    public final void removeHeaderField(int field) {
+        header.removeField(field);
+    }
+
     public final Trailer getTrailer() {
         return trailer;
     }
