@@ -133,12 +133,6 @@
 			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sleepycat</groupId>
-			<artifactId>je</artifactId>
-			<version>18.3.12</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 		  <groupId>com.zaxxer</groupId>
 		  <artifactId>HikariCP</artifactId>
 		  <version>4.0.3</version>
