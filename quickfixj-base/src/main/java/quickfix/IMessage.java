@@ -2,6 +2,10 @@ package quickfix;
 
 import java.time.LocalDateTime;
 
+/**
+ * Interface for FIX message implementations.
+ * The standard concrete implementation is {@link Message}
+ */
 public interface IMessage {
 
     String toRawString();
