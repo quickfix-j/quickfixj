@@ -34,7 +34,6 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SystemTime;
 import quickfix.mina.CompositeIoFilterChainBuilder;
-import quickfix.mina.CustomSslFilter;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
@@ -159,9 +158,8 @@ public class IoSessionInitiator {
 
             boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;
 
-            SslFilter sslFilter = null;
             if (sslEnabled) {
-                sslFilter = installSslFilter(ioFilterChainBuilder);
+                installSslFilter(ioFilterChainBuilder);
             }
 
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
@@ -192,17 +190,16 @@ public class IoSessionInitiator {
             ioConnector = newConnector;
         }
 
-        private SslFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
+        private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SslFilter sslFilter = new CustomSslFilter(sslContext, false);
+            final SslFilter sslFilter = new SslFilter(sslContext, false);
             sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
             sslFilter.setEndpointIdentificationAlgorithm(sslConfig.getEndpointIdentificationAlgorithm());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
-            return sslFilter;
         }
 
         @Override
