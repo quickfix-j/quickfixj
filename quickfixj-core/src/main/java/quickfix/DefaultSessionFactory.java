@@ -21,6 +21,8 @@ package quickfix;
 
 import org.quickfixj.QFJException;
 import org.quickfixj.SimpleCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
@@ -37,6 +39,7 @@ import java.util.Set;
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
+    private final static Logger log = LoggerFactory.getLogger(DefaultSessionFactory.class);
     private static final SimpleCache<String, DataDictionary> dictionaryCache = new SimpleCache<>(path -> {
         try {
             return new DataDictionary(path);
@@ -319,7 +322,16 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER));
         }
 
+        validateValidationSettings(validationSettings);
+
         return validationSettings;
+    }
+
+    private void validateValidationSettings(ValidationSettings validationSettings) {
+        if (validationSettings.isFirstFieldInGroupIsDelimiter() && validationSettings.isCheckUnorderedGroupFields()) {
+            log.warn("Setting " + Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER
+                    + " requires " + Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS + " to be set to false");
+        }
     }
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
