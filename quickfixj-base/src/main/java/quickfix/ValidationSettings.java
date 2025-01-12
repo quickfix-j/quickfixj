@@ -25,6 +25,7 @@ public class ValidationSettings {
     boolean checkUserDefinedFields = true;
     boolean checkUnorderedGroupFields = true;
     boolean allowUnknownMessageFields = false;
+    boolean fieldValidationLogging = false;
 
     public ValidationSettings() {}
 
@@ -34,6 +35,7 @@ public class ValidationSettings {
         this.checkUserDefinedFields = validationSettings.checkUserDefinedFields;
         this.checkUnorderedGroupFields = validationSettings.checkUnorderedGroupFields;
         this.allowUnknownMessageFields = validationSettings.allowUnknownMessageFields;
+        this.fieldValidationLogging = validationSettings.fieldValidationLogging;
     }
 
     /**
@@ -65,6 +67,10 @@ public class ValidationSettings {
         return allowUnknownMessageFields;
     }
 
+    public boolean isFieldValidationLogging() {
+        return fieldValidationLogging;
+    }
+
     /**
      * Controls whether group fields are in the same order
      *
@@ -94,5 +100,9 @@ public class ValidationSettings {
 
     public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
         allowUnknownMessageFields = allowUnknownFields;
+    }
+
+    public void setFieldValidationLogging(boolean fieldValidation) {
+        fieldValidationLogging = fieldValidation;
     }
 }

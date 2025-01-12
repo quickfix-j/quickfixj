@@ -323,6 +323,8 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";
 
+    public static final String SETTING_FIELD_VALIDATION_LOGGING = "FieldValidationLogging";
+
     public static final String SETTING_DEFAULT_APPL_VER_ID = "DefaultApplVerID";
 
     /**
@@ -1061,7 +1063,8 @@ public class Session implements Closeable {
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
                     DataDictionary.validate(message, sessionDataDictionary,
-                            applicationDataDictionary, validationSettings);
+                            applicationDataDictionary, validationSettings,
+                            text -> getLog().onWarnEvent("incoming message " + text + ": " + getMessageToLog(message)));
                 } catch (final IncorrectTagValue e) {
                     if (rejectInvalidMessage) {
                         throw e;
