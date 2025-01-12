@@ -2339,7 +2339,11 @@ public class Session implements Closeable {
 
     private void resendMessages(Message receivedMessage, int beginSeqNo, int endSeqNo)
             throws IOException, InvalidMessage, FieldNotFound {
-
+        int lastEndSeqNoSent = resendRequestChunkSize == 0 ? endSeqNo : beginSeqNo + resendRequestChunkSize - 1;
+        if (lastEndSeqNoSent > endSeqNo) {
+            lastEndSeqNoSent = endSeqNo;
+        }
+        endSeqNo = lastEndSeqNoSent;
         final ArrayList<String> messages = new ArrayList<>();
         try {
             state.get(beginSeqNo, endSeqNo, messages);
