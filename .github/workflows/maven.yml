@@ -1,9 +1,12 @@
 name: Java CI
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
     types: [reopened, opened, synchronize]
+  schedule:
+    - cron:  '30 3 * * *'
 
 jobs:
   test:
