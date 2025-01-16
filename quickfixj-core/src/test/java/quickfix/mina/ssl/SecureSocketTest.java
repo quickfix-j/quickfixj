@@ -19,16 +19,16 @@
 
 package quickfix.mina.ssl;
 
-import junit.framework.TestCase;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
-import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
 import quickfix.Session;
 import quickfix.SessionID;
@@ -43,14 +43,20 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class SecureSocketTest extends TestCase {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class SecureSocketTest {
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final int transportProtocol = ProtocolFactory.SOCKET;
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
 
+    @Test
     public void testLogonWithBadCertificate() throws Exception {
         ServerThread serverThread = new ServerThread("nonexistent", "pwd");
         try {
@@ -85,10 +91,12 @@ public class SecureSocketTest extends TestCase {
         }
     }
 
+    @Test
     public void testLogonWithDefaultCertificate() throws Exception {
         doLogonTest(null, null);
     }
 
+    @Test
     public void testLogonWithCustomCertificate() throws Exception {
         doLogonTest("test.keystore", "quickfixjtestpw");
     }
@@ -103,6 +111,7 @@ public class SecureSocketTest extends TestCase {
      * so that it's not cached by another test so that there are no false failures.
      * The test-client.keystore key store is just a copy of test.keystore under a different name.
      */
+    @Test
     public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
@@ -177,14 +186,8 @@ public class SecureSocketTest extends TestCase {
     }
 
     private class ClientApplication extends ApplicationAdapter {
-        public CountDownLatch logonLatch;
-        private Initiator initiator;
-        private boolean stopAfterLogon;
 
-        //public void stopAfterLogon(Initiator initiator) {
-        //    this.initiator = initiator;
-        //    this.stopAfterLogon = true;
-        //}
+        public CountDownLatch logonLatch;
 
         public void setUpLogonExpectation() {
             logonLatch = new CountDownLatch(1);
@@ -195,14 +198,11 @@ public class SecureSocketTest extends TestCase {
                 log.info("Releasing logon latch");
                 logonLatch.countDown();
             }
-            if (stopAfterLogon) {
-                log.info("Stopping after logon");
-                initiator.stop();
-            }
         }
     }
 
     private class ServerThread extends Thread {
+
         private final ATServer server;
 
         public ServerThread(String keyStoreName, String keyStorePassword) {
@@ -223,5 +223,4 @@ public class SecureSocketTest extends TestCase {
             server.waitForInitialization();
         }
     }
-
 }
