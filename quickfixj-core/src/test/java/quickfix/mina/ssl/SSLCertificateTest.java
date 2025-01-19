@@ -63,8 +63,8 @@ import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import quickfix.mina.SocksProxyServer;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class SSLCertificateTest {
 
@@ -191,7 +191,7 @@ public class SSLCertificateTest {
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-cn.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -226,7 +226,7 @@ public class SSLCertificateTest {
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-sni.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -786,7 +786,7 @@ public class SSLCertificateTest {
             assertSslExceptionThrown(null, null);
         }
 
-        public void assertSslExceptionThrown(String errorMessage, Class<?> errorType) throws Exception {
+        public void assertSslExceptionThrown(String expectedErrorMessage, Class<?> expectedErrorType) throws Exception {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
@@ -795,12 +795,14 @@ public class SSLCertificateTest {
 
             Throwable throwable = exception.get();
 
-            if (errorMessage != null) {
-                assertEquals(errorMessage, throwable.getMessage());
+            if (expectedErrorMessage != null) {
+                String thrownErrorMessage = throwable.getMessage();
+                assertTrue("Thrown error message: " + thrownErrorMessage + " does not contain: " + expectedErrorMessage,
+                    thrownErrorMessage != null && thrownErrorMessage.contains(expectedErrorMessage));
             }
 
-            if (errorType != null) {
-                assertSame(errorType, throwable.getClass());
+            if (expectedErrorType != null) {
+                assertSame(expectedErrorType, throwable.getClass());
             }
         }
 
