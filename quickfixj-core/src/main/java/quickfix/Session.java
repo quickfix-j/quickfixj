@@ -209,6 +209,12 @@ public class Session implements Closeable {
     public static final String SETTING_VALIDATE_UNORDERED_GROUP_FIELDS = "ValidateUnorderedGroupFields";
 
     /**
+     * Session validation setting for enabling whether first found field in repeating group will be used as
+     * delimiter. Values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER = "FirstFieldInGroupIsDelimiter";
+
+    /**
      * Session validation setting for enabling whether field values are
      * validated. Empty fields values are not allowed. Values are "Y" or "N".
      * Default is "Y".
