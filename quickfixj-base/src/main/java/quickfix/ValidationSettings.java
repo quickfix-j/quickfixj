@@ -104,7 +104,7 @@ public class ValidationSettings {
 
     /**
      * Controls whether any field which is
-     * first in the group would be used as delimiter
+     * first in the repeating group would be used as delimiter
      *
      * @param flag true = use first field from message, false = follow data dictionary
      * Must be used with disabled {@link #setCheckUnorderedGroupFields(boolean)}
