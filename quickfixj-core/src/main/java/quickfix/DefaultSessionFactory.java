@@ -292,35 +292,23 @@ public class DefaultSessionFactory implements SessionFactory {
     private ValidationSettings createValidationSettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
         ValidationSettings validationSettings = new ValidationSettings();
 
-        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
-            validationSettings.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
-        }
+        validationSettings.setCheckFieldsOutOfOrder(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER), validationSettings.isCheckFieldsOutOfOrder());
 
-        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
-            validationSettings.setCheckFieldsHaveValues(settings.getBool(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
-        }
+        validationSettings.setCheckFieldsHaveValues(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES), validationSettings.isCheckFieldsHaveValues());
 
-        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
-            validationSettings.setCheckUnorderedGroupFields(settings.getBool(sessionID,
-                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
-        }
+        validationSettings.setCheckUnorderedGroupFields(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS), validationSettings.isCheckUnorderedGroupFields());
 
-        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
-            validationSettings.setCheckUserDefinedFields(settings.getBool(sessionID,
-                    Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
-        }
+        validationSettings.setCheckUserDefinedFields(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_VALIDATE_USER_DEFINED_FIELDS), validationSettings.isCheckUserDefinedFields());
 
-        if (settings.isSetting(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS)) {
-            validationSettings.setAllowUnknownMessageFields(settings.getBool(sessionID,
-                    Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
-        }
+        validationSettings.setAllowUnknownMessageFields(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS), validationSettings.isAllowUnknownMessageFields());
 
-        if (settings.isSetting(sessionID, Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER)) {
-            validationSettings.setFirstFieldInGroupIsDelimiter(settings.getBool(sessionID,
-                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER));
-        }
+        validationSettings.setFirstFieldInGroupIsDelimiter(settings.getBoolOrDefault(sessionID,
+                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER), validationSettings.isFirstFieldInGroupIsDelimiter());
 
         validateValidationSettings(validationSettings);
 
