@@ -293,22 +293,22 @@ public class DefaultSessionFactory implements SessionFactory {
         ValidationSettings validationSettings = new ValidationSettings();
 
         validationSettings.setCheckFieldsOutOfOrder(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER), validationSettings.isCheckFieldsOutOfOrder());
+                    Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER, validationSettings.isCheckFieldsOutOfOrder());
 
         validationSettings.setCheckFieldsHaveValues(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES), validationSettings.isCheckFieldsHaveValues());
+                    Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES, validationSettings.isCheckFieldsHaveValues());
 
         validationSettings.setCheckUnorderedGroupFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS), validationSettings.isCheckUnorderedGroupFields());
+                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS, validationSettings.isCheckUnorderedGroupFields());
 
         validationSettings.setCheckUserDefinedFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_USER_DEFINED_FIELDS), validationSettings.isCheckUserDefinedFields());
+                    Session.SETTING_VALIDATE_USER_DEFINED_FIELDS, validationSettings.isCheckUserDefinedFields());
 
         validationSettings.setAllowUnknownMessageFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS), validationSettings.isAllowUnknownMessageFields());
+                    Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS, validationSettings.isAllowUnknownMessageFields());
 
         validationSettings.setFirstFieldInGroupIsDelimiter(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER), validationSettings.isFirstFieldInGroupIsDelimiter());
+                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER, validationSettings.isFirstFieldInGroupIsDelimiter());
 
         validateValidationSettings(validationSettings);
 
