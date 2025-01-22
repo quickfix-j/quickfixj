@@ -39,8 +39,8 @@ import java.util.Set;
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
-    private final static Logger log = LoggerFactory.getLogger(DefaultSessionFactory.class);
-    private static final SimpleCache<String, DataDictionary> dictionaryCache = new SimpleCache<>(path -> {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultSessionFactory.class);
+    private static final SimpleCache<String, DataDictionary> DICTIONARY_CACHE = new SimpleCache<>(path -> {
         try {
             return new DataDictionary(path);
         } catch (ConfigError e) {
@@ -329,7 +329,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private void validateValidationSettings(ValidationSettings validationSettings) {
         if (validationSettings.isFirstFieldInGroupIsDelimiter() && validationSettings.isCheckUnorderedGroupFields()) {
-            log.warn("Setting " + Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER
+            LOG.warn("Setting " + Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER
                     + " requires " + Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS + " to be set to false");
         }
     }
@@ -401,7 +401,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private DataDictionary getDataDictionary(String path) throws ConfigError {
         try {
-            return dictionaryCache.computeIfAbsent(path);
+            return DICTIONARY_CACHE.computeIfAbsent(path);
         } catch (QFJException e) {
             final Throwable cause = e.getCause();
             if (cause instanceof ConfigError) {
