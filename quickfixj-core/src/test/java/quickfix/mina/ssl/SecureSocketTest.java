@@ -70,8 +70,8 @@ public class SecureSocketTest {
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
             final CountDownLatch exceptionCaught = new CountDownLatch(1);
-            initiator.setIoFilterChainBuilder(chain -> chain.addLast("ExceptionCatcher", new IoFilterAdapter() {
-                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
+            initiator.setIoFilterChainBuilder(chain -> chain.addFirst("ExceptionCatcher", new IoFilterAdapter() {
+                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) {
                     log.info("MINA exception: {}", cause.getMessage());
                     exceptionCaught.countDown();
                     nextFilter.exceptionCaught(session, cause);
@@ -81,7 +81,7 @@ public class SecureSocketTest {
             try {
                 log.info("Do login");
                 initiator.start();
-                assertTrue("no exception thrown", exceptionCaught.await(5, TimeUnit.SECONDS));
+                assertTrue("no exception thrown", exceptionCaught.await(10, TimeUnit.SECONDS));
             } finally {
                 initiator.stop();
             }

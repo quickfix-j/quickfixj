@@ -54,6 +54,7 @@ import java.math.BigInteger;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -819,7 +820,41 @@ public class SSLCertificateTest {
         }
 
         public void stop() {
+            try {
+                logSSLInfo();
+            } catch (Exception e) {
+                LOGGER.error("Failed to log SSL info", e);
+            }
+
             connector.stop();
+        }
+
+        private void logSSLInfo() throws Exception {
+            List<SessionID> sessionsIDs = connector.getSessions();
+            LOGGER.info("All session IDs: {}", sessionsIDs);
+
+            for (SessionID sessionID : sessionsIDs) {
+                Session session = findSession(sessionID);
+
+                if (session == null) {
+                    LOGGER.info("No session found for ID: {}", sessionID);
+                    continue;
+                }
+
+                SSLSession sslSession = findSSLSession(session);
+
+                if (sslSession == null) {
+                    LOGGER.info("No SSL session found for session: {}", session);
+                    continue;
+                }
+
+                Throwable exception = this.exception.get();
+                String exceptionMessage = exception != null ? exception.getMessage() : null;
+                Class<?> exceptionType = exception != null ? exception.getClass() : null;
+
+                LOGGER.info("SSL session info [sessionID={},isLoggedOn={},sslSession={},peerCertificates={},localCertificates={},peerPrincipal={},exceptionMessage={},exceptionType={}]",
+                    sessionID, session.isLoggedOn(), sslSession, sslSession.getPeerCertificates(), sslSession.getLocalCertificates(), sslSession.getPeerPrincipal(), exceptionMessage, exceptionType);
+            }
         }
     }
 
