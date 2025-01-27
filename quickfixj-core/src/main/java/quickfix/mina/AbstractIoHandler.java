@@ -86,6 +86,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 reason = "Socket exception (" + ioSession.getRemoteAddress() + "): " + cause;
             } else {
                 reason = "Socket (" + ioSession.getRemoteAddress() + "): " + cause;
+                if (realCause instanceof org.apache.mina.core.write.WriteException) {
+                    org.apache.mina.core.write.WriteRequest writeRequest = (org.apache.mina.core.write.WriteException)realCause.getRequest();
+                    Object message = writeRequest.getMessage();
+                    log.error("First unwritten message = " + message);
+                }
             }
             disconnectNeeded = true;
         } else if (realCause instanceof CriticalProtocolCodecException) {
