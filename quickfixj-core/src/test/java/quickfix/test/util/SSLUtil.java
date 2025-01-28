@@ -90,6 +90,16 @@ public final class SSLUtil {
         }
     }
 
+    /**
+     * Retrieves the {@link SslHandler} associated with the given {@link Session}.
+     * This method first finds the corresponding {@link IoSession} for the provided session,
+     * then retrieves the {@link SslFilter} from the session's filter chain.
+     * If the filter is found, it returns the {@link SslHandler} stored as an attribute in the {@link IoSession}.
+     *
+     * @param session The session for which to retrieve the {@link SslHandler}.
+     * @return The {@link SslHandler} associated with the session, or {@code null} if either
+     *         the {@link IoSession} or the {@link SslFilter} is not found.
+     */
     public static SslHandler getSSLHandler(Session session) {
         IoSession ioSession = findIoSession(session);
 
@@ -107,6 +117,16 @@ public final class SSLUtil {
         return (SslHandler) ioSession.getAttribute(SSL_HANDLER_ATTRIBUTE_KEY);
     }
 
+    /**
+     * Retrieves the {@link SSLEngine} associated with the given {@link Session}.
+     * This method first retrieves the {@link SslHandler} using {@link #getSSLHandler(Session)},
+     * and then attempts to access the {@link SSLEngine} stored within the {@link SslHandler}
+     * using reflection.
+     *
+     * @param session The session for which to retrieve the {@link SSLEngine}.
+     * @return The {@link SSLEngine} associated with the session, or {@code null} if the
+     *         {@link SslHandler} is not found.
+     */
     public static SSLEngine getSSLEngine(Session session) {
         SslHandler sslHandler = getSSLHandler(session);
 
