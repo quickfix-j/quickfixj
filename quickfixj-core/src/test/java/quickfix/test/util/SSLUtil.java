@@ -17,8 +17,8 @@ import java.security.Principal;
 import java.security.cert.Certificate;
 
 /**
- * A utility class for working with SSL/TLS sessions and retrieving SSL-related information from a {@link Session}. This class provides methods to find the underlying {@link SSLSession}, retrieve peer
- * certificates, and get the peer principal.
+ * A utility class for working with SSL/TLS sessions and retrieving SSL-related information from a {@link Session}.
+ * This class provides methods to find the underlying {@link SSLSession}, retrieve peer certificates, and get the peer principal etc.
  */
 public final class SSLUtil {
 
