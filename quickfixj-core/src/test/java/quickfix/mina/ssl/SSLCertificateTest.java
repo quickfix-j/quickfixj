@@ -20,10 +20,11 @@
 package quickfix.mina.ssl;
 
 import org.apache.mina.core.filterchain.IoFilterAdapter;
-import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.ssl.SslFilter;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Acceptor;
@@ -42,17 +43,18 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.ThreadedSocketAcceptor;
 import quickfix.ThreadedSocketInitiator;
-import quickfix.mina.IoSessionResponder;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -63,14 +65,27 @@ import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import quickfix.mina.SocksProxyServer;
+import quickfix.test.util.SSLUtil;
 
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+@RunWith(Parameterized.class)
 public class SSLCertificateTest {
 
+    @Parameters
+    public static List<Object[]> parameters() {
+        return Arrays.asList(new String[][] {{"TLS_RSA_WITH_AES_128_CBC_SHA", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
+    }
+
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
-    private static final String CIPHER_SUITES_TLS = "TLS_RSA_WITH_AES_128_CBC_SHA";
+    private final String enabledCipherSuites;
+    private final String enabledProtocols;
+
+    public SSLCertificateTest(String enabledCipherSuites, String enabledProtocols) {
+        this.enabledCipherSuites = enabledCipherSuites;
+        this.enabledProtocols = enabledProtocols;
+    }
 
     @After
     public void cleanup() {
@@ -86,14 +101,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -105,7 +120,7 @@ public class SSLCertificateTest {
 
                 acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
                 initiator.stop();
             }
@@ -138,13 +153,13 @@ public class SSLCertificateTest {
         try {
             int port = AvailablePortFinder.getNextAvailable();
             TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                    "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", port));
+                    "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", port));
 
             try {
                 acceptor.start();
 
                 SessionSettings initiatorSettings = createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                        CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(port), "JKS", "JKS");
+                    enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(port), "JKS", "JKS");
 
                 Properties defaults = initiatorSettings.getDefaultProperties();
 
@@ -166,7 +181,7 @@ public class SSLCertificateTest {
 
                     acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                    acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                    acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
                     initiator.stop();
                 }
@@ -185,14 +200,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerNameUsingServerCommonName() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-cn.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-cn.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -204,7 +219,7 @@ public class SSLCertificateTest {
 
                 acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
                 initiator.stop();
             }
@@ -220,14 +235,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerNameUsingSNIExtension() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-sni.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-sni.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -239,7 +254,7 @@ public class SSLCertificateTest {
 
                 acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
                 initiator.stop();
             }
@@ -256,14 +271,14 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
 
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -287,14 +302,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerAndClientCertificates() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -320,14 +335,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerAndClientCertificatesWhenUsingDifferentKeystoreFormats() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-pkcs12.keystore", true,
-                "single-session/server-jceks.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "PKCS12",
+                "single-session/server-jceks.truststore", enabledCipherSuites, enabledProtocols, "PKCS12",
                 "JCEKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/client-jceks.keystore",
-                    "single-session/client-jceks.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA",
+                    "single-session/client-jceks.keystore", enabledCipherSuites, enabledProtocols, "ZULU", "ALFA",
                     Integer.toString(freePort), "JCEKS", "JCEKS"));
 
             try {
@@ -355,20 +370,20 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+            enabledCipherSuites, enabledProtocols));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -416,20 +431,20 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+            enabledCipherSuites, enabledProtocols));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -501,14 +516,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyClientTruststore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -532,14 +547,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerTrustore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -563,14 +578,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadClientCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/server.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -594,14 +609,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/client.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -632,7 +647,7 @@ public class SSLCertificateTest {
 
             TestInitiator sslInitiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU_SSL", "ALFA_SSL", Integer.toString(sslPort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU_SSL", "ALFA_SSL", Integer.toString(sslPort), "JKS", "JKS"));
 
             TestInitiator nonSslInitiator = new TestInitiator(createInitiatorSettings("ZULU_NON_SSL", "ALFA_NON_SSL", nonSslPort));
 
@@ -647,7 +662,7 @@ public class SSLCertificateTest {
 
                 acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"), false);
 
                 nonSslInitiator.assertNoSslExceptionThrown();
                 nonSslInitiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_NON_SSL", "ALFA_NON_SSL"));
@@ -697,21 +712,6 @@ public class SSLCertificateTest {
 
         public abstract SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError;
 
-        private SSLSession findSSLSession(Session session) throws Exception {
-            IoSession ioSession = findIoSession(session);
-
-            if (ioSession == null)
-                return null;
-
-            IoFilterChain filterChain = ioSession.getFilterChain();
-            SslFilter sslFilter = (SslFilter) filterChain.get(SSLSupport.FILTER_NAME);
-
-            if (sslFilter == null)
-                return null;
-
-            return (SSLSession) ioSession.getAttribute(SslFilter.SSL_SECURED);
-        }
-
         private Session findSession(SessionID sessionID) {
             for (Session session : connector.getManagedSessions()) {
                 if (session.getSessionID().equals(sessionID))
@@ -721,23 +721,19 @@ public class SSLCertificateTest {
             return null;
         }
 
-        private IoSession findIoSession(Session session) throws Exception {
-            IoSessionResponder ioSessionResponder = (IoSessionResponder) session.getResponder();
-
-            if (ioSessionResponder == null)
-                return null;
-
-            Field field = IoSessionResponder.class.getDeclaredField("ioSession");
-            field.setAccessible(true);
-
-            return (IoSession) field.get(ioSessionResponder);
-        }
-
-        public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) throws Exception {
+        public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) {
             Session session = findSession(sessionID);
-            SSLSession sslSession = findSSLSession(session);
+            SSLSession sslSession = SSLUtil.findSSLSession(session);
 
-            Certificate[] peerCertificates = sslSession.getPeerCertificates();
+            if (sslSession == null) {
+                throw new AssertionError("No SSL session found: " + sessionID);
+            }
+
+            Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
+
+            if (peerCertificates == null || peerCertificates.length == 0) {
+                throw new AssertionError("Session was not authenticated: " + sslSession);
+            }
 
             for (Certificate peerCertificate : peerCertificates) {
                 if (!(peerCertificate instanceof X509Certificate)) {
@@ -752,35 +748,85 @@ public class SSLCertificateTest {
             throw new AssertionError("Certificate with serial number " + serialNumber + " was not authenticated");
         }
 
-        public void assertNotAuthenticated(SessionID sessionID) throws Exception {
+        public void assertNotAuthenticated(SessionID sessionID) {
+            assertNotAuthenticated(sessionID, true);
+        }
+
+        /**
+         * Asserts that the session associated with the given {@code sessionID} is not authenticated.
+         * The behavior of this method depends on the {@code authOn} parameter:
+         *
+         * <ul>
+         *   <li>If {@code authOn} is {@code true}, the method checks if the SSL session associated
+         *       with the given session ID is still alive. If the SSL session persists beyond the
+         *       specified timeout period, an {@link AssertionError} is thrown.</li>
+         *   <li>If {@code authOn} is {@code false}, the method checks if there are any peer certificates
+         *       associated with the SSL session. If peer certificates are found, an {@link AssertionError}
+         *       is thrown, indicating that the session was authenticated.</li>
+         * </ul>
+         *
+         * @param sessionID the session ID to check for authentication status
+         * @param authOn a flag indicating whether authentication is currently enabled
+         * @throws AssertionError if the session is still authenticated after the timeout period
+         *                       (when {@code authOn} is {@code true}) or if peer certificates are found
+         *                       (when {@code authOn} is {@code false})
+         */
+        public void assertNotAuthenticated(SessionID sessionID, boolean authOn) {
             Session session = findSession(sessionID);
-            SSLSession sslSession = findSSLSession(session);
+            SSLSession sslSession = SSLUtil.findSSLSession(session);
 
-            if (sslSession == null)
+            if (sslSession == null) {
                 return;
+            }
 
-            try {
-                Certificate[] peerCertificates = sslSession.getPeerCertificates();
+            if (authOn) {
+                // when authentication is on, the SSL session maybe still be alive (invalid) for some time
+                long startTime = System.nanoTime();
+
+                while (SSLUtil.findSSLSession(session) != null) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Thread was interrupted", e);
+                    }
+
+                    if (TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - startTime) >= TIMEOUT_SECONDS) {
+                        throw new AssertionError("SSL session still exists for session: " + sessionID);
+                    }
+                }
+            } else {
+                // when authentication is off, there must be no peer certificates
+                Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
 
                 if (peerCertificates != null && peerCertificates.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
-            } catch (SSLPeerUnverifiedException e) {
             }
         }
 
         public void assertLoggedOn(SessionID sessionID) {
             Session session = findSession(sessionID);
 
-            if (!session.isLoggedOn())
-                throw new AssertionError("Session is not logged on");
+            if (session == null) {
+                throw new AssertionError("No session found: " + sessionID);
+            }
+
+            if (!session.isLoggedOn()) {
+                throw new AssertionError("Session is not logged on: " + session);
+            }
         }
 
         public void assertNotLoggedOn(SessionID sessionID) {
             Session session = findSession(sessionID);
 
-            if (session.isLoggedOn())
-                throw new AssertionError("Session is logged on");
+            if (session == null) {
+                throw new AssertionError("No session found: " + sessionID);
+            }
+
+            if (session.isLoggedOn()) {
+                throw new AssertionError("Session is logged on: " + session);
+            }
         }
 
         public void assertSslExceptionThrown() throws Exception {
@@ -829,7 +875,7 @@ public class SSLCertificateTest {
             connector.stop();
         }
 
-        private void logSSLInfo() throws Exception {
+        private void logSSLInfo() {
             List<SessionID> sessionsIDs = connector.getSessions();
             LOGGER.info("All session IDs: {}", sessionsIDs);
 
@@ -841,7 +887,7 @@ public class SSLCertificateTest {
                     continue;
                 }
 
-                SSLSession sslSession = findSSLSession(session);
+                SSLSession sslSession = SSLUtil.findSSLSession(session);
 
                 if (sslSession == null) {
                     LOGGER.info("No SSL session found for session: {}", session);
@@ -851,9 +897,13 @@ public class SSLCertificateTest {
                 Throwable exception = this.exception.get();
                 String exceptionMessage = exception != null ? exception.getMessage() : null;
                 Class<?> exceptionType = exception != null ? exception.getClass() : null;
+                Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
+                Principal peerPrincipal = SSLUtil.getPeerPrincipal(sslSession);
+                SSLEngine sslEngine = SSLUtil.getSSLEngine(session);
+                SSLEngineResult.HandshakeStatus handshakeStatus = sslEngine != null ? sslEngine.getHandshakeStatus() : null;
 
-                LOGGER.info("SSL session info [sessionID={},isLoggedOn={},sslSession={},peerCertificates={},localCertificates={},peerPrincipal={},exceptionMessage={},exceptionType={}]",
-                    sessionID, session.isLoggedOn(), sslSession, sslSession.getPeerCertificates(), sslSession.getLocalCertificates(), sslSession.getPeerPrincipal(), exceptionMessage, exceptionType);
+                LOGGER.info("SSL session info [sessionID={},isLoggedOn={},sslSession={},sslSession.valid={},peerCertificates={},peerPrincipal={},exceptionMessage={},exceptionType={},handshakeStatus={}]",
+                    sessionID, session.isLoggedOn(), sslSession, sslSession.isValid(), peerCertificates, peerPrincipal, exceptionMessage, exceptionType, handshakeStatus);
             }
         }
     }
@@ -1075,15 +1125,7 @@ public class SSLCertificateTest {
     }
 
     private SessionSettings createInitiatorSettings(String senderId, String targetId, int port) {
-        HashMap<Object, Object> defaults = new HashMap<>();
-        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
-        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
-        defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
-        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
-        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
-        defaults.put(Session.SETTING_START_TIME, "00:00:00");
-        defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
+        HashMap<Object, Object> defaults = createDefaults(port);
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, senderId, targetId);
 
@@ -1095,5 +1137,18 @@ public class SSLCertificateTest {
         sessionSettings.setString(sessionID, "TargetCompID", targetId);
 
         return sessionSettings;
+    }
+
+    private static HashMap<Object, Object> createDefaults(int port) {
+        HashMap<Object, Object> defaults = new HashMap<>();
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
+        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
+        return defaults;
     }
 }
