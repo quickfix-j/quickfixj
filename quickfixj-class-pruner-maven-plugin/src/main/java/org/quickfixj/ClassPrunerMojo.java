@@ -80,7 +80,7 @@ public class ClassPrunerMojo extends AbstractMojo {
         }
         
         if (null == fileset) {
-            String errorMsg = "filset must not be null.";
+            String errorMsg = "fileset must not be null.";
             this.getLog().error(errorMsg);
             throw new MojoExecutionException( errorMsg );
         }
@@ -115,7 +115,7 @@ public class ClassPrunerMojo extends AbstractMojo {
         Collections.sort(fileList);
         this.getLog().info(descriptor + "s to delete : " + fileList.size());
         for (String fileName  : fileList) {
-            this.getLog().info("Deleting " + descriptor + " : " + fileName);
+            this.getLog().debug("Deleting " + descriptor + " : " + fileName);
             File file = new File( targetDirectory, fileName );
             Files.delete(file.toPath());
         }
@@ -163,7 +163,7 @@ public class ClassPrunerMojo extends AbstractMojo {
         List<String> fieldList = new ArrayList<String>(fieldNames);
         Collections.sort(fieldList);
         for (String fieldName : fieldList) {
-            this.getLog().info("Found field : " + fieldName);
+            this.getLog().debug("Found field : " + fieldName);
         }
         this.getLog().info("Found field total : " + fieldList.size());
     }
