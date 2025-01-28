@@ -1,12 +1,15 @@
 package quickfix.test.util;
 
 import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.session.AttributeKey;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
+import org.apache.mina.filter.ssl.SslHandler;
 import quickfix.Session;
 import quickfix.mina.IoSessionResponder;
 import quickfix.mina.ssl.SSLSupport;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import java.lang.reflect.Field;
@@ -14,21 +17,30 @@ import java.security.Principal;
 import java.security.cert.Certificate;
 
 /**
- * A utility class for working with SSL/TLS sessions and retrieving SSL-related information
- * from a {@link Session}. This class provides methods to find the underlying {@link SSLSession},
- * retrieve peer certificates, and get the peer principal.
+ * A utility class for working with SSL/TLS sessions and retrieving SSL-related information from a {@link Session}. This class provides methods to find the underlying {@link SSLSession}, retrieve peer
+ * certificates, and get the peer principal.
  */
 public final class SSLUtil {
 
     private static final String IO_SESSION_FIELD_NAME = "ioSession";
+    private static final String SSL_ENGINE_FIELD_NAME = "mEngine";
+    private static final AttributeKey SSL_HANDLER_ATTRIBUTE_KEY = new AttributeKey(SslHandler.class, "handler");
     private static final Field IO_SESSION_FIELD;
+    private static final Field SSL_ENGINE_FIELD;
 
     static {
         try {
             IO_SESSION_FIELD = IoSessionResponder.class.getDeclaredField(IO_SESSION_FIELD_NAME);
             IO_SESSION_FIELD.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Unable to get ioSession field", e);
+            throw new RuntimeException("Unable to get field: " + IO_SESSION_FIELD_NAME, e);
+        }
+
+        try {
+            SSL_ENGINE_FIELD = SslHandler.class.getDeclaredField(SSL_ENGINE_FIELD_NAME);
+            SSL_ENGINE_FIELD.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Unable to get field: " + SSL_ENGINE_FIELD_NAME, e);
         }
     }
 
@@ -41,7 +53,7 @@ public final class SSLUtil {
      * @param session the session from which to retrieve the {@link SSLSession}.
      * @return the {@link SSLSession} if found, or {@code null} if no SSL session is available.
      */
-    public static SSLSession findSSLSession(Session session)  {
+    public static SSLSession findSSLSession(Session session) {
         IoSession ioSession = findIoSession(session);
 
         if (ioSession == null) {
@@ -57,7 +69,6 @@ public final class SSLUtil {
 
         return (SSLSession) ioSession.getAttribute(SslFilter.SSL_SECURED);
     }
-
 
     /**
      * Retrieves the {@link IoSession} associated with the given {@link Session}.
@@ -75,7 +86,38 @@ public final class SSLUtil {
         try {
             return (IoSession) IO_SESSION_FIELD.get(ioSessionResponder);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to get IO session field",e);
+            throw new RuntimeException("Failed to get IO session field", e);
+        }
+    }
+
+    public static SslHandler getSSLHandler(Session session) {
+        IoSession ioSession = findIoSession(session);
+
+        if (ioSession == null) {
+            return null;
+        }
+
+        IoFilterChain filterChain = ioSession.getFilterChain();
+        SslFilter sslFilter = (SslFilter) filterChain.get(SSLSupport.FILTER_NAME);
+
+        if (sslFilter == null) {
+            return null;
+        }
+
+        return (SslHandler) ioSession.getAttribute(SSL_HANDLER_ATTRIBUTE_KEY);
+    }
+
+    public static SSLEngine getSSLEngine(Session session) {
+        SslHandler sslHandler = getSSLHandler(session);
+
+        if (sslHandler == null) {
+            return null;
+        }
+
+        try {
+            return (SSLEngine) SSL_ENGINE_FIELD.get(sslHandler);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to get SSL engine field", e);
         }
     }
 
@@ -83,8 +125,7 @@ public final class SSLUtil {
      * Retrieves the peer certificates from the given {@link SSLSession}.
      *
      * @param sslSession the SSL session from which to retrieve the peer certificates.
-     * @return an array of {@link Certificate} objects representing the peer certificates,
-     *         or {@code null} if the peer is unverified.
+     * @return an array of {@link Certificate} objects representing the peer certificates, or {@code null} if the peer is unverified.
      */
     public static Certificate[] getPeerCertificates(SSLSession sslSession) {
         try {

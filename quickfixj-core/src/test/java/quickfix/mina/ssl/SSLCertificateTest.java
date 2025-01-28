@@ -43,6 +43,8 @@ import quickfix.ThreadedSocketInitiator;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import java.math.BigInteger;
@@ -757,8 +759,9 @@ public class SSLCertificateTest {
             Session session = findSession(sessionID);
             SSLSession sslSession = SSLUtil.findSSLSession(session);
 
-            if (sslSession == null)
+            if (sslSession == null) {
                 return;
+            }
 
             if (authOn) {
                 // when authentication is on, the SSL session maybe still be alive (invalid) for some time
@@ -880,9 +883,11 @@ public class SSLCertificateTest {
                 Class<?> exceptionType = exception != null ? exception.getClass() : null;
                 Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
                 Principal peerPrincipal = SSLUtil.getPeerPrincipal(sslSession);
+                SSLEngine sslEngine = SSLUtil.getSSLEngine(session);
+                SSLEngineResult.HandshakeStatus handshakeStatus = sslEngine != null ? sslEngine.getHandshakeStatus() : null;
 
-                LOGGER.info("SSL session info [sessionID={},isLoggedOn={},sslSession={},sslSession.valid={},peerCertificates={},peerPrincipal={},exceptionMessage={},exceptionType={}]",
-                    sessionID, session.isLoggedOn(), sslSession, sslSession.isValid(), peerCertificates, peerPrincipal, exceptionMessage, exceptionType);
+                LOGGER.info("SSL session info [sessionID={},isLoggedOn={},sslSession={},sslSession.valid={},peerCertificates={},peerPrincipal={},exceptionMessage={},exceptionType={},handshakeStatus={}]",
+                    sessionID, session.isLoggedOn(), sslSession, sslSession.isValid(), peerCertificates, peerPrincipal, exceptionMessage, exceptionType, handshakeStatus);
             }
         }
     }
