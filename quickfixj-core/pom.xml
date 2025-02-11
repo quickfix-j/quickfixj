@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-example</artifactId>
-			<version>4.1.117.Final</version>
+			<version>4.1.118.Final</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
