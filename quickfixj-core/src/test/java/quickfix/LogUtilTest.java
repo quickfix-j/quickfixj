@@ -69,7 +69,7 @@ public class LogUtilTest {
                 // ignore
                 return null;
             }
-        }, sessionID, null, schedule, mockLogFactory, null, 0);
+        }, sessionID, null, null, schedule, mockLogFactory, null, 0);
         try {
             session.close();
         } catch (IOException e) {

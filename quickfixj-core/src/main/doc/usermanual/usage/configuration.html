@@ -368,6 +368,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD><I>FirstFieldInGroupIsDelimiter</I></TD>
+    <TD>Session validation setting for enabling whether first found field in repeating group will be used as
+        delimiter. Values are "Y" or "N". Default is "N". ValidateUnorderedGroupFields should be set to "N"</TD>
+    <TD>Y<br>
+        N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD><I>ValidateIncomingMessage</I></TD>
     <TD>Allow to bypass the message validation (against the dictionary). Default is "Y".</TD>
     <TD>Y<br>
@@ -508,6 +516,13 @@
     <TD> Host to connect to. Only used with a SocketInitiator </TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
     <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectTimeout</I> </TD>
+
+    <TD> Connection timeout in seconds. Only used with a SocketInitiator </TD>
+    <TD> positive integer </TD>
+    <TD> 60 </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
 

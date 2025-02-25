@@ -38,6 +38,13 @@ import org.junit.rules.ExpectedException;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
 
+/**
+ * NOTE: There are two DataDictionaryTests.
+ * One in quickfixj-base, one in quickfixj-core, which each test
+ * some functionality. This test excludes some test cases that cannot
+ * be tested in this module due to classes that are generated in a 
+ * later step.
+ */
 public class DataDictionaryTest {
 
     @Rule
@@ -646,20 +653,21 @@ public class DataDictionaryTest {
     @Test
     public void testValidateFieldsOutOfOrderForGroups() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
-        dictionary.setCheckUnorderedGroupFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel1);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel1, validationSettings);
 
         Message messageWithGroupLevel2 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel2);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel2, validationSettings);
     }
 
     @Test

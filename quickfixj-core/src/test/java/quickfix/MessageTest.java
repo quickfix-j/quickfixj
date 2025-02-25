@@ -27,6 +27,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import static org.junit.Assert.assertThrows;
+import static quickfix.DataDictionaryTest.getDictionary;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -120,6 +123,7 @@ import quickfix.fix43.NewOrderList;
 import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
+import quickfix.fix44.NewOrderMultileg;
 import quickfix.fix44.Logon.NoMsgTypes;
 import quickfix.fix44.NewOrderCross;
 import quickfix.fix44.NewOrderSingle.NoPartyIDs;
@@ -129,6 +133,12 @@ import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
 
+/**
+ * NOTE: There are two MessageTests. One in quickfixj-base, one in
+ * quickfixj-core, which each test some functionality. This test covers some
+ * test cases that cannot be tested in the quickfixj-base module due to usage of
+ * message classes that are generated later in the compile process.
+ */
 public class MessageTest {
 
     @Rule
@@ -149,13 +159,13 @@ public class MessageTest {
                 HandlInst.AUTOMATED_EXECUTION_INTERVENTION_OK), new Symbol("ORCL"),
                 new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
     }
-    
+
     @Test
     public void testHeaderGroupParsing() throws Exception {
         final Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "627=2\001628=FOO\001628=BAR\001"
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=228\001",
-                DataDictionaryTest.getDictionary());
+                DataDictionaryTest.getDictionary(), new ValidationSettings());
 
         final quickfix.fix44.Message.Header.NoHops hops = new quickfix.fix44.Message.Header.NoHops();
         message.getHeader().getGroup(1, hops);
@@ -176,7 +186,7 @@ public class MessageTest {
         report.set(new EncodedTextLen(text.length()));
         report.set(new EncodedText(text));
 
-        final Message msg = new Message(report.toString(), DataDictionaryTest.getDictionary());
+        final Message msg = new Message(report.toString(), DataDictionaryTest.getDictionary(), new ValidationSettings());
         assertEquals("embedded order", text, msg.getString(EncodedText.FIELD));
     }
 
@@ -186,7 +196,7 @@ public class MessageTest {
             NewOrderSingle order = createNewOrderSingle();
             order.set(new EncodedTextLen(MessageUtils.length(CharsetSupport.getCharsetInstance(), text)));
             order.set(new EncodedText(text));
-            final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
+            final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary(), new ValidationSettings());
             assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
         } finally {
             CharsetSupport.setDefaultCharset();
@@ -210,7 +220,7 @@ public class MessageTest {
         // checksum is not verified in these tests
         final Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=96\001",
-                DataDictionaryTest.getDictionary());
+                DataDictionaryTest.getDictionary(), new ValidationSettings());
 
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "40", BodyLength.FIELD);
@@ -242,7 +252,7 @@ public class MessageTest {
         data += "311=IBM\001";
         data += "318=CAD\001";
         data += "10=037\001";
-        final Message message = new Message(data, DataDictionaryTest.getDictionary());
+        final Message message = new Message(data, DataDictionaryTest.getDictionary(), new ValidationSettings());
 
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "76", BodyLength.FIELD);
@@ -269,8 +279,8 @@ public class MessageTest {
         final ExecutionReport executionReport = new ExecutionReport();
         final DataDictionary dictionary = DataDictionaryTest.getDictionary();
         assertNotNull(dictionary);
-        executionReport.fromString(data, dictionary, true);
-        dictionary.validate(executionReport);
+        executionReport.fromString(data, dictionary, new ValidationSettings(), true);
+        dictionary.validate(executionReport, new ValidationSettings());
     }
 
     @Test
@@ -293,12 +303,12 @@ public class MessageTest {
         final ExecutionReport executionReport = new ExecutionReport();
 
         assertNotNull(dictionary);
-        executionReport.fromString(data1, dictionary, true);
-        dictionary.validate(executionReport);
+        executionReport.fromString(data1, dictionary, new ValidationSettings(), true);
+        dictionary.validate(executionReport, new ValidationSettings());
 
         executionReport.clear();
-        executionReport.fromString(data2, dictionary, true);
-        dictionary.validate(executionReport);
+        executionReport.fromString(data2, dictionary, new ValidationSettings(), true);
+        dictionary.validate(executionReport, new ValidationSettings());
     }
 
     @Test
@@ -313,12 +323,12 @@ public class MessageTest {
         final DataDictionary dictionary = DataDictionaryTest.getDictionary();
         assertNotNull(dictionary);
 
-        executionReport.fromString(data, dictionary, true);
+        executionReport.fromString(data, dictionary, new ValidationSettings(), true);
         final Header.NoHops hops = new Header.NoHops();
         hops.set(new HopCompID("FOO"));
         executionReport.header.addGroup(hops);
 
-        dictionary.validate(executionReport);
+        dictionary.validate(executionReport, new ValidationSettings());
     }
 
     @Test
@@ -331,8 +341,8 @@ public class MessageTest {
         final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50.xml");
         assertNotNull(sessDictionary);
         assertNotNull(appDictionary);
-        mdsfr.fromString(data, sessDictionary, appDictionary, true);
-        DataDictionary.validate(mdsfr, sessDictionary, appDictionary);
+        mdsfr.fromString(data, sessDictionary, appDictionary, new ValidationSettings(), true);
+        DataDictionary.validate(mdsfr, sessDictionary, appDictionary, new ValidationSettings());
     }
     
     @Test
@@ -345,8 +355,9 @@ public class MessageTest {
         final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIXLatest.xml");
         assertNotNull(sessDictionary);
         assertNotNull(appDictionary);
-        mdsfr.fromString(data, sessDictionary, appDictionary, true);
-        DataDictionary.validate(mdsfr, sessDictionary, appDictionary);
+        ValidationSettings dds = new ValidationSettings();
+        mdsfr.fromString(data, sessDictionary, appDictionary, dds, true);
+        DataDictionary.validate(mdsfr, sessDictionary, appDictionary, dds);
     }
 
     @Test
@@ -358,8 +369,8 @@ public class MessageTest {
         final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50.xml");
         assertNotNull(sessionDictionary);
         assertNotNull(appDictionary);
-        logon.fromString(data, sessionDictionary, appDictionary, true);
-        DataDictionary.validate(logon, sessionDictionary, sessionDictionary);
+        logon.fromString(data, sessionDictionary, appDictionary, new ValidationSettings(), true);
+        DataDictionary.validate(logon, sessionDictionary, sessionDictionary, new ValidationSettings());
     }
 
     @Test
@@ -415,7 +426,7 @@ public class MessageTest {
         news.addGroup(relatedSym);
 
         try {
-            new Message(news.toString(), DataDictionaryTest.getDictionary());
+            new Message(news.toString(), DataDictionaryTest.getDictionary(), new ValidationSettings());
         } catch (final InvalidMessage e) {
             // expected
         } catch (final NullPointerException e) {
@@ -429,7 +440,7 @@ public class MessageTest {
         news.set(new Headline("Test"));
         final DataDictionary dictionary = DataDictionaryTest.getDictionary();
         try {
-            dictionary.validate(news);
+            dictionary.validate(news, new ValidationSettings());
             fail("no field exception for missing lines group");
         } catch (final FieldException e) {
             // expected
@@ -466,7 +477,7 @@ public class MessageTest {
             m.setInt(RawDataLength.FIELD, data.length());
             m.setString(RawData.FIELD, data);
             assertEquals(1108 + msgType.getValue().length(), m.bodyLength());
-            final Message m2 = new Message(m.toString(), dictionary);
+            final Message m2 = new Message(m.toString(), dictionary, new ValidationSettings());
             assertEquals(m.bodyLength(), m2.bodyLength());
         } catch (final InvalidMessage e) {
             fail(e.getMessage());
@@ -545,7 +556,7 @@ public class MessageTest {
         final DataDictionary dataDictionary = new DataDictionary("FIX44.xml");
         final Message message = new DefaultMessageFactory()
                 .create(dataDictionary.getVersion(), "D");
-        message.fromString(expectedMessageString, dataDictionary, false);
+        message.fromString(expectedMessageString, dataDictionary, new ValidationSettings(), false);
         final String actualMessageString = message.toString();
         assertTrue(
                 "wrong field ordering",
@@ -777,13 +788,13 @@ public class MessageTest {
         try {
             final DataDictionary dd = DataDictionaryTest.getDictionary();
             final Message m = new Message(
-                    "8=FIXT.1.1\0019=369\00135=W\00149=I\00156=F\00134=4\00152=20111021-15:09:16.535\001" +
-                            "262=1319209757316210\00121=2\00155=EUR/USD\001461=RCSXX=0\001268=8\001" +
-                            "269=0\001270=1.38898\001271=2000000\001269=0\001270=1.38897\001271=8000000\001" +
-                            "269=0\001270=1.38854\001271=2000000\001269=1\001270=1.38855\001271=6000000\001" +
-                            "269=1\001270=1.38856\001271=7000000\001269=1\001270=1.38857\001271=3000000\001" +
-                            "269=1\001270=1.38858\001271=9000000\001269=1\001270=1.38859\001271=100000000\00110=51\001",
-                    dd, true);
+                "8=FIXT.1.1\0019=369\00135=W\00149=I\00156=F\00134=4\00152=20111021-15:09:16.535\001" +
+                "262=1319209757316210\00121=2\00155=EUR/USD\001461=RCSXX=0\001268=8\001" +
+                    "269=0\001270=1.38898\001271=2000000\001269=0\001270=1.38897\001271=8000000\001" +
+                    "269=0\001270=1.38854\001271=2000000\001269=1\001270=1.38855\001271=6000000\001" +
+                    "269=1\001270=1.38856\001271=7000000\001269=1\001270=1.38857\001271=3000000\001" +
+                    "269=1\001270=1.38858\001271=9000000\001269=1\001270=1.38859\001271=100000000\00110=51\001",
+                dd, new ValidationSettings(), true);
             assertEquals(m.getString(461), "RCSXX=0");
             final MarketDataSnapshotFullRefresh.NoMDEntries group = new MarketDataSnapshotFullRefresh.NoMDEntries();
             m.getGroup(1, group);
@@ -802,13 +813,13 @@ public class MessageTest {
         try {
             final DataDictionary dd = DataDictionaryTest.getDictionary();
             final Message m = new Message(
-                    "8=FIXT.1.1\0019=369\00135=W\00149=I\00156=F\00134=4\00152=20111021-15:09:16.535\001" +
-                            "262=1319209757316210\00121=2\00155=EUR/USD\001461=RCSXX=0\001268=8\001" +
-                            "269=0\001270=1.38898\001271=2000000\001269=0\001270=1.38897\001271=8000000\001" +
-                            "269=0\001270=1.38854\001271=2000000\001269=1\001270=1.38855\001271=6000000\001" +
-                            "269=1\001270=1.38856\001271=7000000\001269=1\001270=1.38857\001271=3000000\001" +
-                            "269=1\001270=1.38858\001271=9000000\001269=1\001270=1.38859\001271=100000000\00110=51\001",
-                    dd, true);
+                "8=FIXT.1.1\0019=369\00135=W\00149=I\00156=F\00134=4\00152=20111021-15:09:16.535\001" +
+                "262=1319209757316210\00121=2\00155=EUR/USD\001461=RCSXX=0\001268=8\001" +
+                    "269=0\001270=1.38898\001271=2000000\001269=0\001270=1.38897\001271=8000000\001" +
+                    "269=0\001270=1.38854\001271=2000000\001269=1\001270=1.38855\001271=6000000\001" +
+                    "269=1\001270=1.38856\001271=7000000\001269=1\001270=1.38857\001271=3000000\001" +
+                    "269=1\001270=1.38858\001271=9000000\001269=1\001270=1.38859\001271=100000000\00110=51\001",
+                dd, new ValidationSettings(), true);
             assertEquals(m.getString(461), "RCSXX=0");
             final MarketDataSnapshotFullRefresh.NoMDEntries group = new MarketDataSnapshotFullRefresh.NoMDEntries();
             m.getGroup(1, group);
@@ -879,7 +890,7 @@ public class MessageTest {
             m1.addGroup(leg2);
 
             String s1 = m1.toString();
-            Message parsed1 = new Message(s1, DataDictionaryTest.getDictionary());
+            Message parsed1 = new Message(s1, DataDictionaryTest.getDictionary(), new ValidationSettings());
 
             assertEquals(s1, parsed1.toString());
             assertEquals(2, parsed1.getGroupCount(555));
@@ -902,7 +913,7 @@ public class MessageTest {
             String s2 = m2.toString();
             // do not use validation to parse full message
             // regardless of errors in message structure
-            Message parsed2 = new Message(s2, DataDictionaryTest.getDictionary(), false);
+            Message parsed2 = new Message(s2, DataDictionaryTest.getDictionary(), new ValidationSettings(), false);
 
             assertEquals(s2, parsed2.toString());
             assertEquals(2, parsed2.getGroupCount(555));
@@ -953,22 +964,23 @@ public class MessageTest {
             m1.addGroup(sides);
 
             String s1 = m1.toString();
+            ValidationSettings validationSettings = new ValidationSettings();
             DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
             // parsing without validation should succeed
-            Message parsed1 = new Message(s1, dictionary, false);
+            Message parsed1 = new Message(s1, dictionary, validationSettings,false);
 
             // validation should fail
             int failingTag = 0;
             try {
-                dictionary.validate(parsed1);
+                dictionary.validate(parsed1, validationSettings);
             } catch (FieldException e) {
                 failingTag = e.getField();
             }
             assertEquals(10000, failingTag);
 
             // but without checking user-defined fields, validation should succeed
-            dictionary.setCheckUserDefinedFields(false);
-            dictionary.validate(parsed1);
+            validationSettings.setCheckUserDefinedFields(false);
+            dictionary.validate(parsed1, validationSettings);
 
             assertEquals(s1, parsed1.toString());
             assertEquals(2, parsed1.getGroupCount(555));
@@ -990,20 +1002,21 @@ public class MessageTest {
             String s2 = m2.toString();
             DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
             // parsing without validation should succeed
-            Message parsed2 = new Message(s2, dictionary, false);
+            Message parsed2 = new Message(s2, dictionary, new ValidationSettings(), false);
 
             // validation should fail
             int failingTag = 0;
             try {
-                dictionary.validate(parsed2);
+                dictionary.validate(parsed2, new ValidationSettings());
             } catch (FieldException e) {
                 failingTag = e.getField();
             }
             assertEquals(Text.FIELD, failingTag);
 
             // but without checking for unknown message fields, validation should succeed
-            dictionary.setAllowUnknownMessageFields(true);
-            dictionary.validate(parsed2);
+            ValidationSettings validationSettings = new ValidationSettings();
+            validationSettings.setAllowUnknownMessageFields(true);
+            dictionary.validate(parsed2, validationSettings);
 
             assertEquals(s2, parsed2.toString());
             assertEquals(2, parsed2.getGroupCount(555));
@@ -1041,10 +1054,11 @@ public class MessageTest {
         responseMessage.setField(resultCode);
 
         DataDictionary dd = new DataDictionary(DataDictionaryTest.getDictionary());
+        ValidationSettings validationSettings = new ValidationSettings();
 
         int tagNo = 0;
         try {
-            dd.validate(responseMessage, true);
+            dd.validate(responseMessage, true, validationSettings);
         } catch (FieldException e) {
             tagNo = e.getField();
         }
@@ -1052,9 +1066,9 @@ public class MessageTest {
         // (which is the first field after the invalid 297 field)
         assertEquals(QuoteAckStatus.FIELD, tagNo);
 
-        Message msg2 = new Message(responseMessage.toString(), dd);
+        Message msg2 = new Message(responseMessage.toString(), dd, validationSettings);
         try {
-            dd.validate(msg2, true);
+            dd.validate(msg2, true, validationSettings);
         } catch (FieldException e) {
             tagNo = e.getField();
         }
@@ -1063,7 +1077,7 @@ public class MessageTest {
         assertEquals(QuoteAckStatus.FIELD, tagNo);
 
         // parse message again without validation
-        msg2 = new Message(responseMessage.toString(), dd, false);
+        msg2 = new Message(responseMessage.toString(), dd, validationSettings, false);
         assertEquals(responseMessage.toString(), msg2.toString());
         Group noRelatedSymGroup = new quickfix.fix44.DerivativeSecurityList.NoRelatedSym();
         Group group = responseMessage.getGroup(1, noRelatedSymGroup);
@@ -1087,10 +1101,11 @@ public class MessageTest {
         quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
         // using custom dictionary with user-defined tag 22000
         final DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        dataDictionary.setCheckUserDefinedFields(false);
-        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUserDefinedFields(false);
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, validationSettings, true);
         assertNull(nos.getException());
-        dataDictionary.validate(nos);
+        dataDictionary.validate(nos, validationSettings);
 
         // defined tag should be set on the message
         assertTrue(nos.isSetField(22000));
@@ -1115,10 +1130,11 @@ public class MessageTest {
 
         quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
         final DataDictionary dataDictionary = new DataDictionary(DataDictionaryTest.getDictionary());
-        dataDictionary.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUserDefinedFields(false);
 
         // When
-        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, validationSettings, true);
 
         // Then
         FieldException e = nos.getException();
@@ -1141,10 +1157,11 @@ public class MessageTest {
         quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
         // using custom dictionary with user-defined tag 22000
         final DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        dataDictionary.setCheckUserDefinedFields(false);
-        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUserDefinedFields(false);
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, validationSettings, true);
         assertNull(nos.getException());
-        dataDictionary.validate(nos);
+        dataDictionary.validate(nos, validationSettings);
 
         // defined tag should be set on the message
         assertTrue(nos.isSetField(22000));
@@ -1191,9 +1208,10 @@ public class MessageTest {
          */
         String s = tcr.toString();
         DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
-        dictionary.setCheckUnorderedGroupFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUnorderedGroupFields(false);
         // without checking order of repeating group it should work
-        Message parsed = new Message(s, dictionary);
+        Message parsed = new Message(s, dictionary, validationSettings);
         FieldException exception = parsed.getException();
         assertNull(exception);
 
@@ -1201,7 +1219,7 @@ public class MessageTest {
 
         dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
         // when checking order of repeating group, an error should be reported
-        parsed = new Message(s, dictionary);
+        parsed = new Message(s, dictionary, new ValidationSettings());
         exception = parsed.getException();
         assertEquals(654, exception.getField());
         // but we still should have the repeating group set and not ignore it
@@ -1212,11 +1230,12 @@ public class MessageTest {
     @Test
     public void testRepeatingGroupCountWithNonIntegerValues() throws Exception {
         DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        ValidationSettings validationSettings = new ValidationSettings();
         Message ioi = new quickfix.fix50.IOI();
         ioi.setString(quickfix.field.NoPartyIDs.FIELD, "abc");
         final String invalidCountMessage = ioi.toString();
         try {
-            Message message = new Message(invalidCountMessage, dictionary);
+            Message message =  new Message(invalidCountMessage, dictionary, validationSettings);
         } catch (final InvalidMessage im) {
             assertNotNull("InvalidMessage correctly thrown", im);
         } catch (final Throwable e) {
@@ -1244,7 +1263,6 @@ public class MessageTest {
     @Test
     public void shouldConvertToXmlWhenDataDictionaryLoadedWithExternalDTD() throws ConfigError {
         DataDictionary dataDictionary = new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
-
         Message message = new Message();
         message.setString(Account.FIELD, "test-account");
 
@@ -1279,6 +1297,7 @@ public class MessageTest {
     public void testValidateFieldsOutOfOrderFIXT11() throws Exception {
         final DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIXT11.xml");
         final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50SP2.xml");
+        final ValidationSettings dds = new ValidationSettings();
         assertNotNull(sessDictionary);
         assertNotNull(appDictionary);
         assertNotEquals(appDictionary.getVersion(),  sessDictionary.getVersion());
@@ -1295,15 +1314,14 @@ public class MessageTest {
                 "54=2\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093757876\u0001" +
                 "10=129\u0001";
         final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
-        tcrOrdered.fromString(orderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrOrdered, sessDictionary, appDictionary);
+        tcrOrdered.fromString(orderedData, sessDictionary, appDictionary, dds, true);
+        DataDictionary.validate(tcrOrdered, sessDictionary, appDictionary, dds);
         // As this is our reference message created with all validations switched on, make sure some message components
         // are as expected
         assertEquals(tcrOrdered.getHeader().getGroupCount(NoHops.FIELD), 2);
         assertEquals(tcrOrdered.getGroupCount(NoSides.FIELD), 2);
 
-        sessDictionary.setCheckFieldsOutOfOrder(false);
-        appDictionary.setCheckFieldsOutOfOrder(false);
+        dds.setCheckFieldsOutOfOrder(false);
 
         String unorderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u0001" +
                 "15=AUD\u000122=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001381=135000\u0001461=Exxxxx\u0001487=0\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u00011003=1120000338\u00011015=0\u00011301=XASX\u0001" +
@@ -1315,8 +1333,8 @@ public class MessageTest {
                 "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
                 "10=129\u0001";
         TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1330,8 +1348,8 @@ public class MessageTest {
                 "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001" +
                 "10=129\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1347,8 +1365,8 @@ public class MessageTest {
                 "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001" +
                 "10=129\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1357,6 +1375,7 @@ public class MessageTest {
     @Test
     public void testValidateFieldsOutOfOrderPreFIXT11() throws Exception {
         final DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIX44.xml");
+        final ValidationSettings dds = new ValidationSettings();
         assertNotNull(sessDictionary);
 
         final String orderedData =
@@ -1369,8 +1388,8 @@ public class MessageTest {
                         + "54=2\u000137=OrderID2\u000111=7533509260093757876\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u0001"
                         + "10=191\u0001";
         final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
-        tcrOrdered.fromString(orderedData, sessDictionary, true);
-        DataDictionary.validate(tcrOrdered, sessDictionary, sessDictionary);
+        tcrOrdered.fromString(orderedData, sessDictionary, dds, true);
+        DataDictionary.validate(tcrOrdered, sessDictionary, sessDictionary, dds);
 
         // As this is our reference message created with all validations switched on,
         // make sure some message components
@@ -1378,7 +1397,7 @@ public class MessageTest {
         assertEquals(tcrOrdered.getHeader().getGroupCount(NoHops.FIELD), 2);
         assertEquals(tcrOrdered.getGroupCount(NoSides.FIELD), 2);
 
-        sessDictionary.setCheckFieldsOutOfOrder(false);
+        dds.setCheckFieldsOutOfOrder(false);
 
         String unorderedData = "8=FIX.4.4\u00019=551\u000135=AE\u0001"
                 + "22=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001461=Exxxxx\u0001487=0\u0001570=N\u0001571=TradeReportID\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u0001"
@@ -1390,8 +1409,8 @@ public class MessageTest {
                 + "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u0001"
                 + "10=191\u0001";
         TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1406,8 +1425,8 @@ public class MessageTest {
 
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1424,11 +1443,70 @@ public class MessageTest {
                 + "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001"
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
+    }
 
+    @Test
+    public void testFirstFieldInGroupIsDelimiter() throws Exception {
+
+        final DataDictionary dataDictionary = new DataDictionary(getDictionary());
+        ValidationSettings validationSettings = new ValidationSettings();
+
+        String fixMsg = "8=FIX.4.4\u00019=688\u000135=AB\u000149=AAA\u000156=BBB\u000134=21133\u000150=ABCABC" +
+                "\u000152=20230905-13:24:37.022\u000155=AAPL\u00011=ACC1\u000111=123456abcedf\u000121=1\u000138=5\u000154=1\u000140=2\u000144=-0.8" +
+                "\u000159=0\u000160=20230905-13:24:36.984\u0001100=ALGO\u0001167=MLEG\u0001555=3\u0001602=111\u0001600=AAA" +
+                "\u0001602=222\u0001654=231\u0001600=BBB\u0001602=333\u0001654=332\u0001600=CCC\u000158=TEXT\u000110=168\u0001";
+
+        String byDictFixMsg = "8=FIX.4.4\u00019=688\u000135=AB\u000149=AAA\u000156=BBB\u000134=21133\u000150=ABCABC" +
+                "\u000152=20230905-13:24:37.022\u000155=AAPL\u00011=ACC1\u000111=123456abcedf\u000121=1\u000138=5\u000154=1\u000140=2\u000144=-0.8" +
+                "\u000159=0\u000160=20230905-13:24:36.984\u0001100=ALGO\u0001167=MLEG\u0001555=3\u0001600=AAA\u0001602=111" +
+                "\u0001600=BBB\u0001602=222\u0001654=231\u0001600=CCC\u0001602=333\u0001654=332\u000158=TEXT\u000110=168\u0001";
+
+        validationSettings.setFirstFieldInGroupIsDelimiter(true);
+        validationSettings.setCheckUnorderedGroupFields(false);
+        final NewOrderMultileg noml1 = new NewOrderMultileg();
+        noml1.fromString(fixMsg, dataDictionary, validationSettings, true);
+        dataDictionary.validate(noml1, validationSettings);
+        assertTrue(noml1.hasGroup(555));
+        assertEquals(3, noml1.getGroupCount(555));
+        //when firstFieldInGroupIsDelimiter = true and setCheckUnorderedGroupFields = false - valid
+        //delimiter should be first tag in group
+        assertEquals(602, noml1.getGroup(1, 555).delim());
+
+        validationSettings.setFirstFieldInGroupIsDelimiter(false);
+        validationSettings.setCheckUnorderedGroupFields(false);
+        final NewOrderMultileg noml2 = new NewOrderMultileg();
+        noml2.fromString(fixMsg, dataDictionary, validationSettings, true);
+        //when firstFieldInGroupIsDelimiter = false and setCheckUnorderedGroupFields = false - exception is thrown
+        assertThrows(FieldException.class, () -> dataDictionary.validate(noml2, validationSettings));
+
+        validationSettings.setFirstFieldInGroupIsDelimiter(false);
+        validationSettings.setCheckUnorderedGroupFields(true);
+        final NewOrderMultileg noml3 = new NewOrderMultileg();
+        noml3.fromString(fixMsg, dataDictionary, validationSettings, true);
+        //when firstFieldInGroupIsDelimiter = false and setCheckUnorderedGroupFields = true - exception is thrown
+        assertThrows(FieldException.class, () -> dataDictionary.validate(noml3, validationSettings));
+
+        validationSettings.setFirstFieldInGroupIsDelimiter(true);
+        validationSettings.setCheckUnorderedGroupFields(true);
+        final NewOrderMultileg noml4 = new NewOrderMultileg();
+        noml4.fromString(fixMsg, dataDictionary, validationSettings, true);
+        //when firstFieldInGroupIsDelimiter = true and setCheckUnorderedGroupFields = true - exception is thrown, since order of tags is incorrect.
+        assertThrows(FieldException.class, () -> dataDictionary.validate(noml4, validationSettings));
+
+        validationSettings.setFirstFieldInGroupIsDelimiter(true);
+        validationSettings.setCheckUnorderedGroupFields(true);
+        final NewOrderMultileg noml5 = new NewOrderMultileg();
+        noml5.fromString(byDictFixMsg, dataDictionary, validationSettings, true);
+        //when firstFieldInGroupIsDelimiter = true and setCheckUnorderedGroupFields = true, message aligns with dictionary - do NOT fail
+        dataDictionary.validate(noml5, validationSettings);
+        assertTrue(noml5.hasGroup(555));
+        assertEquals(3, noml5.getGroupCount(555));
+        //delimiter should be dictionary first tag = 600
+        assertEquals(600, noml5.getGroup(1, 555).delim());
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)

@@ -643,7 +643,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
             } else {
                 count = getField(countTag);
             }
-            count.setValue(Integer.toString(groupSize));
+            count.setValue(NumbersCache.get(groupSize));
         } catch (final FieldNotFound e) {
             // Shouldn't happen
             throw new RuntimeError(e);
