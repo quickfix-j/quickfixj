@@ -73,7 +73,7 @@
 		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
-		<maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version>
+		<maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.4.2</maven-jar-plugin-version>
 		<maven-surefire-plugin-version>3.5.2</maven-surefire-plugin-version>
 		<maven-pmd-plugin-version>3.26.0</maven-pmd-plugin-version>
