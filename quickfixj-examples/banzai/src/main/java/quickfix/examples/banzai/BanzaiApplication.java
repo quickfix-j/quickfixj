@@ -223,17 +223,34 @@ public class BanzaiApplication implements Application {
         }
 
         OrdStatus ordStatus = (OrdStatus) message.getField(new OrdStatus());
-
+            //handles reject
         if (ordStatus.valueEquals(OrdStatus.REJECTED)) {
             order.setRejected(true);
             order.setOpen(0);
+            //handles cancel
         } else if (ordStatus.valueEquals(OrdStatus.CANCELED)
                 || ordStatus.valueEquals(OrdStatus.DONE_FOR_DAY)) {
             order.setCanceled(true);
             order.setOpen(0);
+            //handles new
         } else if (ordStatus.valueEquals(OrdStatus.NEW)) {
             if (order.isNew()) {
                 order.setNew(false);
+            }
+            // handles replace
+        } else if (ordStatus.valueEquals(OrdStatus.REPLACED)) {
+            OrderQty orderQty = new OrderQty();
+            message.getField(orderQty);
+            order.setQuantity((int) orderQty.getValue());
+            if (message.isSetField(Price.FIELD)) {
+                Price price = new Price();
+                message.getField(price);
+                order.setLimit(price.getValue());
+            }
+            if (message.isSetField(StopPx.FIELD)) {
+                StopPx stopPx = new StopPx();
+                message.getField(stopPx);
+                order.setStop(stopPx.getValue());
             }
         }
 
