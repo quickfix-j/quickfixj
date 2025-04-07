@@ -241,13 +241,22 @@ public class BanzaiApplication implements Application {
         } else if (ordStatus.valueEquals(OrdStatus.REPLACED)) {
             OrderQty orderQty = new OrderQty();
             message.getField(orderQty);
-            order.setQuantity((int) orderQty.getValue());
-            if (message.isSetField(Price.FIELD)) {
+            order.setQuantity((int)orderQty.getValue());
+
+            LeavesQty leavesQty = new LeavesQty();
+            message.getField(leavesQty);
+            order.setOpen((int)leavesQty.getValue());
+
+            CumQty cumQty = new CumQty();
+            message.getField(cumQty);
+            order.setExecuted((int)cumQty.getValue());
+
+            if (message.isSetField(Price.FIELD)){
                 Price price = new Price();
                 message.getField(price);
                 order.setLimit(price.getValue());
             }
-            if (message.isSetField(StopPx.FIELD)) {
+            if (message.isSetField(StopPx.FIELD)){
                 StopPx stopPx = new StopPx();
                 message.getField(stopPx);
                 order.setStop(stopPx.getValue());
