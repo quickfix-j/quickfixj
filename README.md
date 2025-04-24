@@ -320,3 +320,71 @@ Many integrations require specialisation of the FIX Messages, Components and/or 
 ![image info](./src/main/puml/custom_dependencies.png)
 
 ![image info](./src/main/puml/custom_dependencies_fixt11_fixlatest.png)
+
+### Using SNAPSHOTs
+
+The nightly SNAPSHOT releases are available on **GitHub Packages**. 
+GitHub Packages requires authentication - even for public repositories. 
+You need to use a [Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) 
+with `read:packages` permission.
+
+#### Maven Setup:
+
+Add the authentication part to your `settings.xml` file in `servers`:
+
+```xml
+<!--settings.xml-->
+<servers>
+  <server>
+    <id>github-quickfixj</id>
+    <username>USERNAME</username> <!-- Your GitHub username -->
+    <password>GITHUB_PAT</password> <!-- Your GitHub PAT -->
+  </server>
+</servers>
+```
+
+Add the GitHub Packages repository in `repositories` and the desired `SNAPSHOT` version in `dependencies`:
+
+```xml
+<!--pom.xml-->
+<repositories>
+  <repository>
+    <id>github-quickfixj</id>
+    <name>GitHub Packages for quickfixj</name>
+    <url>https://maven.pkg.github.com/quickfixj/quickfixj</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+
+  <!-- other repositories-->
+</repositories>
+
+
+<dependencies>
+  <dependency>
+    <groupId>org.quickfixj</groupId>
+    <artifactId>quickfixj-all</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </dependency>
+  
+  <!-- other dependencies-->
+</dependencies>
+```
+
+#### Gradle Setup (groovy):
+
+Add the following to your `build.gradle` file:
+
+```groovy
+//build.gradle
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/quickfixj/quickfixj")
+        credentials {
+            username = "USERNAME" // Your GitHub username
+            password = "GITHUB_PAT" // Your GitHub PAT
+        }
+    }
+}
+```
