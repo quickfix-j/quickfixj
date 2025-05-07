@@ -65,7 +65,7 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>3.0</hamcrest.version>
-		<junit.jupiter.version>5.12.0</junit.jupiter.version>
+		<junit.jupiter.version>5.12.2</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
@@ -75,7 +75,7 @@
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.4.2</maven-jar-plugin-version>
-		<maven-surefire-plugin-version>3.5.2</maven-surefire-plugin-version>
+		<maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
 		<maven-pmd-plugin-version>3.26.0</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.3.1</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.11.2</maven-javadoc-plugin-version>
@@ -87,7 +87,7 @@
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.6.0</build-helper-maven-plugin-version>
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
-		<file-management.version>3.0.0</file-management.version>
+		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.1</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
@@ -98,7 +98,7 @@
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>4.0.2</jaxb.version>
 		<apache.mina.version>2.2.4</apache.mina.version>
-		<commons.io.version>2.18.0</commons.io.version>
+		<commons.io.version>2.19.0</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<proxool.version>0.9.1</proxool.version>
