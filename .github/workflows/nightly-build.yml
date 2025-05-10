@@ -1,0 +1,27 @@
+name: Java SNAPSHOT Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  release-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          cache: 'maven'
+
+      - name: Build and Publish SNAPSHOT
+        run: ./mvnw deploy -B -V -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }} -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
