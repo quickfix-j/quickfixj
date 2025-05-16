@@ -351,7 +351,7 @@ Add the GitHub Packages repository in `repositories` and the desired `SNAPSHOT` 
   <repository>
     <id>github-quickfixj</id>
     <name>GitHub Packages for quickfixj</name>
-    <url>https://maven.pkg.github.com/quickfixj/quickfixj</url>
+    <url>https://maven.pkg.github.com/quickfix-j/quickfixj</url>
     <snapshots>
       <enabled>true</enabled>
     </snapshots>
@@ -380,7 +380,7 @@ Add the following to your `build.gradle` file:
 //build.gradle
 repositories {
     maven {
-        url = uri("https://maven.pkg.github.com/quickfixj/quickfixj")
+        url = uri("https://maven.pkg.github.com/quickfix-j/quickfixj")
         credentials {
             username = "USERNAME" // Your GitHub username
             password = "GITHUB_PAT" // Your GitHub PAT
