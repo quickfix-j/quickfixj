@@ -605,8 +605,9 @@
 	</profiles>
 	<distributionManagement>
 		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<id>github</id>
+			<name>GitHub Packages - Snapshots</name>
+			<url>https://maven.pkg.github.com/quickfix-j/quickfixj</url>
 		</snapshotRepository>
 		<repository>
 			<id>ossrh</id>
