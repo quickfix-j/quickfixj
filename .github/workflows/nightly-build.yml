@@ -28,3 +28,36 @@ jobs:
         run: ./mvnw deploy -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old packages
+        uses: SmartsquareGmbH/delete-old-packages@v0.8.1
+        with:
+          organization: quickfix-j
+          type: maven
+          names: |
+            org.quickfixj.quickfixj-all
+            org.quickfixj.quickfixj-base
+            org.quickfixj.quickfixj-class-pruner-maven-plugin
+            org.quickfixj.quickfixj-codegenerator
+            org.quickfixj.quickfixj-core
+            org.quickfixj.quickfixj-dictgenerator
+            org.quickfixj.quickfixj-distribution
+            org.quickfixj.quickfixj-examples
+            org.quickfixj.quickfixj-examples-banzai
+            org.quickfixj.quickfixj-examples-executor
+            org.quickfixj.quickfixj-examples-ordermatch
+            org.quickfixj.quickfixj-messages
+            org.quickfixj.quickfixj-messages-all
+            org.quickfixj.quickfixj-messages-fix40
+            org.quickfixj.quickfixj-messages-fix41
+            org.quickfixj.quickfixj-messages-fix42
+            org.quickfixj.quickfixj-messages-fix43
+            org.quickfixj.quickfixj-messages-fix44
+            org.quickfixj.quickfixj-messages-fix50
+            org.quickfixj.quickfixj-messages-fix50sp1
+            org.quickfixj.quickfixj-messages-fix50sp2
+            org.quickfixj.quickfixj-messages-fixlatest
+            org.quickfixj.quickfixj-messages-fixt11
+            org.quickfixj.quickfixj-orchestration
+            org.quickfixj.quickfixj-parent
+            org.quickfixj.quickfixj-perf-test
