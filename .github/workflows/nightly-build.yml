@@ -32,7 +32,7 @@ jobs:
       - name: Delete old packages
         uses: SmartsquareGmbH/delete-old-packages@v0.8.1
         with:
-          user: quickfixj
+          organization: quickfix-j
           type: maven
           names: |
             org.quickfixj.quickfixj-all
