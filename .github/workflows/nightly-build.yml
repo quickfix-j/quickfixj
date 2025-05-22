@@ -17,18 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: maven
-
-      - name: Build and Publish SNAPSHOT
-        run: ./mvnw deploy -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Delete old packages
         uses: SmartsquareGmbH/delete-old-packages@v0.8.1
         with:
@@ -62,3 +50,15 @@ jobs:
             org.quickfixj.quickfixj-orchestration
             org.quickfixj.quickfixj-parent
             org.quickfixj.quickfixj-perf-test
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and Publish SNAPSHOT
+        run: ./mvnw deploy -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
