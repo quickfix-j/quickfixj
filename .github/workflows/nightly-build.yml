@@ -34,6 +34,7 @@ jobs:
         with:
           organization: quickfix-j
           type: maven
+          keep: 0
           names: |
             org.quickfixj.quickfixj-all
             org.quickfixj.quickfixj-base
