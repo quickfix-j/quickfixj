@@ -51,6 +51,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -158,6 +161,19 @@ public class SessionTest {
             
             verify(mockLog, atLeastOnce()).onEvent(anyString());
             verifyNoMoreInteractions(mockLog);
+        }
+    }
+
+    private static class MyUnitTestApplication extends UnitTestApplication {
+
+        /**
+         * Just uses no logging on fromApp since testLargeQueue() sends quite
+         * some messages.
+         */
+        @Override
+        public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+                IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+            fromAppMessages.add(message);
         }
     }
 
@@ -2353,9 +2369,9 @@ public class SessionTest {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
-        final UnitTestApplication unitTestApplication = new UnitTestApplication();
+        final UnitTestApplication unitTestApplication = new MyUnitTestApplication();
 
-        Session session = new Session(new UnitTestApplication(),
+        Session session = new Session(unitTestApplication,
                 new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
