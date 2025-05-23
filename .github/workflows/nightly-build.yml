@@ -16,8 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Delete old packages
+        continue-on-error: true
         uses: SmartsquareGmbH/delete-old-packages@v0.8.1
         with:
           organization: quickfix-j
