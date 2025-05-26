@@ -101,7 +101,6 @@
 		<commons.io.version>2.19.0</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
-		<proxool.version>0.9.1</proxool.version>
 		<jaxen.version>2.0.0</jaxen.version>
                 <jmh.version>1.37</jmh.version>
 	</properties>
@@ -238,42 +237,6 @@
 				<artifactId>dom4j</artifactId>
 				<version>2.1.4</version>
 				<optional>true</optional>
-			</dependency>
-			<dependency>
-				<groupId>com.cloudhopper.proxool</groupId>
-				<artifactId>proxool</artifactId>
-				<version>${proxool.version}</version>
-				<optional>true</optional>
-				<exclusions>
-					<!-- bug in proxool pom - should be test scope -->
-					<exclusion>
-						<groupId>avalon-framework</groupId>
-						<artifactId>avalon-framework-api</artifactId>
-					</exclusion>
-					<!-- we use slf4j which provides this API -->
-					<exclusion>
-						<groupId>commons-logging</groupId>
-						<artifactId>commons-logging</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>com.cloudhopper.proxool</groupId>
-				<artifactId>proxool-cglib</artifactId>
-				<version>${proxool.version}</version>
-				<optional>true</optional>
-				<exclusions>
-					<!-- bug in proxool pom - should be test scope -->
-					<exclusion>
-						<groupId>avalon-framework</groupId>
-						<artifactId>avalon-framework-api</artifactId>
-					</exclusion>
-					<!-- we use slf4j which provides this API -->
-					<exclusion>
-						<groupId>commons-logging</groupId>
-						<artifactId>commons-logging</artifactId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 			<dependency>
 				<!-- required by dom4j at runtime -->
