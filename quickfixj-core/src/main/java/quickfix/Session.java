@@ -2277,7 +2277,11 @@ public class Session implements Closeable {
 
         // Check for proper sequence reset response
         if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
+            if (resetOnLogon) {
+                disconnect("Expected Logon response to have reset sequence numbers in response to ResetSeqNumFlag", true);
+            } else {
+                disconnect("Received logon response before sending request", true);
+            }
         }
 
         state.setResetSent(false);
