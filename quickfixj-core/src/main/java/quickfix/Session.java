@@ -2280,7 +2280,7 @@ public class Session implements Closeable {
             if (resetOnLogon) {
                 disconnect("Expected Logon response to have reset sequence numbers in response to ResetSeqNumFlag", true);
             } else {
-                disconnect("Received logon response before sending request", true);
+                disconnect("Received Logon response before sending request", true);
             }
         }
 
