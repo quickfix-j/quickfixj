@@ -2390,7 +2390,8 @@ public class Session implements Closeable {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
 
-            if (MessageUtils.isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
+            if (MessageUtils.isAdminMessage(msgType) && (!forceResendWhenCorruptedStore || !MsgType.REJECT.equals(msgType))) {
+                // Skip admin messages (except Reject when forceResendWhenCorruptedStore is true)
                 if (begin == 0) {
                     begin = msgSeqNum;
                 }
