@@ -53,6 +53,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -3188,7 +3189,15 @@ public class SessionTest {
             
             // Create a mock log to capture log messages
             Log mockLog = mock(Log.class);
-            session.setLog(mockLog);
+            
+            // Set the mock log using reflection
+            Field stateField = session.getClass().getDeclaredField("state");
+            stateField.setAccessible(true);
+            SessionState sessionState = (SessionState) stateField.get(session);
+            
+            Field logField = SessionState.class.getDeclaredField("log");
+            logField.setAccessible(true);
+            logField.set(sessionState, mockLog);
             
             // Create a resend request
             Message createResendRequest = createResendRequest(2, 2);
@@ -3219,7 +3228,7 @@ public class SessionTest {
     }
     
     private class FailingResponder implements Responder {
-        public final List<String> sentMessages = new ArrayList<>();
+        public final java.util.List<String> sentMessages = new ArrayList<>();
         public boolean disconnectCalled;
         private final int failAfterMessageCount;
         public int failedAttemptCount = 0;
