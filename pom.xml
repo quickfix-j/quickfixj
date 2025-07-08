@@ -62,7 +62,7 @@
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
-		<module>quickfixj-distribution</module>
+<!--		<module>quickfixj-distribution</module>-->
 	</modules>
 
 	<properties>
