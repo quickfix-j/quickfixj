@@ -3169,7 +3169,7 @@ public class SessionTest {
         
         try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
             // Create a responder that will return false on the second send
-            FailingResponder responder = new FailingResponder(2);
+            FailingResponder responder = new FailingResponder(1);
             session.setResponder(responder);
             final SessionState state = getSessionState(session);
             

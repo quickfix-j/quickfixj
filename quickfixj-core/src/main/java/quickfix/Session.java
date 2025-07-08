@@ -2368,6 +2368,7 @@ public class Session implements Closeable {
         int begin = 0;
         int current = beginSeqNo;
         boolean appMessageJustSent = false;
+        boolean sendFailed = false;
 
         for (final String message : messages) {
             appMessageJustSent = false;
@@ -2403,6 +2404,7 @@ public class Session implements Closeable {
                     getLog().onEvent("Resending message: " + msgSeqNum);
                     if (!send(msg.toString())) {
                         getLog().onErrorEvent("Failed to send resend message: " + msgSeqNum + ", aborting resend process");
+                        sendFailed = true;
                         return;
                     }
                     begin = 0;
@@ -2414,6 +2416,11 @@ public class Session implements Closeable {
                 }
             }
             current = msgSeqNum + 1;
+        }
+
+        // Skip sequence reset generation if a send failed
+        if (sendFailed) {
+            return;
         }
 
         int newBegin = beginSeqNo;
