@@ -244,6 +244,14 @@ public class ApplicationFunctionalAdapter implements Application {
                 .forEach(c -> c.accept(message, sessionId));
     }
 
+    ///// LQBK
+    @Override
+    public void toAdmin(Message message, SessionID sessionId, String inboundMsg) {
+        toAdminListeners.forEach(c -> c.accept(message, sessionId));
+        getList(toAdminTypeSafeListeners, message.getClass())
+                .forEach(c -> c.accept(message, sessionId));
+    }
+
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         for (FromAdminListener<Message> listener : fromAdminListeners) {

@@ -66,6 +66,10 @@ public class ApplicationAdapter implements Application {
         // EMPTY
     }
 
+    public void toAdmin(Message message, SessionID sessionId, String inboundMsg) {
+        // EMPTY
+    }
+
     /* (non-Javadoc)
      * @see quickfix.Application#toApp(quickfix.Message, quickfix.SessionID)
      */

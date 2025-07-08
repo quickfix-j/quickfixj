@@ -66,6 +66,24 @@ public interface Application {
     void toAdmin(Message message, SessionID sessionId);
 
     /**
+     * This callback provides you with a peek at the administrative messages
+     * that are being sent from your FIX engine to the counter party. This is
+     * normally not useful for an application however it is provided for any
+     * logging you may wish to do. You may add fields in an adminstrative
+     * message before it is sent. This method also proved the inbound message
+     * received from the counter party. This inbound message might useful for
+     * handling outbound rejects
+     *
+     * @param message
+     *            QuickFIX message
+     * @param sessionId
+     *            QuickFIX session ID
+     * @param inboundMsg
+     *            Inbound message received from counter party
+     */
+    void toAdmin(Message message, SessionID sessionId, String inboundMsg);/////LQBK added this method
+
+    /**
      * This callback notifies you when an administrative message is sent from a
      * counterparty to your FIX engine. This can be useful for doing extra
      * validation on logon messages such as for checking passwords. Throwing a

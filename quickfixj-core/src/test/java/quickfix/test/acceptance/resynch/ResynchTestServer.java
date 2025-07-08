@@ -159,6 +159,10 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     }
 
     @Override
+    public void toAdmin(Message message, SessionID sessionId, String inboundMsg) {
+    }
+
+    @Override
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
     }
 
