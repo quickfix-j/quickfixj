@@ -30,7 +30,6 @@ import quickfix.field.SenderSubID;
 import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
-
 /**
  * Identifier for a session. Only supports a company ID (target, sender)
  * and a session qualifier. Sessions are also identified by FIX version so
