@@ -1696,7 +1696,12 @@ public class Session implements Closeable {
                     message.getHeader().getInt(MsgSeqNum.FIELD));
         }
 
-        sendRaw(reject, 0);
+        /////LQBK added this
+        if (  System.getProperty("LQBKCustom", "true").equals("true") ) {
+            sendRaw(reject, 0, message.getMessageData());
+        } else {
+            sendRaw(reject, 0);
+        }
     }
 
     private void setRejectReason(Message reject, String reason) {
@@ -1805,10 +1810,13 @@ public class Session implements Closeable {
                         + msgType + ")");
             }
 
-            if (!isGoodTime(msg)) {
-                doBadTime(msg);
-                return false;
+            if ( System.getProperty("LQBKSkiptime", "false").equals("true") ) {
+                if (!isGoodTime(msg)) {
+                    doBadTime(msg);
+                    return false;
+                }
             }
+
 
             if (!isCorrectCompID(msg)) {
                 doBadCompID(msg);
@@ -2690,6 +2698,106 @@ public class Session implements Closeable {
             return result;
         } catch (final IOException e) {
             logThrowable(getLog(), "Error reading/writing in MessageStore", e);
+            return false;
+        } catch (final FieldNotFound e) {
+            logThrowable(state.getLog(), "Error accessing message fields", e);
+            return false;
+        } finally {
+            state.unlockSenderMsgSeqNum();
+        }
+    }
+
+    /**
+     * Send the message
+     * @param message is the message to send
+     * @param num is the seq num of the message to send, if 0,
+     * @param inboundMsg is the message received from counter party
+     * @return
+     */
+    /////LQBK added this method to include the inbound message recieved from counter party that we rejected on the 35=3
+    private boolean sendRaw(Message message, int num, String inboundMsg) {
+        // sequence number must be locked until application
+        // callback returns since it may be effectively rolled
+        // back if the callback fails.
+        state.lockSenderMsgSeqNum();
+        try {
+            boolean result = false;
+            final Message.Header header = message.getHeader();
+            final String msgType = header.getString(MsgType.FIELD);
+
+            initializeHeader(header);
+
+            if (num > 0) {
+                header.setInt(MsgSeqNum.FIELD, num);
+            }
+
+            if (enableLastMsgSeqNumProcessed) {
+                if (!header.isSetField(LastMsgSeqNumProcessed.FIELD)) {
+                    header.setInt(LastMsgSeqNumProcessed.FIELD, getExpectedTargetNum() - 1);
+                }
+            }
+
+            String messageString = null;
+
+            if (message.isAdmin()) {
+                try {
+
+                    /////LQBK
+                    if ( System.getProperty("LQBKCustom", "true").equals("true") ) {
+                        application.toAdmin(message, sessionID, inboundMsg);
+                    } else {
+                        application.toAdmin(message, sessionID);
+                    }
+
+                } catch (final Throwable t) {
+                    logApplicationException("toAdmin()", t);
+                }
+
+                if (msgType.equals(MsgType.LOGON)) {
+                    if (!state.isResetReceived()) {
+                        boolean resetSeqNumFlag = false;
+                        if (message.isSetField(ResetSeqNumFlag.FIELD)) {
+                            resetSeqNumFlag = message.getBoolean(ResetSeqNumFlag.FIELD);
+                        }
+                        if (resetSeqNumFlag) {
+                            resetState();
+                            message.getHeader().setInt(MsgSeqNum.FIELD, getExpectedSenderNum());
+                        }
+                        state.setResetSent(resetSeqNumFlag);
+                    }
+                }
+
+                messageString = message.toString();
+                if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.LOGOUT)
+                        || msgType.equals(MsgType.RESEND_REQUEST)
+                        || msgType.equals(MsgType.SEQUENCE_RESET) || isLoggedOn()) {
+                    result = send(messageString);
+                }
+            } else {
+                try {
+                    application.toApp(message, sessionID);
+                } catch (final DoNotSend e) {
+                    return false;
+                } catch (final Throwable t) {
+                    logApplicationException("toApp()", t);
+                }
+                messageString = message.toString();
+                if (isLoggedOn()) {
+                    result = send(messageString);
+                }
+            }
+
+            if (num == 0) {
+                final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
+                if (persistMessages) {
+                    state.set(msgSeqNum, messageString);
+                }
+                state.incrNextSenderMsgSeqNum();
+            }
+
+            return result;
+        } catch (final IOException e) {
+            logThrowable(getLog(), "Error Reading/Writing in MessageStore", e);
             return false;
         } catch (final FieldNotFound e) {
             logThrowable(state.getLog(), "Error accessing message fields", e);

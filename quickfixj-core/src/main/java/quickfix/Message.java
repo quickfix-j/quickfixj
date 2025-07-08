@@ -66,6 +66,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -89,9 +91,19 @@ public class Message extends FieldMap {
         initializeHeader();
     }
 
-    public Message(String string) throws InvalidMessage {
+    public Message(String string) throws InvalidMessage {/////LQBK
         initializeHeader();
-        fromString(string, null, true, true);
+
+        if ( System.getProperty("LQBKCustom", "true").equals("true")  && string.endsWith("-OUTBOUND") ) {
+            String msgData = string.replace("-OUTBOUND", "");
+            int idx = msgData.indexOf("");
+            String msgType = msgData.substring(0, idx);
+            this.messageData = msgData.substring(idx+1); //get rid of msgType value in the front
+            this.header.setString(35, msgType);
+            this.setString(66666, "OUTBOUND_MSG"); //tag 66666 will be used in the toString() method
+        } else {
+            fromString(string, null, true, true);
+        }
     }
 
     public Message(String string, boolean validate) throws InvalidMessage {
@@ -166,7 +178,7 @@ public class Message extends FieldMap {
      * @return Message as String with calculated body length and checksum.
      */
     @Override
-    public String toString() {
+    public String toString() { /////LQBK modified this method
         Context context = stringContexts.get();
         if (CharsetSupport.isStringEquivalent()) { // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
@@ -180,6 +192,46 @@ public class Message extends FieldMap {
             header.calculateString(stringBuilder, null, null);
             calculateString(stringBuilder, null, null);
             trailer.calculateString(stringBuilder, null, null);
+
+            if ( System.getProperty("LQBKCustom", "true").equals("true") ) {
+                try
+                {
+                    String msgType = header.getString(35);
+                    if(!MessageUtils.isAdminMessage(header.getString(35)))
+                    {
+                        if(this.isSetField(66666) && this.getString(66666).equals("OUTBOUND_MSG"))//outbound messages
+                        {
+                            return buildMessageStringLQBK(msgType);
+                        }
+
+                        if(this.messageData != null && !this.messageData.equals("") && this.messageData.contains("34="))
+                        {
+                            if(header.isSetField(43) && !this.messageData.contains("43="))
+                            {
+                                //This section checks for outbound message with tag 43.
+                                //The only way to tell if a tag 43 message is inbound is if both header and messageData has tag 43.
+                                //If it's inbound, we simply grab what's in this.messageData
+                                //If tag 43 is in header but missing in messageData then it's outbound.
+                                //We cannot simply rely on sb.toString(), this method will not send out message properly if it has repeating tags. This is because we're not using data dictionary.
+                                String origSendingTime = header.isSetField(122) ? header.getString(122) : "";
+                                return handleOutbound43(this.messageData, origSendingTime);
+                            }
+                            return this.messageData; //inbound messages
+                        }
+                        if (CharsetSupport.isStringEquivalent()) {
+                            setBodyLength(stringBuilder);
+                            setChecksum(stringBuilder);
+                        }
+                        return stringBuilder.toString();
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+
+
             if (CharsetSupport.isStringEquivalent()) {
                 setBodyLength(stringBuilder);
                 setChecksum(stringBuilder);
@@ -188,6 +240,80 @@ public class Message extends FieldMap {
         } finally {
             stringBuilder.setLength(0);
         }
+    }
+
+    /////LQBK added this method
+    public String handleOutbound43(String msg, String origSendingTime)
+    {
+        // 8=FIX.4.29=38035=AB34=27049=LOCAL_OUT252=20191006-16:31:38.65656=LOCAL_IN211=3514338-0-i38=940=244=755=AAA59=060=20191006-16:31:40115=HHTEST128=ROUTE1167=MLEG204=0369=TESTING555=3654=3514339600=AAA608=ES623=100624=1654=3514340600=AAA608=OP610=201910611=20191018612=90.0623=1624=1564=O654=3514341600=AAA608=OC610=201910611=20191018612=90.0623=1624=1564=O10=126
+        StringBuilder sb = new StringBuilder();
+        if( origSendingTime.equals(""))
+            origSendingTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").format(new Date());
+        String part1 = msg.substring(0, msg.indexOf("49=")); // 8=FIX.4.29=38035=AB34=270
+        String part2 = msg.substring(msg.indexOf("49=")); // 49=LOCAL_OUT252=20191006-16:31:38.65656=LOCAL_IN211=3514338-0-i38=940=244=755=AAA59=060=20191006-16:31:40115=HHTEST128=ROUTE1167=MLEG204=0369=TESTING555=3654=3514339600=AAA608=ES623=100624=1654=3514340600=AAA608=OP610=201910611=20191018612=90.0623=1624=1564=O654=3514341600=AAA608=OC610=201910611=20191018612=90.0623=1624=1564=O10=126
+        String msgWith43 = part1 + "43=Y122=" + origSendingTime + part2;
+        String body = msgWith43.substring(msgWith43.indexOf("35="), msgWith43.indexOf("10=")+1);
+        String tag9 = "9=" + calculateBodyLengthLQBK(body) + "";
+        sb.append(msg.substring(0, msg.indexOf("9="))); //tag 8
+        sb.append(tag9); //tag 9
+        sb.append(body); // body
+        sb.append("10=" + calculateCheckSumLQBK(sb.toString()) + ""); // tag 10
+        return sb.toString();
+    }
+
+    /////LQBK added this method
+    public String buildMessageStringLQBK(String msgType) throws Exception
+    {
+        String tag8 = "8=";
+        String tag9 = "9=";
+        String tag35 = "35=" + msgType + "";
+        String tag34 = "34=";
+        String tag49 = "49=";
+        String tag52 = "52=";
+        String tag56 = "56=";
+        String tag10 = "10=";
+
+        if(header.isSetField(8))
+            tag8 = "8=" + header.getString(8)+ "";
+        if(header.isSetField(34))
+            tag34 = "34=" + header.getString(34) + "";
+        if(header.isSetField(49))
+            tag49 = "49=" + header.getString(49) + "";
+        if(header.isSetField(52))
+            tag52 = "52=" + header.getString(52) + "";
+        if(header.isSetField(56))
+            tag56 = "56=" + header.getString(56) + "";
+
+        tag9 = "9=" + calculateBodyLengthLQBK(tag35 + tag34 + tag49 + tag52 + tag56 + this.messageData) + "";
+        tag10 = "10=" + calculateCheckSumLQBK(tag8 + tag9 + tag35 + tag34 + tag49 + tag52 + tag56 + this.messageData) + "";
+
+        return tag8 + tag9 + tag35 + tag34 + tag49 + tag52 + tag56 + this.messageData + tag10;
+    }
+
+    public String calculateBodyLengthLQBK(String body)////LQBK added this method
+    {
+        return Integer.toString(body.length());
+    }
+
+    public String calculateCheckSumLQBK(String msgString)////LQBK added this method
+    {
+        int sum = 0;
+        for(int i = 0;msgString.length() > i;i++)
+        {
+            sum = sum + msgString.charAt(i);
+        }
+        String checkSum = Integer.toString(sum%256);
+        if(checkSum.length() == 1)
+            checkSum = "00" + checkSum;
+        else if(checkSum.length() == 2)
+            checkSum = "0" + checkSum;
+
+        return checkSum;
+    }
+
+    public String getMessageData() /////LQBK added this method
+    {
+        return this.messageData;
     }
 
     private static final String SOH = String.valueOf('\001');
@@ -702,9 +828,9 @@ public class Message extends FieldMap {
     }
 
     private void setField(FieldMap fields, StringField field) {
-        if (fields.isSetField(field)) {
-            throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE, field.getTag());
-        }
+        // if (fields.isSetField(field)) {
+        //     throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE, field.getTag());
+        // }
         fields.setField(field);
     }
 

@@ -137,9 +137,43 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class MessageTest {
-
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+
+    @Test //LQBK added test
+    public void checksumShouldBeCorrectlyCalculated() throws Exception {
+
+        Message parsed;
+        String checksum;
+
+        Message msg = new quickfix.fix40.NewOrderSingle();
+        msg.setString(19, "100");
+        msg.setString(112, "0.0000");
+        msg.setString(115, "USD");
+
+        System.setProperty("LQBKCustom", "false");
+        parsed = new Message(msg.toString());
+        checksum = parsed.getTrailer().getString(10);
+        assertEquals("204", checksum);
+
+        System.setProperty("LQBKCustom", "true");
+
+        parsed = new Message(msg.toString());
+        checksum = parsed.getTrailer().getString(10);
+        assertEquals("204", checksum);
+        System.out.println(msg);
+
+        parsed = new Message(msg + "\00110=010" + "-OUTBOUND");
+        System.out.println(parsed);
+        assertTrue(parsed.toString().contains("10=209"));
+    }
+
+    @Test
+    public void testMultiTag() throws Exception {
+        System.setProperty("LQBKCustom", "true");
+        final Message m = new Message("AB\001115=HHTEST\001128=ROUTE1\00111=169351837-0-i\00138=10\00140=1\001369=TESTING\00155=CAT\00159=0\00160=20230830-16:27:35\001167=MLEG\001204=0\001555=3\001654=169351839\001600=CAT\001608=ES\001624=1\001623=10\001654=169351842\001600=CAT\001608=OC\001624=1\001623=1\001564=O\001610=202309\001611=20230915\001612=55.0\001654=169351846\001600=CAT\001608=OP\001624=2\001623=2\001564=C\001610=202309\001611=20230915\001612=66.0\001-OUTBOUND");
+        assertTrue("message should be valid", m.hasValidStructure());
+    }
 
     @Test
     public void testRepeatingField() throws Exception {
