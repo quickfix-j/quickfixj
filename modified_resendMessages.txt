@@ -1,0 +1,106 @@
+    private void resendMessages(Message receivedMessage, int beginSeqNo, int endSeqNo)
+            throws IOException, InvalidMessage, FieldNotFound {
+
+        final ArrayList<String> messages = new ArrayList<>();
+        try {
+            state.get(beginSeqNo, endSeqNo, messages);
+        } catch (final IOException e) {
+            if (forceResendWhenCorruptedStore) {
+                LOG.error("Cannot read messages from stores, resend HeartBeats", e);
+                for (int i = beginSeqNo; i < endSeqNo; i++) {
+                    final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
+                            MsgType.HEARTBEAT);
+                    initializeHeader(heartbeat.getHeader());
+                    heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
+                    messages.add(heartbeat.toString());
+                }
+            } else {
+                throw e;
+            }
+        }
+
+        int msgSeqNum = 0;
+        int begin = 0;
+        int current = beginSeqNo;
+        boolean appMessageJustSent = false;
+        boolean sendFailed = false;
+
+        for (final String message : messages) {
+            if (sendFailed) {
+                break; // Skip processing more messages if a send has failed
+            }
+            
+            appMessageJustSent = false;
+            final Message msg;
+            try {
+                // QFJ-626
+                msg = parseMessage(message);
+                msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+            } catch (final Exception e) {
+                getLog().onErrorEvent(
+                        "Error handling ResendRequest: failed to parse message (" + e.getMessage()
+                        + "): " + message);
+                // Note: a SequenceReset message will be generated to fill the gap
+                continue;
+            }
+
+            if ((current != msgSeqNum) && begin == 0) {
+                begin = current;
+            }
+
+            final String msgType = msg.getHeader().getString(MsgType.FIELD);
+
+            if (MessageUtils.isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
+                if (begin == 0) {
+                    begin = msgSeqNum;
+                }
+            } else {
+                initializeResendFields(msg);
+                if (resendApproved(msg)) {
+                    if (begin != 0) {
+                        generateSequenceReset(receivedMessage, begin, msgSeqNum);
+                    }
+                    getLog().onEvent("Resending message: " + msgSeqNum);
+                    if (!send(msg.toString())) {
+                        getLog().onErrorEvent("Failed to send resend message: " + msgSeqNum + ", aborting resend process");
+                        sendFailed = true;
+                        break; // Exit the loop immediately
+                    }
+                    begin = 0;
+                    appMessageJustSent = true;
+                } else {
+                    if (begin == 0) {
+                        begin = msgSeqNum;
+                    }
+                }
+            }
+            current = msgSeqNum + 1;
+        }
+
+        // Skip sequence reset generation if a send failed
+        if (sendFailed) {
+            return;
+        }
+
+        int newBegin = beginSeqNo;
+        if (appMessageJustSent) {
+            newBegin = msgSeqNum + 1;
+        }
+        if (enableNextExpectedMsgSeqNum) {
+            if (begin != 0) {
+                generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
+            } else {
+                /*
+                 * I've added an else here as I managed to fail this without it in a unit test, however the unit test data
+                 * may not have been realistic to production on the other hand.
+                 * Apart from the else
+                 */
+            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+            }
+        } else {
+            if (begin != 0) {
+                generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
+            }
+            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+        }
+    }
