@@ -65,7 +65,7 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>3.0</hamcrest.version>
-		<junit.jupiter.version>5.13.2</junit.jupiter.version>
+		<junit.jupiter.version>5.13.3</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
@@ -82,7 +82,7 @@
 		<maven-shade-plugin-version>3.6.0</maven-shade-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
-		<maven-gpg-plugin-version>3.2.7</maven-gpg-plugin-version>
+		<maven-gpg-plugin-version>3.2.8</maven-gpg-plugin-version>
 		<maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
@@ -421,7 +421,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.9.0</version>
+					<version>3.9.1</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
@@ -448,7 +448,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.5.0</version>
+					<version>3.6.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
