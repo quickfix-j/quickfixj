@@ -2369,8 +2369,13 @@ public class Session implements Closeable {
         int begin = 0;
         int current = beginSeqNo;
         boolean appMessageJustSent = false;
+        boolean sendFailed = false;
 
         for (final String message : messages) {
+            if (sendFailed) {
+                break; // Skip processing more messages if a send has failed
+            }
+            
             appMessageJustSent = false;
             final Message msg;
             try {
@@ -2398,13 +2403,19 @@ public class Session implements Closeable {
             } else {
                 initializeResendFields(msg);
                 if (resendApproved(msg)) {
-                    if (begin != 0) {
+                    if (begin != 0 && !sendFailed) {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
-                    getLog().onEvent("Resending message: " + msgSeqNum);
-                    send(msg.toString());
-                    begin = 0;
-                    appMessageJustSent = true;
+                    if (!sendFailed) {
+                        getLog().onEvent("Resending message: " + msgSeqNum);
+                        if (!send(msg.toString())) {
+                            getLog().onErrorEvent("Failed to send resend message: " + msgSeqNum + ", aborting resend process");
+                            sendFailed = true;
+                        } else {
+                            begin = 0;
+                            appMessageJustSent = true;
+                        }
+                    }
                 } else {
                     if (begin == 0) {
                         begin = msgSeqNum;
@@ -2412,6 +2423,11 @@ public class Session implements Closeable {
                 }
             }
             current = msgSeqNum + 1;
+        }
+
+        // Skip sequence reset generation if a send failed
+        if (sendFailed) {
+            return;
         }
 
         int newBegin = beginSeqNo;

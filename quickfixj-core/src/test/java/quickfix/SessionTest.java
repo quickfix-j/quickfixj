@@ -53,6 +53,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -3160,5 +3161,100 @@ public class SessionTest {
 
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+    @Test
+    public void testResendAbortWhenSendReturnsFalse() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
+            // Create a responder that will return false on the second send
+            FailingResponder responder = new FailingResponder(1);
+            session.setResponder(responder);
+            final SessionState state = getSessionState(session);
+            
+            // Setup session
+            final Logon logonToSend = new Logon();
+            setUpHeader(session.getSessionID(), logonToSend, true, 1);
+            logonToSend.setInt(HeartBtInt.FIELD, 30);
+            logonToSend.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logonToSend.toString(); // calculate length/checksum
+            session.next(logonToSend);
+            
+            // Send some messages
+            session.send(createAppMessage(2));
+            session.send(createAppMessage(3));
+            session.send(createAppMessage(4));
+            session.send(createAppMessage(5));
+            
+            // Create a mock log to capture log messages
+            Log mockLog = mock(Log.class);
+            
+            // Set the mock log using reflection
+            Field stateField = session.getClass().getDeclaredField("state");
+            stateField.setAccessible(true);
+            SessionState sessionState = (SessionState) stateField.get(session);
+            
+            Field logField = SessionState.class.getDeclaredField("log");
+            logField.setAccessible(true);
+            logField.set(sessionState, mockLog);
+            
+            // Create a resend request
+            Message createResendRequest = createResendRequest(2, 2);
+            createResendRequest.toString(); // calculate length/checksum
+            processMessage(session, createResendRequest);
+            
+            // Verify that the error was logged and resend process was aborted
+            ArgumentCaptor<String> logCaptor = ArgumentCaptor.forClass(String.class);
+            verify(mockLog, atLeastOnce()).onErrorEvent(logCaptor.capture());
+            
+            boolean foundErrorMessage = false;
+            for (String logMessage : logCaptor.getAllValues()) {
+                if (logMessage.contains("Failed to send resend message") && logMessage.contains("aborting resend process")) {
+                    foundErrorMessage = true;
+                    break;
+                }
+            }
+            
+            assertTrue("Error message about aborting resend process not found in logs", foundErrorMessage);
+            
+            // Verify that only one message was sent (the first one succeeded, the second failed)
+            assertEquals(1, responder.sentMessages.size());
+            assertEquals(2, responder.failedAttemptCount);
+            
+            // Verify that the session is still in a valid state
+            assertTrue(session.isLoggedOn());
+        }
+    }
+    
+    private class FailingResponder implements Responder {
+        public final java.util.List<String> sentMessages = new ArrayList<>();
+        public boolean disconnectCalled;
+        private final int failAfterMessageCount;
+        public int failedAttemptCount = 0;
+        
+        public FailingResponder(int failAfterMessageCount) {
+            this.failAfterMessageCount = failAfterMessageCount;
+        }
+        
+        @Override
+        public boolean send(String data) {
+            if (sentMessages.size() >= failAfterMessageCount) {
+                failedAttemptCount++;
+                return false;
+            }
+            sentMessages.add(data);
+            return true;
+        }
+        
+        @Override
+        public String getRemoteAddress() {
+            return null;
+        }
+        
+        @Override
+        public void disconnect() {
+            disconnectCalled = true;
+        }
     }
 }
