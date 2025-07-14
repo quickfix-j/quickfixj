@@ -5,8 +5,6 @@ on:
   push:
   pull_request:
     types: [reopened, opened, synchronize]
-  schedule:
-    - cron:  '30 5 * * *'
 
 jobs:
   test:
