@@ -22,7 +22,7 @@ QuickFIX/J is a full-featured messaging engine for the FIX protocol. It is a 100
 
 2. Build the project:
    ```
-   ./mvnw clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
+   ./mvnw clean install -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
    ```
 
 ## Coding Standards
