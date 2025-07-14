@@ -88,4 +88,4 @@ When reporting issues, please include:
 
 ## License
 
-QuickFixJ is licensed under the Apache License, Version 2.0. All contributions must be compatible with this license.
+QuickFIX/J is licensed under the QuickFIX Software License, Version 1.0. All contributions must be compatible with this license.
