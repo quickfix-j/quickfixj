@@ -2370,9 +2370,11 @@ public class Session implements Closeable {
         boolean appMessageJustSent = false;
         boolean sendFailed = false;
 
+        // Process each message in the requested range
         for (final String message : messages) {
+            // Skip processing more messages if a send has failed
             if (sendFailed) {
-                break; // Skip processing more messages if a send has failed
+                break;
             }
             
             appMessageJustSent = false;
@@ -2402,9 +2404,12 @@ public class Session implements Closeable {
             } else {
                 initializeResendFields(msg);
                 if (resendApproved(msg)) {
+                    // Only generate sequence reset if send hasn't failed
                     if (begin != 0 && !sendFailed) {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
+                    
+                    // Only attempt to send if previous sends haven't failed
                     if (!sendFailed) {
                         getLog().onEvent("Resending message: " + msgSeqNum);
                         if (!send(msg.toString())) {
@@ -2426,6 +2431,7 @@ public class Session implements Closeable {
         }
 
         // Skip all remaining processing if a send failed
+        // This includes sequence reset generation and any other operations
         if (sendFailed) {
             return;
         }
@@ -2434,6 +2440,8 @@ public class Session implements Closeable {
         if (appMessageJustSent) {
             newBegin = msgSeqNum + 1;
         }
+        
+        // Only proceed with sequence reset generation if no send has failed
         if (enableNextExpectedMsgSeqNum) {
             if (begin != 0) {
                 generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
@@ -2443,7 +2451,7 @@ public class Session implements Closeable {
                  * may not have been realistic to production on the other hand.
                  * Apart from the else
                  */
-            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+                generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
             }
         } else {
             if (begin != 0) {
