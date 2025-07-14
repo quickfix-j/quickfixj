@@ -2410,6 +2410,7 @@ public class Session implements Closeable {
                         if (!send(msg.toString())) {
                             getLog().onErrorEvent("Failed to send resend message: " + msgSeqNum + ", aborting resend process");
                             sendFailed = true;
+                            break; // Exit the loop immediately
                         } else {
                             begin = 0;
                             appMessageJustSent = true;
