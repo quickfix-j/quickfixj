@@ -1,8 +1,8 @@
-# QuickFixJ Project Guidelines
+# QuickFIX/J Project Guidelines
 
 ## Project Overview
 
-QuickFixJ is a full-featured messaging engine for the FIX protocol. It is a 100% Java open source implementation of the popular QuickFIX engine. This document provides guidelines for contributing to and working with the QuickFixJ project.
+QuickFIX/J is a full-featured messaging engine for the FIX protocol. It is a 100% Java open source implementation of the popular QuickFIX engine. This document provides guidelines for contributing to and working with the QuickFIX/J project.
 
 ## Development Environment
 
@@ -70,7 +70,7 @@ When reporting issues, please include:
 - A clear description of the problem
 - Steps to reproduce
 - Expected vs. actual behavior
-- Version information (QuickFixJ version, Java version, OS)
+- Version information (QuickFIX/J version, Java version, OS)
 - Any relevant logs or error messages
 
 ## Release Process
