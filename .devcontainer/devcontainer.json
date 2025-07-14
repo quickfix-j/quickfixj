@@ -1,11 +1,12 @@
 {
   "name": "Java",
-  "image": "mcr.microsoft.com/devcontainers/java:1-21",
+  "image": "mcr.microsoft.com/devcontainers/java:1-11",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
-      "version": "none",
+      "version": "8",
+      "jdkDistro": "tem",
       "installMaven": "true",
-      "mavenVersion": "3.9.9",
+      "mavenVersion": "latest",
       "installGradle": "false"
     }
   }
