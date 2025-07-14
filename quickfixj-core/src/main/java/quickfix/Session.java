@@ -2424,7 +2424,7 @@ public class Session implements Closeable {
             current = msgSeqNum + 1;
         }
 
-        // Skip sequence reset generation if a send failed
+        // Skip all remaining processing if a send failed
         if (sendFailed) {
             return;
         }
