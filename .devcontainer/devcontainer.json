@@ -9,5 +9,7 @@
             "installGradle": false,
             "jdkDistro": "tem"
         }
-    }
+    },
+
+    "onCreateCommand": "./mvnw install -B -V -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest"    
 }
