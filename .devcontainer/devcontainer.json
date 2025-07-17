@@ -1,13 +1,13 @@
 {
-  "name": "Java",
-  "image": "mcr.microsoft.com/devcontainers/java:1-11",
-  "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "version": "8",
-      "jdkDistro": "tem",
-      "installMaven": "true",
-      "mavenVersion": "latest",
-      "installGradle": "false"
+    "name": "Java",
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+        // Install java.
+        // See https://github.com/devcontainers/features/tree/main/src/java#options for details.
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "8",
+            "installGradle": false,
+            "jdkDistro": "tem"
+        }
     }
-  }
 }
