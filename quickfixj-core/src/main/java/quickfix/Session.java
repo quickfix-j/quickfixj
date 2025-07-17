@@ -2406,7 +2406,11 @@ public class Session implements Closeable {
                 if (resendApproved(msg)) {
                     // Only generate sequence reset if send hasn't failed
                     if (begin != 0 && !sendFailed) {
-                        generateSequenceReset(receivedMessage, begin, msgSeqNum);
+                        // Use a custom method that respects the sendFailed flag
+                        if (!generateSequenceResetIfNotFailed(receivedMessage, begin, msgSeqNum, sendFailed)) {
+                            sendFailed = true;
+                            break;
+                        }
                     }
                     
                     // Only attempt to send if previous sends haven't failed
@@ -2444,20 +2448,28 @@ public class Session implements Closeable {
         // Only proceed with sequence reset generation if no send has failed
         if (enableNextExpectedMsgSeqNum) {
             if (begin != 0) {
-                generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
+                if (!generateSequenceResetIfNotFailed(receivedMessage, begin, msgSeqNum + 1, sendFailed)) {
+                    return;
+                }
             } else {
                 /*
                  * I've added an else here as I managed to fail this without it in a unit test, however the unit test data
                  * may not have been realistic to production on the other hand.
                  * Apart from the else
                  */
-                generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+                if (!generateSequenceResetIfNeededAndNotFailed(receivedMessage, newBegin, endSeqNo, msgSeqNum, sendFailed)) {
+                    return;
+                }
             }
         } else {
             if (begin != 0) {
-                generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
+                if (!generateSequenceResetIfNotFailed(receivedMessage, begin, msgSeqNum + 1, sendFailed)) {
+                    return;
+                }
             }
-            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+            if (!generateSequenceResetIfNeededAndNotFailed(receivedMessage, newBegin, endSeqNo, msgSeqNum, sendFailed)) {
+                return;
+            }
         }
     }
 
@@ -2471,6 +2483,26 @@ public class Session implements Closeable {
             }
             generateSequenceReset(receivedMessage, beginSeqNo, endSeqNo);
         }
+    }
+    
+    // Helper method to generate sequence reset only if send hasn't failed
+    private boolean generateSequenceResetIfNotFailed(Message receivedMessage, int beginSeqNo, int endSeqNo, boolean sendFailed) 
+            throws FieldNotFound {
+        if (sendFailed) {
+            return false;
+        }
+        generateSequenceReset(receivedMessage, beginSeqNo, endSeqNo);
+        return true;
+    }
+    
+    // Helper method to generate sequence reset if needed and send hasn't failed
+    private boolean generateSequenceResetIfNeededAndNotFailed(Message receivedMessage, int beginSeqNo, int endSeqNo, 
+            int msgSeqNum, boolean sendFailed) throws IOException, InvalidMessage, FieldNotFound {
+        if (sendFailed) {
+            return false;
+        }
+        generateSequenceResetIfNeeded(receivedMessage, beginSeqNo, endSeqNo, msgSeqNum);
+        return true;
     }
 
     private void nextQueued() throws FieldNotFound, RejectLogon, IncorrectDataFormat,
