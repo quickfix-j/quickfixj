@@ -21,9 +21,9 @@ QuickFIX/J is a full-featured messaging engine for the FIX protocol. It is a 100
    ```
 
 2. Build the project:
-   Junie, please make sure to only use JDK 8 for the build.
+   Junie, please make sure to only use JDK 8 for the build and use the following Java options:
    ```
-   ./mvnw clean install -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
+   ./mvnw package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest -Xms3g -Xmx6g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
    ```
 
 ## Coding Standards
