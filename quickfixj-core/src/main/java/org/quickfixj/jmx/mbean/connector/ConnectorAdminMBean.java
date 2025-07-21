@@ -31,6 +31,13 @@ public interface ConnectorAdminMBean {
     String getRole() throws IOException;
 
     /**
+     * Start the connector.
+     *
+     * @throws IOException if there is a problem starting the connector
+     */
+    void start() throws IOException;
+
+    /**
      * Stop the connector.
      *
      * @param force don't wait for normal logout from counterparty
