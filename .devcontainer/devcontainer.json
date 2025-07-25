@@ -11,5 +11,5 @@
         }
     },
 
-    "onCreateCommand": "./mvnw install -B -V -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest"    
+    "onCreateCommand": "./mvnw install -B -V -Dmaven.javadoc.skip=true -DskipTests -Dmaven.compiler.failOnError=false -PskipBundlePlugin,minimal-fix-latest"    
 }
