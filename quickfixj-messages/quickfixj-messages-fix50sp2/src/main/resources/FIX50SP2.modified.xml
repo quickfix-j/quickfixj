@@ -78,7 +78,7 @@
       <field name="OrigCrossID" required="N"/>
       <field name="CrossType" required="N"/>
       <field name="TrdMatchID" required="N"/>
-      <field name="ExecID" required="Y"/>
+            <field name="ExecID" required="N"/>
       <field name="ExecRefID" required="N"/>
       <field name="ExecType" required="Y"/>
       <field name="OrdStatus" required="Y"/>
@@ -228,6 +228,12 @@
       <field name="TimeToExpiration" required="N"/>
       <field name="RiskFreeRate" required="N"/>
       <field name="PriceDelta" required="N"/>
+            <field name="IsQuote" required="N"/>
+            <field name="MessageID" required="N"/>
+            <field name="ProtectionValue" required="N"/>
+            <field name="CancelledBySettlement" required="N"/>
+            <field name="BustedMatchId" required="N"/>
+            <field name="TrdType" required="N"/>
     </message>
     <message name="OrderCancelReject" msgtype="9" msgcat="app">
       <field name="OrderID" required="Y"/>
@@ -238,6 +244,8 @@
       <field name="OrigClOrdID" required="N"/>
       <field name="OrdStatus" required="Y"/>
       <field name="WorkingIndicator" required="N"/>
+            <component name="Parties" required="N"/>
+            <component name="Instrument" required="N"/>
       <field name="OrigOrdModTime" required="N"/>
       <field name="ListID" required="N"/>
       <field name="Account" required="N"/>
@@ -579,6 +587,9 @@
       <field name="GrossTradeAmt" required="N"/>
       <field name="RejectText" required="N"/>
       <field name="FeeMultiplier" required="N"/>
+            <field name="MessageID" required="N"/>
+            <field name="Price" required="N"/>
+            <field name="PeggedPrice" required="N"/>
     </message>
     <message name="OrderMassStatusRequest" msgtype="AF" msgcat="app">
       <field name="MassStatusReqID" required="Y"/>
@@ -647,7 +658,9 @@
       <component name="SpreadOrBenchmarkCurveData" required="N"/>
       <component name="YieldData" required="N"/>
       <field name="BidPx" required="N"/>
+            <field name="BidDisplayPx" required="N"/>
       <field name="OfferPx" required="N"/>
+            <field name="OfferDisplayPx" required="N"/>
       <field name="MktBidPx" required="N"/>
       <field name="MktOfferPx" required="N"/>
       <field name="MinBidSize" required="N"/>
@@ -717,7 +730,9 @@
       <field name="AccountType" required="N"/>
       <component name="LegQuotGrp" required="N"/>
       <field name="BidPx" required="N"/>
+            <field name="BidDisplayPx" required="N"/>
       <field name="OfferPx" required="N"/>
+            <field name="OfferDisplayPx" required="N"/>
       <field name="MktBidPx" required="N"/>
       <field name="MktOfferPx" required="N"/>
       <field name="MinBidSize" required="N"/>
@@ -972,6 +987,12 @@
       <field name="Text" required="N"/>
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
+            <field name="PositionStatus" required="N"/>
+            <field name="MessageID" required="N"/>
+            <field name="AveragePrice" required="N"/>
+            <field name="TransactTime" required="N"/>
+            <field name="PositionCategory" required="N"/>
+            <field name="Timestamp" required="N"/>
     </message>
     <message name="TradeCaptureReportRequestAck" msgtype="AQ" msgcat="app">
       <field name="TradeRequestID" required="Y"/>
@@ -2410,7 +2431,9 @@
       <field name="AccountType" required="N"/>
       <component name="LegQuotGrp" required="N"/>
       <field name="BidPx" required="N"/>
+            <field name="BidDisplayPx" required="N"/>
       <field name="OfferPx" required="N"/>
+            <field name="OfferDisplayPx" required="N"/>
       <field name="MktBidPx" required="N"/>
       <field name="MktOfferPx" required="N"/>
       <field name="MinBidSize" required="N"/>
@@ -2514,6 +2537,15 @@
       <field name="ApplQueueDepth" required="N"/>
       <field name="ApplQueueResolution" required="N"/>
       <component name="RoutingGrp" required="N"/>
+            <field name="Timestamp" required="N"/>
+            <field name="MessageID" required="N"/>
+            <field name="IsDerived" required="Y"/>
+            <field name="Symbol" required="Y"/>
+            <field name="FeederSymbol" required="Y"/>
+            <field name="SettlementFrom" required="N"/>
+            <field name="SettlementTo" required="N"/>
+            <field name="UnderlyingId" required="N"/>
+            <field name="Product" required="N"/>
     </message>
     <message name="MarketDataRequestReject" msgtype="Y" msgcat="app">
       <field name="MDReqID" required="Y"/>
@@ -2539,6 +2571,7 @@
       <field name="TradingSessionID" required="N"/>
       <field name="TradingSessionSubID" required="N"/>
       <component name="QuotCxlEntriesGrp" required="N"/>
+            <field name="MessageID" required="N"/>
     </message>
     <message name="QuoteStatusRequest" msgtype="a" msgcat="app">
       <field name="QuoteStatusReqID" required="N"/>
@@ -2556,6 +2589,15 @@
       <field name="TradingSessionSubID" required="N"/>
       <field name="SubscriptionRequestType" required="N"/>
     </message>
+        <message name='AccountBalanceUpdate' msgcat='app' msgtype='abu'>
+            <field name='Account' required='Y' />
+            <field name='Balance' required='Y' />
+            <field name='Reserved' required='Y' />
+            <field name='Available' required='Y' />
+        </message>
+        <message name='AccountBalanceRequest' msgcat='app' msgtype='abr'>
+            <field name='Account' required='Y' />
+        </message>
     <message name="MassQuoteAcknowledgement" msgtype="b" msgcat="app">
       <field name="QuoteReqID" required="N"/>
       <field name="QuoteID" required="N"/>
@@ -2573,6 +2615,11 @@
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
       <component name="QuotSetAckGrp" required="N"/>
+            <field name="IsQuote" required="N"/>
+            <field name="Symbol" required="N"/>
+            <field name="SecurityID" required="N"/>
+            <field name="TransactTime" required="N"/>
+            <field name="MessageID" required="N"/>
     </message>
     <message name="SecurityDefinitionRequest" msgtype="c" msgcat="app">
       <field name="SecurityReqID" required="Y"/>
@@ -2616,6 +2663,8 @@
       <component name="YieldData" required="N"/>
       <component name="MarketSegmentGrp" required="N"/>
       <field name="TransactTime" required="N"/>
+            <field name="MessageID" required="N"/>
+            <component name="MDFullGrp" required="N"/>
     </message>
     <message name="SecurityStatusRequest" msgtype="e" msgcat="app">
       <field name="SecurityStatusReqID" required="Y"/>
@@ -2663,6 +2712,13 @@
       <field name="Text" required="N"/>
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
+            <field name="State" required="N"/>
+            <field name="Timestamp" required="N"/>
+            <field name="MessageID" required="N"/>
+            <field name="SettlPrice" required="N"/>
+            <field name="SettlPriceType" required="N"/>
+            <field name="SettlPriceDeterminationMethod" required="N"/>
+            <component name="MDFullGrp" required="N"/>
     </message>
     <message name="TradingSessionStatusRequest" msgtype="g" msgcat="app">
       <field name="TradSesReqID" required="Y"/>
@@ -2680,7 +2736,7 @@
       <field name="TradSesReqID" required="N"/>
       <field name="MarketID" required="N"/>
       <field name="MarketSegmentID" required="N"/>
-      <field name="TradingSessionID" required="Y"/>
+            <field name="TradingSessionID" required="N"/>
       <field name="TradingSessionSubID" required="N"/>
       <field name="TradSesMethod" required="N"/>
       <field name="TradSesMode" required="N"/>
@@ -2698,6 +2754,9 @@
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
       <component name="Instrument" required="N"/>
+            <field name="Timestamp" required="Y"/>
+            <field name="MessageID" required="N"/>
+            <field name="TransactTime" required="N"/>
     </message>
     <message name="MassQuote" msgtype="i" msgcat="app">
       <field name="QuoteReqID" required="N"/>
@@ -3053,6 +3112,24 @@
       <field name="TradingSessionSubID" required="N"/>
       <field name="SubscriptionRequestType" required="N"/>
     </message>
+        <message name="BusinessDayRoll" msgtype="XA" msgcat="app">
+            <field name="TradeDate" required="Y"/>
+            <field name="Timestamp" required="Y"/>
+            <field name="MessageID" required="N"/>
+        </message>
+        <message name="Heartbeat" msgtype="0" msgcat="admin">
+            <field name="MessageID" required="N"/>
+        </message>
+        <message name="InstrumentSettlementTickData" msgtype="XB" msgcat="app">
+            <field name="MessageID" required="N"/>
+            <field name="MDReqID" required="N"/>
+            <field name="InstrumentIds" required="N"/>
+            <component name="SettlementTickDataUMD" required="N"/>
+            <field name="Timestamp" required="N"/>
+            <field name="InstrumentLastTradeDate" required="N"/>
+            <field name="SettlementPrice" required="N"/>
+            <field name="UnderlyingId" required="N"/>
+        </message>
   </messages>
   <components>
     <component name="MDFullGrp">
@@ -3935,6 +4012,12 @@
       <component name="UndlyInstrumentParties" required="N"/>
       <field name="UnderlyingSettlMethod" required="N"/>
       <field name="UnderlyingPutOrCall" required="N"/>
+            <field name="UnderlyingName" required="N"/>
+            <field name="TradeableResourceId" required="N"/>
+            <field name="FeederSymbolId" required="N"/>
+            <field name="FeederSymbolName" required="N"/>
+            <field name="SettlementFrom" required="N"/>
+            <field name="SettlementTo" required="N"/>
     </component>
     <component name="DerivativeInstrumentParties">
       <group name="NoDerivativeInstrumentParties" required="N">
@@ -4352,7 +4435,9 @@
         <component name="Instrument" required="N"/>
         <component name="InstrmtLegGrp" required="N"/>
         <field name="BidPx" required="N"/>
+                <field name="BidDisplayPx" required="N"/>
         <field name="OfferPx" required="N"/>
+                <field name="OfferDisplayPx" required="N"/>
         <field name="BidSize" required="N"/>
         <field name="OfferSize" required="N"/>
         <field name="ValidUntilTime" required="N"/>
@@ -4895,7 +4980,9 @@
         <component name="Instrument" required="N"/>
         <component name="InstrmtLegGrp" required="N"/>
         <field name="BidPx" required="N"/>
+                <field name="BidDisplayPx" required="N"/>
         <field name="OfferPx" required="N"/>
+                <field name="OfferDisplayPx" required="N"/>
         <field name="BidSize" required="N"/>
         <field name="OfferSize" required="N"/>
         <field name="ValidUntilTime" required="N"/>
@@ -5309,6 +5396,7 @@
       <field name="MaturityMonthYear" required="N"/>
       <field name="MaturityDate" required="N"/>
       <field name="MaturityTime" required="N"/>
+            <field name="MaturityDay" required="N"/>
       <field name="SettleOnOpenFlag" required="N"/>
       <field name="InstrmtAssignmentMethod" required="N"/>
       <field name="SecurityStatus" required="N"/>
@@ -5381,6 +5469,34 @@
       <field name="InterestAccrualDate" required="N"/>
       <component name="InstrumentParties" required="N"/>
       <component name="ComplexEvents" required="N"/>
+            <field name="InstrumentFirstTradeDate" required="N"/>
+            <field name="InstrumentLastTradeDate" required="N"/>
+        </component>
+        <component name="SettlementTickDataUMD">
+            <group name="NoSettlementTickDataUMD" required="N">
+                <component name="MDIncGrp" required="Y"/>
+                <field name="Symbol" required="Y"/>
+                <field name="FeederSymbol" required="Y"/>
+                <component name="SettlementTickDataUnderlying" required="Y"/>
+            </group>
+        </component>
+        <component name="SettlementTickDataUnderlying">
+            <field name="UnderlyingSecurityID" required="N"/>
+            <field name="UnderlyingName" required="N"/>
+            <field name="UnderlyingSecurityDesc" required="N"/>
+            <field name="MaturityMonthYear" required="N"/>
+            <field name="MarketDataOriginatorId" required="N"/>
+            <field name="TradeableResourceId" required="N"/>
+            <field name="TradeableResourceClassType" required="N"/>
+            <field name="UnderlyingSymbol" required="N"/>
+            <field name="FeederSymbolId" required="N"/>
+            <field name="FeederSymbolName" required="N"/>
+            <field name="MarketDataFeedId" required="N"/>
+            <field name="CollectDataFrom" required="N"/>
+            <field name="SettlementFrom" required="N"/>
+            <field name="SettlementTo" required="N"/>
+            <field name="CalculateMidPrice" required="N"/>
+            <field name="RequestTradeTicksOnly" required="N"/>
     </component>
   </components>
   <fields>
@@ -5621,9 +5737,13 @@
       <value enum="V" description="MARKETDATAREQUEST"/>
       <value enum="W" description="MARKETDATASNAPSHOTFULLREFRESH"/>
       <value enum="X" description="MARKETDATAINCREMENTALREFRESH"/>
+            <value enum="XA" description="BUSINESSDAYROLL"/>
+            <value enum="XB" description="INSTRUMENTSETTLEMENTTICKDATA"/>
       <value enum="Y" description="MARKETDATAREQUESTREJECT"/>
       <value enum="Z" description="QUOTECANCEL"/>
       <value enum="a" description="QUOTESTATUSREQUEST"/>
+            <value enum='abu' description='ACCOUNTBALANCEUPDATE' />
+            <value enum='abr' description='ACCOUNTBALANCEREQUEST' />
       <value enum="b" description="MASSQUOTEACKNOWLEDGEMENT"/>
       <value enum="c" description="SECURITYDEFINITIONREQUEST"/>
       <value enum="d" description="SECURITYDEFINITION"/>
@@ -5694,6 +5814,7 @@
       <value enum="M" description="NEXT_FUND_VALUATION_POINT"/>
       <value enum="P" description="PEGGED"/>
       <value enum="Q" description="COUNTER_ORDER_SELECTION"/>
+            <value enum="z" description="MARKET_WITH_PROTECTION"/>
     </field>
     <field number="41" name="OrigClOrdID" type="STRING"/>
     <field number="42" name="OrigTime" type="UTCTIMESTAMP"/>
@@ -6202,6 +6323,7 @@
       <value enum="0" description="COVERED"/>
       <value enum="1" description="UNCOVERED"/>
     </field>
+        <field number='205' name='MaturityDay' type='DAYOFMONTH' />
     <field number="206" name="OptAttribute" type="CHAR"/>
     <field number="207" name="SecurityExchange" type="EXCHANGE"/>
     <field number="208" name="NotifyBrokerOfCredit" type="BOOLEAN">
@@ -6299,7 +6421,8 @@
       <value enum="PURPOSE" description="PURPOSE"/>
       <value enum="PXSOURCE" description="BENCHMARK_PRICE_SOURCE"/>
       <value enum="RATING" description="RATING_SOURCE_AND_RANGE"/>
-      <value enum="REDEMPTION" description="TYPE_OF_REDEMPTION_VALUES_ARE_NONCALLABLE_PREFUNDED_ESCROWEDTOMATURITY_PUTABLE_CONVERTIBLE"/>
+            <value enum="REDEMPTION"
+                   description="TYPE_OF_REDEMPTION_VALUES_ARE_NONCALLABLE_PREFUNDED_ESCROWEDTOMATURITY_PUTABLE_CONVERTIBLE"/>
       <value enum="RESTRICTED" description="RESTRICTED"/>
       <value enum="SECTOR" description="MARKET_SECTOR"/>
       <value enum="SECTYPE" description="SECURITY_TYPE_INCLUDED_OR_EXCLUDED"/>
@@ -6812,8 +6935,11 @@
       <value enum="22" description="OPENING_ROTATION"/>
       <value enum="23" description="FAST_MARKET"/>
       <value enum="24" description="PRE_CROSS_SYSTEM_IS_IN_A_PRE_CROSS_STATE_ALLOWING_MARKET_TO_RESPOND_TO_EITHER_SIDE_OF_CROSS"/>
-      <value enum="25" description="CROSS_SYSTEM_HAS_CROSSED_A_PERCENTAGE_OF_THE_ORDERS_AND_ALLOWS_MARKET_TO_RESPOND_PRIOR_TO_CROSSING_REMAINING_PORTION"/>
+            <value enum="25"
+                   description="CROSS_SYSTEM_HAS_CROSSED_A_PERCENTAGE_OF_THE_ORDERS_AND_ALLOWS_MARKET_TO_RESPOND_PRIOR_TO_CROSSING_REMAINING_PORTION"/>
       <value enum="26" description="POST_CLOSE"/>
+            <value enum="50" description="SETTLED"/>
+            <value enum="103" description="SECURITY_KNOCKED_OUT"/>
     </field>
     <field number="327" name="HaltReason" type="INT">
       <value enum="0" description="NEWS_DISSEMINATION"/>
@@ -6995,8 +7121,10 @@
     <field number="412" name="OutMainCntryUIndex" type="AMT"/>
     <field number="413" name="CrossPercent" type="PERCENTAGE"/>
     <field number="414" name="ProgRptReqs" type="INT">
-      <value enum="1" description="BUY_SIDE_EXPLICITLY_REQUESTS_STATUS_USING_STATUE_REQUEST_THE_SELL_SIDE_FIRM_CAN_HOWEVER_SEND_A_DONE_STATUS_LIST_STATUS_RESPONSE_IN_AN_UNSOLICITED_FASHION"/>
-      <value enum="2" description="SELL_SIDE_PERIODICALLY_SENDS_STATUS_USING_LIST_STATUS_PERIOD_OPTIONALLY_SPECIFIED_IN_PROGRESSPERIOD_"/>
+            <value enum="1"
+                   description="BUY_SIDE_EXPLICITLY_REQUESTS_STATUS_USING_STATUE_REQUEST_THE_SELL_SIDE_FIRM_CAN_HOWEVER_SEND_A_DONE_STATUS_LIST_STATUS_RESPONSE_IN_AN_UNSOLICITED_FASHION"/>
+            <value enum="2"
+                   description="SELL_SIDE_PERIODICALLY_SENDS_STATUS_USING_LIST_STATUS_PERIOD_OPTIONALLY_SPECIFIED_IN_PROGRESSPERIOD_"/>
       <value enum="3" description="REAL_TIME_EXECUTION_REPORTS"/>
     </field>
     <field number="415" name="ProgPeriodInterval" type="INT"/>
@@ -7108,7 +7236,8 @@
     <field number="447" name="PartyIDSource" type="CHAR">
       <value enum="6" description="UK_NATIONAL_INSURANCE_OR_PENSION_NUMBER"/>
       <value enum="1" description="KOREAN_INVESTOR_ID"/>
-      <value enum="I" description="DIRECTED_BROKER_THREE_CHARACTER_ACRONYM_AS_DEFINED_IN_ISITC_ETC_BEST_PRACTICE_GUIDELINES_DOCUMENT"/>
+            <value enum="I"
+                   description="DIRECTED_BROKER_THREE_CHARACTER_ACRONYM_AS_DEFINED_IN_ISITC_ETC_BEST_PRACTICE_GUIDELINES_DOCUMENT"/>
       <value enum="B" description="BIC"/>
       <value enum="7" description="US_SOCIAL_SECURITY_NUMBER"/>
       <value enum="2" description="TAIWANESE_QUALIFIED_FOREIGN_INVESTOR_ID_QFII_FID"/>
@@ -7210,8 +7339,12 @@
       <value enum="81" description="BROKERCLEARINGID"/>
       <value enum="82" description="CENTRAL_REGISTRATION_DEPOSITORY"/>
       <value enum="83" description="CLEARING_ACCOUNT"/>
-      <value enum="84" description="ACCEPTABLE_SETTLING_COUNTERPARTY"/>
-      <value enum="85" description="UNACCEPTABLE_SETTLING_COUNTERPARTY"/>
+            <value enum="84" description="CLS_MEMBER_BANK"/>
+            <value enum="85" description="IN_CONCERT_GROUP"/>
+            <value enum="86" description="IN_CONCERT_CONTROLLING_ENTITY"/>
+            <value enum="87" description="LARGE_POSITIONS_REPORTING_ACCOUNT"/>
+            <value enum="88" description="SETTLEMENT_FIRM"/>
+            <value enum="89" description="SETTLEMENT_ACCOUNT"/>
     </field>
     <field number="453" name="NoPartyIDs" type="NUMINGROUP"/>
     <field number="454" name="NoSecurityAltID" type="NUMINGROUP"/>
@@ -7234,6 +7367,8 @@
       <value enum="11" description="MUNICIPAL"/>
       <value enum="12" description="OTHER"/>
       <value enum="13" description="FINANCING"/>
+            <value enum="101" description="DIGITAL_CURRENCY"/>
+            <value enum="102" description="EVENT"/>
     </field>
     <field number="461" name="CFICode" type="STRING"/>
     <field number="462" name="UnderlyingProduct" type="INT"/>
@@ -7555,15 +7690,21 @@
       <value enum="3" description="GLOBAL"/>
     </field>
     <field number="547" name="MDImplicitDelete" type="BOOLEAN">
-      <value enum="N" description="SERVER_MUST_SEND_AN_EXPLICIT_DELETE_FOR_BIDS_OR_OFFERS_FALLING_OUTSIDE_THE_REQUESTED_MARKETDEPTH_OF_THE_REQUEST"/>
-      <value enum="Y" description="CLIENT_HAS_RESPONSIBILITY_FOR_IMPLICITLY_DELETING_BIDS_OR_OFFERS_FALLING_OUTSIDE_THE_MARKETDEPTH_OF_THE_REQUEST"/>
+            <value enum="N"
+                   description="SERVER_MUST_SEND_AN_EXPLICIT_DELETE_FOR_BIDS_OR_OFFERS_FALLING_OUTSIDE_THE_REQUESTED_MARKETDEPTH_OF_THE_REQUEST"/>
+            <value enum="Y"
+                   description="CLIENT_HAS_RESPONSIBILITY_FOR_IMPLICITLY_DELETING_BIDS_OR_OFFERS_FALLING_OUTSIDE_THE_MARKETDEPTH_OF_THE_REQUEST"/>
     </field>
     <field number="548" name="CrossID" type="STRING"/>
     <field number="549" name="CrossType" type="INT">
-      <value enum="1" description="CROSS_AON_CROSS_TRADE_WHICH_IS_EXECUTED_COMPLETELY_OR_NOT_BOTH_SIDES_ARE_TREATED_IN_THE_SAME_MANNER_THIS_IS_EQUIVALENT_TO_AN_ALL_OR_NONE_"/>
-      <value enum="2" description="CROSS_IOC_CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED_ONE_SIDE_IS_FULLY_EXECUTED_THE_OTHER_SIDE_IS_PARTIALLY_EXECUTED_WITH_THE_REMAINDER_BEING_CANCELLED_THIS_IS_EQUIVALENT_TO_AN_IOC_ON_THE_OTHER_SIDE_NOTE_CROSSPRIORITIZATION_FIELD_MAY_BE_USED_TO_INDICATE_WHICH_SIDE_SHOULD_FULLY_EXECUTE_IN_THIS_SCENARIO_"/>
-      <value enum="3" description="CROSS_ONE_SIDE_CROSS_TRADE_WHICH_IS_PARTIALLY_EXECUTED_WITH_THE_UNFILLED_PORTIONS_REMAINING_ACTIVE_ONE_SIDE_OF_THE_CROSS_IS_FULLY_EXECUTED_BUT_THE_UNFILLED_PORTION_REMAINS_ACTIVE_"/>
-      <value enum="4" description="CROSS_SAME_PRICE_CROSS_TRADE_IS_EXECUTED_WITH_EXISTING_ORDERS_WITH_THE_SAME_PRICE_IN_THIS_CASE_OTHER_ORDERS_EXIST_WITH_THE_SAME_PRICE_THE_QUANTITY_OF_THE_CROSS_IS_EXECUTED_AGAINST_THE_EXISTING_ORDERS_AND_QUOTES_THE_REMAINDER_OF_THE_CROSS_IS_EXECUTED_AGAINST_THE_OTHER_SIDE_OF_THE_CROSS_THE_TWO_SIDES_POTENTIALLY_HAVE_DIFFERENT_QUANTITIES_"/>
+            <value enum="1"
+                   description="CROSS_AON_CROSS_TRADE_WHICH_IS_EXECUTED_COMPLETELY_OR_NOT_BOTH_SIDES_ARE_TREATED_IN_THE_SAME_MANNER_THIS_IS_EQUIVALENT_TO_AN_ALL_OR_NONE_"/>
+            <value enum="2"
+                   description="CROSS_IOC_CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED_ONE_SIDE_IS_FULLY_EXECUTED_THE_OTHER_SIDE_IS_PARTIALLY_EXECUTED_WITH_THE_REMAINDER_BEING_CANCELLED_THIS_IS_EQUIVALENT_TO_AN_IOC_ON_THE_OTHER_SIDE_NOTE_CROSSPRIORITIZATION_FIELD_MAY_BE_USED_TO_INDICATE_WHICH_SIDE_SHOULD_FULLY_EXECUTE_IN_THIS_SCENARIO_"/>
+            <value enum="3"
+                   description="CROSS_ONE_SIDE_CROSS_TRADE_WHICH_IS_PARTIALLY_EXECUTED_WITH_THE_UNFILLED_PORTIONS_REMAINING_ACTIVE_ONE_SIDE_OF_THE_CROSS_IS_FULLY_EXECUTED_BUT_THE_UNFILLED_PORTION_REMAINS_ACTIVE_"/>
+            <value enum="4"
+                   description="CROSS_SAME_PRICE_CROSS_TRADE_IS_EXECUTED_WITH_EXISTING_ORDERS_WITH_THE_SAME_PRICE_IN_THIS_CASE_OTHER_ORDERS_EXIST_WITH_THE_SAME_PRICE_THE_QUANTITY_OF_THE_CROSS_IS_EXECUTED_AGAINST_THE_EXISTING_ORDERS_AND_QUOTES_THE_REMAINDER_OF_THE_CROSS_IS_EXECUTED_AGAINST_THE_OTHER_SIDE_OF_THE_CROSS_THE_TWO_SIDES_POTENTIALLY_HAVE_DIFFERENT_QUANTITIES_"/>
     </field>
     <field number="550" name="CrossPrioritization" type="INT">
       <value enum="0" description="NONE"/>
@@ -7631,14 +7772,19 @@
       <value enum="2" description="ADVISORY_OR_ALERT"/>
     </field>
     <field number="574" name="MatchType" type="STRING">
-      <value enum="A1" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_FOUR_BADGES_AND_EXECUTION_TIME"/>
-      <value enum="A2" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_FOUR_BADGES"/>
+            <value enum="A1"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_FOUR_BADGES_AND_EXECUTION_TIME"/>
+            <value enum="A2"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_FOUR_BADGES"/>
       <value enum="M3" description="ACT_ACCEPTED_TRADE"/>
-      <value enum="A3" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_TWO_BADGES_AND_EXECUTION_TIME"/>
+            <value enum="A3"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_TWO_BADGES_AND_EXECUTION_TIME"/>
       <value enum="M4" description="ACT_DEFAULT_TRADE"/>
-      <value enum="A4" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_TWO_BADGES"/>
+            <value enum="A4"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_TWO_BADGES"/>
       <value enum="M5" description="ACT_DEFAULT_AFTER_M2"/>
-      <value enum="A5" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADETYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_EXECUTION_TIME"/>
+            <value enum="A5"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADETYPE_AND_SPECIAL_TRADE_INDICATOR_PLUS_EXECUTION_TIME"/>
       <value enum="M6" description="ACT_M6_MATCH"/>
       <value enum="AQ" description="COMPARED_RECORDS_RESULTING_FROM_STAMPED_ADVISORIES_OR_SPECIALIST_ACCEPTS_PAIR_OFFS"/>
       <value enum="S1" description="SUMMARIZED_MATCH_USING_A1_EXACT_MATCH_CRITERIA_EXCEPT_QUANTITY_IS_SUMMARIED"/>
@@ -7646,7 +7792,8 @@
       <value enum="S3" description="SUMMARIZED_MATCH_USING_A3_EXACT_MATCH_CRITERIA_EXCEPT_QUANTITY_IS_SUMMARIZED"/>
       <value enum="S4" description="SUMMARIZED_MATCH_USING_A4_EXACT_MATCH_CRITERIA_EXCEPT_QUANTITY_IS_SUMMARIZED"/>
       <value enum="S5" description="SUMMARIZED_MATCH_USING_A5_EXACT_MATCH_CRITERIA_EXCEPT_QUANTITY_IS_SUMMARIZED"/>
-      <value enum="M1" description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_MINUS_BADGES_AND_TIMES_ACT_M1_MATCH"/>
+            <value enum="M1"
+                   description="EXACT_MATCH_ON_TRADE_DATE_STOCK_SYMBOL_QUANTITY_PRICE_TRADE_TYPE_AND_SPECIAL_TRADE_INDICATOR_MINUS_BADGES_AND_TIMES_ACT_M1_MATCH"/>
       <value enum="M2" description="SUMMARIZED_MATCH_MINUS_BADGES_AND_TIMES_ACT_M2_MATCH"/>
       <value enum="MT" description="OCS_LOCKED_IN_NON_ACT"/>
       <value enum="1" description="ONE_PARTY_TRADE_REPORT"/>
@@ -8012,7 +8159,8 @@
     <field number="711" name="NoUnderlyings" type="NUMINGROUP"/>
     <field number="712" name="PosMaintAction" type="INT">
       <value enum="1" description="NEW_USED_TO_INCREMENT_THE_OVERALL_TRANSACTION_QUANTITY"/>
-      <value enum="2" description="REPLACE_USED_TO_OVERRIDE_THE_OVERALL_TRANSACTION_QUANTITY_OR_SPECIFI_ADD_MESSAGES_BASED_ON_THE_REFERENCE_ID"/>
+            <value enum="2"
+                   description="REPLACE_USED_TO_OVERRIDE_THE_OVERALL_TRANSACTION_QUANTITY_OR_SPECIFI_ADD_MESSAGES_BASED_ON_THE_REFERENCE_ID"/>
       <value enum="3" description="CANCEL_USED_TO_REMOVE_THE_OVERALL_TRANSACTION_OR_SPECIFIC_ADD_MESSAGES_BASED_ON_REFERENCE_ID"/>
       <value enum="4" description="REVERSE_USED_TO_COMPLETELLY_BACK_OUT_THE_TRANSACTION_SUCH_THAT_THE_TRANSACTION_NEVER_EXISTED"/>
     </field>
@@ -8079,6 +8227,18 @@
     <field number="731" name="SettlPriceType" type="INT">
       <value enum="1" description="FINAL"/>
       <value enum="2" description="THEORETICAL"/>
+    </field>
+        <field number='2451' name='SettlPriceDeterminationMethod' type='INT'>
+            <value enum='0' description='UNKNOWN'/>
+            <value enum='1' description='LAST_TRADE_PRICE'/>
+            <value enum='2' description='LAST_BID_PRICE'/>
+            <value enum='3' description='LAST_OFFER_PRICE'/>
+            <value enum='4' description='MID_PRICE'/>
+            <value enum='5' description='AVERAGE_LAST_TRADE_PRICE'/>
+            <value enum='6' description='AVERAGE_LAST_TRADE_PERIOD'/>
+            <value enum='7' description='UNDERLYING_PRICE'/>
+            <value enum='8' description='CALCULATED_PRICE'/>
+            <value enum='9' description='MANUAL_PRICE'/>
     </field>
     <field number="732" name="UnderlyingSettlPrice" type="PRICE"/>
     <field number="733" name="UnderlyingSettlPriceType" type="INT"/>
@@ -8377,7 +8537,8 @@
       <value enum="40" description="BLOCK_TRADES_AFTER_MARKET"/>
       <value enum="41" description="NAME_CHANGE"/>
       <value enum="42" description="PORTFOLIO_TRANSFER"/>
-      <value enum="43" description="PROROGATION_BUY_EURONEXT_PARIS_ONLY_IS_USED_TO_DEFER_SETTLEMENT_UNDER_FRENCH_SRD_TRADES_MUST_BE_REPORTED_AS_CROSSES_AT_ZERO_PRICE"/>
+            <value enum="43"
+                   description="PROROGATION_BUY_EURONEXT_PARIS_ONLY_IS_USED_TO_DEFER_SETTLEMENT_UNDER_FRENCH_SRD_TRADES_MUST_BE_REPORTED_AS_CROSSES_AT_ZERO_PRICE"/>
       <value enum="44" description="PROROGATION_SELL_SEE_PROROGATION_BUY"/>
       <value enum="45" description="OPTION_EXERCISE"/>
       <value enum="46" description="DELTA_NEUTRAL_TRANSACTION"/>
@@ -8410,7 +8571,8 @@
       <value enum="17" description="LC"/>
       <value enum="18" description="M"/>
       <value enum="19" description="N"/>
-      <value enum="20" description="NM_TRANSACTION_WHERE_EXCHANGE_HAS_GRANTED_PERMISSION_FOR_NON_PUBLICATION_II_IDB_IS_REPORTING_AS_SELLER_III_SUBMITTING_A_TRANSACTION_REPORT_TO_THE_EXCHANGE_WHERE_THE_TRANSACTION_REPORT_IS_NOT_ALSO_A_TRADE_REPORT_"/>
+            <value enum="20"
+                   description="NM_TRANSACTION_WHERE_EXCHANGE_HAS_GRANTED_PERMISSION_FOR_NON_PUBLICATION_II_IDB_IS_REPORTING_AS_SELLER_III_SUBMITTING_A_TRANSACTION_REPORT_TO_THE_EXCHANGE_WHERE_THE_TRANSACTION_REPORT_IS_NOT_ALSO_A_TRADE_REPORT_"/>
       <value enum="21" description="NR"/>
       <value enum="22" description="P"/>
       <value enum="23" description="PA"/>
@@ -8451,8 +8613,10 @@
       <value enum="2" description="OR_WORSE_FOR_A_BUY_THE_PEG_LIMIT_IS_A_MINIMUM_AND_FOR_A_SELL_THE_PEG_LIMIT_IS_A_MAXIMUM"/>
     </field>
     <field number="838" name="PegRoundDirection" type="INT">
-      <value enum="1" description="MORE_AGGRESSIVE_ON_A_BUY_ORDER_ROUND_THE_PRICE_UP_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK"/>
-      <value enum="2" description="MORE_PASSIVE_ON_A_BUY_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_UP_TO_THE_NEAREST_TICK"/>
+            <value enum="1"
+                   description="MORE_AGGRESSIVE_ON_A_BUY_ORDER_ROUND_THE_PRICE_UP_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK"/>
+            <value enum="2"
+                   description="MORE_PASSIVE_ON_A_BUY_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_UP_TO_THE_NEAREST_TICK"/>
     </field>
     <field number="839" name="PeggedPrice" type="PRICE"/>
     <field number="840" name="PegScope" type="INT">
@@ -8474,11 +8638,14 @@
     <field number="843" name="DiscretionLimitType" type="INT">
       <value enum="0" description="OR_BETTER_PRICE_IMPROVEMENT_ALLOWED"/>
       <value enum="1" description="STRICT_LIMIT_IS_A_STRICT_LIMIT"/>
-      <value enum="2" description="OR_WORSE_FOR_A_BUY_THE_DISCRETION_PRICE_IS_A_MINIMUM_AND_FOR_A_SELL_THE_DISCRETION_PRICE_IS_A_MAXIMUM"/>
+            <value enum="2"
+                   description="OR_WORSE_FOR_A_BUY_THE_DISCRETION_PRICE_IS_A_MINIMUM_AND_FOR_A_SELL_THE_DISCRETION_PRICE_IS_A_MAXIMUM"/>
     </field>
     <field number="844" name="DiscretionRoundDirection" type="INT">
-      <value enum="1" description="MORE_AGGRESSIVE_ON_A_BUY_ORDER_ROUND_THE_PRICE_UP_TO_THE_NEAREST_TICK_ON_A_SELL_ROUND_DOWN_TO_THE_NEAREST_TICK"/>
-      <value enum="2" description="MORE_PASSIVE_ON_A_BUY_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_UP_TO_THE_NEAREST_TICK"/>
+            <value enum="1"
+                   description="MORE_AGGRESSIVE_ON_A_BUY_ORDER_ROUND_THE_PRICE_UP_TO_THE_NEAREST_TICK_ON_A_SELL_ROUND_DOWN_TO_THE_NEAREST_TICK"/>
+            <value enum="2"
+                   description="MORE_PASSIVE_ON_A_BUY_ORDER_ROUND_DOWN_TO_THE_NEAREST_TICK_ON_A_SELL_ORDER_ROUND_UP_TO_THE_NEAREST_TICK"/>
     </field>
     <field number="845" name="DiscretionPrice" type="PRICE"/>
     <field number="846" name="DiscretionScope" type="INT">
@@ -8606,6 +8773,16 @@
       <value enum="28" description="INSTRUMENT_STRIKE_PRICE"/>
       <value enum="29" description="TRADEABLE_INDICATOR"/>
       <value enum="99" description="TEXT_SUPPLY_THE_TEXT_OF_THE_ATTRIBUTE_OR_DISCLAIMER_IN_THE_INSTRATTRIBVALUE_FIELD_"/>
+            <value enum="500" description="OPEN_TIME"/>
+            <value enum="501" description="CLOSE_TIME"/>
+            <value enum="502" description="SETTLED_TIME"/>
+            <value enum="511" description="PERIOD"/>
+            <value enum="512" description="PERIOD_INDEX"/>
+            <value enum="521" description="STRIKE_OPERATOR"/>
+            <value enum="522" description="STRIKE_INDEX"/>
+            <value enum="523" description="DISPLAY_SCALE"/>
+            <value enum="531" description="UNDERLYING_ROUNDING_VALUE"/>
+            <value enum="532" description="UNDERLYING_MONTH"/>
     </field>
     <field number="872" name="InstrAttribValue" type="STRING"/>
     <field number="873" name="DatedDate" type="LOCALMKTDATE"/>
@@ -8916,6 +9093,14 @@
       <value enum="tn" description="TONS"/>
       <value enum="USD" description="US_DOLLARS"/>
       <value enum="Alw" description="ALLOWANCES"/>
+            <value enum="0.001" description="THOUSANDTH"/>
+            <value enum="0.0001" description="TEN_THOUSANDTH"/>
+            <value enum="0.01" description="HUNDREDTH"/>
+            <value enum="0.1" description="TENTH"/>
+            <value enum="0.25" description="QUARTER"/>
+            <value enum="0.5" description="HALF"/>
+            <value enum="1" description="ONE"/>
+            <value enum="5" description="FIVE"/>
     </field>
     <field number="997" name="TimeUnit" type="STRING">
       <value enum="H" description="HOUR"/>
@@ -9721,8 +9906,10 @@
     <field number="1425" name="UnderlyingPriceUnitOfMeasureQty" type="QTY"/>
     <field number="1426" name="ApplReportType" type="INT">
       <value enum="0" description="RESET_APPLSEQNUM_TO_NEW_VALUE_SPECIFIED_IN_APPLNEWSEQNUM"/>
-      <value enum="1" description="REPORTS_THAT_THE_LAST_MESSAGE_HAS_BEEN_SENT_FOR_THE_APPLIDS_REFER_TO_REFAPPLLASTSEQNUM_FOR_THE_APPLICATION_SEQUENCE_NUMBER_OF_THE_LAST_MESSAGE_"/>
-      <value enum="2" description="HEARTBEAT_MESSAGE_INDICATING_THAT_APPLICATION_IDENTIFIED_BY_REFAPPLID_FOR_THE_APPLICATION_SEQUENCE_NUMBER_OF_THE_PREVIOUS_MESSAGE_"/>
+            <value enum="1"
+                   description="REPORTS_THAT_THE_LAST_MESSAGE_HAS_BEEN_SENT_FOR_THE_APPLIDS_REFER_TO_REFAPPLLASTSEQNUM_FOR_THE_APPLICATION_SEQUENCE_NUMBER_OF_THE_LAST_MESSAGE_"/>
+            <value enum="2"
+                   description="HEARTBEAT_MESSAGE_INDICATING_THAT_APPLICATION_IDENTIFIED_BY_REFAPPLID_FOR_THE_APPLICATION_SEQUENCE_NUMBER_OF_THE_PREVIOUS_MESSAGE_"/>
       <value enum="3" description="APPLICATION_MESSAGE_RE_SEND_COMPLETED_"/>
     </field>
     <field number="1427" name="SideExecID" type="STRING"/>
@@ -9938,5 +10125,50 @@
       <value enum="2" description="REJECTED"/>
       <value enum="3" description="TERMINATE_UNASSIGN"/>
     </field>
+        <field number="7777" name="Timestamp" type="UTCTIMESTAMP"/>
+        <field number="7778" name="State" type="BOOLEAN"/>
+        <field number="7779" name="PositionStatus" type="STRING">
+            <value enum="1" description="ACTIVE"/>
+            <value enum="2" description="SETTLED"/>
+            <value enum="3" description="CLOSED"/>
+        </field>
+        <field number="5006" name="ProtectionValue" type="STRING"/>
+        <field number="7780" name="AveragePrice" type="PRICE"/>
+        <field number="7781" name="IsQuote" type="BOOLEAN"/>
+        <field number="7782" name="TradeableResource" type="STRING"/>
+        <field number="7783" name="MessageID" type="STRING"/>
+        <field number="7784" name="IsDerived" type="BOOLEAN"/>
+        <field number="7785" name="NoSettledInstruments" type="NUMINGROUP"/>
+        <field number="7786" name="InstrumentIds" type="MULTIPLEVALUESTRING"/>
+        <field number="7787" name="FeederSymbol" type="STRING"/>
+        <field number="7788" name="UnderlyingName" type="STRING"/>
+        <field number="7789" name="TradeableResourceId" type="STRING"/>
+        <field number="7790" name="FeederSymbolId" type="STRING"/>
+        <field number="7791" name="FeederSymbolName" type="STRING"/>
+        <field number="7792" name="SettlementFrom" type="UTCTIMESTAMP"/>
+        <field number="7793" name="SettlementTo" type="UTCTIMESTAMP"/>
+        <field number="7797" name="CancelledBySettlement" type="BOOLEAN"/>
+        <field number="7798" name="BustedMatchId" type="STRING"/>
+        <field number="7799" name="NoSettlementTickDataUMD" type="NUMINGROUP"/>
+        <field number="7800" name="MarketDataOriginatorId" type="STRING"/>
+        <field number="7801" name="TradeableResourceClassType" type="INT"/>
+        <field number="7802" name="MarketDataFeedId" type="STRING"/>
+        <field number="7803" name="CollectDataFrom" type="UTCTIMESTAMP"/>
+        <field number="7804" name="CalculateMidPrice" type="BOOLEAN"/>
+        <field number="7805" name="RequestTradeTicksOnly" type="BOOLEAN"/>
+        <field number="7806" name="InstrumentLastTradeDate" type="UTCTIMESTAMP"/>
+        <field number="7807" name="SettlementPrice" type="PRICE"/>
+        <field number="7808" name="InstrumentFirstTradeDate" type="UTCTIMESTAMP"/>
+        <field number="7809" name="UnderlyingId" type="STRING"/>
+        <field number="7810" name="PositionCategory" type="CHAR" required="false">
+            <value enum="I" description="INTRA_DAY"/>
+            <value enum="E" description="END_OF_DAY"/>
+        </field>
+        <field number="7132" name="BidDisplayPx" type="PRICE"/>
+        <field number="7133" name="OfferDisplayPx" type="PRICE"/>
+        <field number="7175" name="ExchangeTradeDate" type="LOCALMKTDATE"/>
+        <field number='20001' name='Balance' type='STRING' />
+        <field number='20002' name='Reserved' type='STRING' />
+        <field number='20003' name='Available' type='STRING' />
   </fields>
 </fix>
