@@ -26,9 +26,9 @@
 
 
 	<scm>
-		<connection>scm:git:git://github.com/quickfix-j/quickfixj.git</connection>
-		<developerConnection>scm:git:git@github.com:quickfix-j/quickfixj.git</developerConnection>
-		<url>https://github.com/quickfix-j/quickfixj/</url>
+		<connection>scm:git:git://github.com/NadexWeb/quickfixj-fce.git</connection>
+		<developerConnection>scm:git:git@github.com:NadexWeb/quickfixj-fce.git</developerConnection>
+		<url>https://github.com/NadexWeb/quickfixj-fce.git/</url>
 		<tag>master</tag>
 	</scm>
 
