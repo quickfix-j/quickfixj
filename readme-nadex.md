@@ -24,7 +24,7 @@ Some modules that are not required are also commented out in the build.
 
 The package of interest is :
 
-`<groupId>com.cdna.fce</groupId>` 
+`<groupId>com.nadex.fce</groupId>` 
 
 `<artifactId>quickfixj-messages-fix50sp2</artifactId>`
 

@@ -7367,8 +7367,18 @@
       <value enum="11" description="MUNICIPAL"/>
       <value enum="12" description="OTHER"/>
       <value enum="13" description="FINANCING"/>
-            <value enum="101" description="DIGITAL_CURRENCY"/>
-            <value enum="102" description="EVENT"/>
+      <value enum="101" description="ECONOMIC_INDEX"/>
+      <value enum="102" description="EVENT"/>
+      <value enum="103" description="CORPS"/>
+      <value enum="104" description="EARNING"/>
+      <value enum="105" description="ECONOMIC_DERIVATIVE"/>
+      <value enum="106" description="ENERGY"/>
+      <value enum="107" description="HOUSING_PRICE"/>
+      <value enum="108" description="HURRICANE"/>
+      <value enum="109" description="MERGE"/>
+      <value enum="110" description="REVENUE"/>
+      <value enum="111" description="POLITICS"/>
+      <value enum="112" description="DIGITAL_CURRENCY"/>
     </field>
     <field number="461" name="CFICode" type="STRING"/>
     <field number="462" name="UnderlyingProduct" type="INT"/>
