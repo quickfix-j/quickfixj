@@ -141,7 +141,7 @@
 			<activation>
 				<property>
 					<name>fix40.spec.uptodate</name>
-					<value>false</value>
+					<value>true</value>
 				</property>
 			</activation>
 			<build>
