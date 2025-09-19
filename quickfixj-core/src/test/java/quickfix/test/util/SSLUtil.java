@@ -9,12 +9,19 @@ import quickfix.Session;
 import quickfix.mina.IoSessionResponder;
 import quickfix.mina.ssl.SSLSupport;
 
+import javax.net.ssl.ExtendedSSLSession;
+import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import java.lang.reflect.Field;
+import java.net.IDN;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.security.cert.Certificate;
+import java.util.List;
 
 /**
  * A utility class for working with SSL/TLS sessions and retrieving SSL-related information from a {@link Session}.
@@ -27,6 +34,7 @@ public final class SSLUtil {
     private static final AttributeKey SSL_HANDLER_ATTRIBUTE_KEY = new AttributeKey(SslHandler.class, "handler");
     private static final Field IO_SESSION_FIELD;
     private static final Field SSL_ENGINE_FIELD;
+    private static final int SNI_HOST_NAME_TYPE = 0;
 
     static {
         try {
@@ -167,5 +175,29 @@ public final class SSLUtil {
         } catch (SSLPeerUnverifiedException e) {
             return null;
         }
+    }
+
+    /**
+     * Retrieves the first SNI Server Name that is SNI Host Name (type=0) provided in ClientHello.
+     *
+     * @param sslSession the SSL session from which to retrieve SNI Host Name
+     * @return the SNI Host Name SSL extensions value, or {@code null} if extension neither compatible nor available
+     */
+    public static String getSniHostName(SSLSession sslSession) {
+        if (!(sslSession instanceof ExtendedSSLSession)) {
+            return null;
+        }
+
+        ExtendedSSLSession extendedSSLSession = (ExtendedSSLSession) sslSession;
+        List<SNIServerName> requestedServerNames = extendedSSLSession.getRequestedServerNames();
+
+        for (SNIServerName serverName : requestedServerNames) {
+            if (serverName.getType() == SNI_HOST_NAME_TYPE) {
+                String asciiServerName = new String(serverName.getEncoded(), StandardCharsets.US_ASCII);
+                return IDN.toUnicode(asciiServerName, IDN.USE_STD3_ASCII_RULES);
+            }
+        }
+
+        return null;
     }
 }
