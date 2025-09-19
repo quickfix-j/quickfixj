@@ -24,9 +24,7 @@ import org.apache.mina.core.session.IoSession;
 import org.burningwave.tools.net.DefaultHostResolver;
 import org.burningwave.tools.net.HostResolutionRequestInterceptor;
 import org.burningwave.tools.net.MappedHostResolver;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -68,7 +66,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import quickfix.mina.SocksProxyServer;
@@ -97,17 +94,12 @@ public class SSLCertificateTest {
         this.enabledProtocols = enabledProtocols;
     }
 
-    @BeforeClass
-    public static void setUpClass() {
+    @Before
+    public void setUp() {
         Map<String, String> hostAliases = new HashMap<>();
         hostAliases.put(LOCALHOST_ALIAS, "127.0.0.1");
 
         HostResolutionRequestInterceptor.INSTANCE.install(new MappedHostResolver(hostAliases), DefaultHostResolver.INSTANCE);
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-        HostResolutionRequestInterceptor.INSTANCE.uninstall();
     }
 
     @After
@@ -116,8 +108,9 @@ public class SSLCertificateTest {
             Thread.sleep(500);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            java.util.logging.Logger.getLogger(SSLCertificateTest.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        HostResolutionRequestInterceptor.INSTANCE.uninstall();
     }
 
     @Test
