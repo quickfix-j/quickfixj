@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1510,9 +1511,12 @@ public class MessageTest {
     }
 
     @Test
-    public void shouldReturnFixSpecificHeader() {
+    public void shouldReturnFixSpecificHeader() throws FieldNotFound {
         NewOrderSingle order = new NewOrderSingle();
-        assertEquals(quickfix.fix42.Message.Header.class, order.getHeader().getClass());
+        assertSame(quickfix.fix42.Message.Header.class, order.getHeader().getClass());
+
+        order.set(new Signature("foo"));
+        assertEquals(order.getSignature().getValue(), "foo");
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
