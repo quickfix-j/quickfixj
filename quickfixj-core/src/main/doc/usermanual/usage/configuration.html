@@ -714,6 +714,22 @@
     <TD></TD>
     <TD></TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD valign="top"> <I>UseSNI</I></TD>
+      <TD>
+          Enables the SSL engine to use Server Name Indication (SNI). This option is only applicable for initiators.
+          <p>If provided, <i>SNIHostName</i> will be used as the server name. Otherwise, <i>SocketConnectHost</i> or <i>SocketConnectHost&lt;n&gt;</i> will be used.</p>
+          <p>Note: When this option is disabled, the JVM may still implicitly send the SSL <code>server_name</code> extension.</p>
+      </TD>
+      <TD>Y<BR>N</TD>
+      <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD valign="top"> <I>SNIHostName</I></TD>
+      <TD>SNI host name to be used as desired Server Name Indication (SNI) parameter.</TD>
+      <TD></TD>
+      <TD></TD>
+  </TR>
 
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Security">Socks Proxy Options (Initiator only)</A></TD>
