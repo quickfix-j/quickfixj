@@ -1509,6 +1509,12 @@ public class MessageTest {
         assertEquals(600, noml5.getGroup(1, 555).delim());
     }
 
+    @Test
+    public void shouldReturnFixSpecificHeader() {
+        NewOrderSingle order = new NewOrderSingle();
+        assertEquals(quickfix.fix42.Message.Header.class, order.getHeader().getClass());
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
