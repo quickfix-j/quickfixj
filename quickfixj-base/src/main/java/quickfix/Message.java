@@ -432,7 +432,7 @@ public class Message extends FieldMap {
         }
     }
 
-    public final Header getHeader() {
+    public Header getHeader() {
         return header;
     }
 

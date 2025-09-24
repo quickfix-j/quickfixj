@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -110,6 +111,7 @@ import quickfix.field.SignatureLength;
 import quickfix.field.StrikePrice;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
+import quickfix.field.TargetSubID;
 import quickfix.field.Text;
 import quickfix.field.TotNoOrders;
 import quickfix.field.TradeDate;
@@ -1507,6 +1509,15 @@ public class MessageTest {
         assertEquals(3, noml5.getGroupCount(555));
         //delimiter should be dictionary first tag = 600
         assertEquals(600, noml5.getGroup(1, 555).delim());
+    }
+
+    @Test
+    public void shouldReturnFixSpecificHeader() throws FieldNotFound {
+        NewOrderSingle order = new NewOrderSingle();
+        assertSame(quickfix.fix42.Message.Header.class, order.getHeader().getClass());
+
+        order.getHeader().set(new TargetSubID("foo"));
+        assertEquals(order.getHeader().getTargetSubID().getValue(), "foo");
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
