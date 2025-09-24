@@ -111,6 +111,7 @@ import quickfix.field.SignatureLength;
 import quickfix.field.StrikePrice;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
+import quickfix.field.TargetSubID;
 import quickfix.field.Text;
 import quickfix.field.TotNoOrders;
 import quickfix.field.TradeDate;
@@ -1515,8 +1516,8 @@ public class MessageTest {
         NewOrderSingle order = new NewOrderSingle();
         assertSame(quickfix.fix42.Message.Header.class, order.getHeader().getClass());
 
-        order.set(new Signature("foo"));
-        assertEquals(order.getSignature().getValue(), "foo");
+        order.getHeader().set(new TargetSubID("foo"));
+        assertEquals(order.getHeader().getTargetSubID().getValue(), "foo");
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
