@@ -56,7 +56,8 @@
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
 		<module>quickfixj-perf-test</module>
-	</modules>
+        <module>quickfixj-stress-test</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,7 +70,7 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-  <maven.version>3.9.11</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+        <maven.version>3.9.11</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
 		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
@@ -102,7 +103,9 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.0</jaxen.version>
-                <jmh.version>1.37</jmh.version>
+        <jmh.version>1.37</jmh.version>
+        <jcstress.version>0.16</jcstress.version>
+        <hsqldb.version>1.8.0.10</hsqldb.version>
 	</properties>
 
    <dependencyManagement>
@@ -273,7 +276,7 @@
 					<version>${maven-compiler-plugin-version}</version>
 					<inherited>true</inherited>
 					<configuration>
-						<forceJavacCompilerUse>true</forceJavacCompilerUse> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
+						<forceLegacyJavacApi>true</forceLegacyJavacApi> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
 						<meminitial>2g</meminitial>
 						<maxmem>4g</maxmem>
 					</configuration>
