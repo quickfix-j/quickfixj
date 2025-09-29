@@ -134,6 +134,7 @@ import quickfix.fix44.TradeCaptureReport;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
+import quickfix.fixt11.TestRequest;
 
 /**
  * NOTE: There are two MessageTests. One in quickfixj-base, one in
@@ -1518,6 +1519,15 @@ public class MessageTest {
 
         order.getHeader().set(new TargetSubID("foo"));
         assertEquals(order.getHeader().getTargetSubID().getValue(), "foo");
+
+        quickfix.fixlatest.NewOrderSingle fixLatestOrder = new quickfix.fixlatest.NewOrderSingle();
+        assertSame(quickfix.fixlatest.Message.Header.class, fixLatestOrder.getHeader().getClass());
+
+        quickfix.fix50sp1.NewOrderSingle fix50sp1Order = new quickfix.fix50sp1.NewOrderSingle();
+        assertSame(quickfix.fix50sp1.Message.Header.class, fix50sp1Order.getHeader().getClass());
+
+        TestRequest testRequest = new TestRequest();
+        assertSame(quickfix.fixt11.Message.Header.class, testRequest.getHeader().getClass());
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
