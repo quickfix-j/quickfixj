@@ -39,6 +39,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.InitiatorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
@@ -193,13 +194,29 @@ public class IoSessionInitiator {
         private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SslFilter sslFilter = new SslFilter(sslContext, false);
+            final SslFilter sslFilter = new InitiatorSslFilter(sslContext, getSniHostName(sslConfig));
             sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
             sslFilter.setEndpointIdentificationAlgorithm(sslConfig.getEndpointIdentificationAlgorithm());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
+        }
+
+        public String getSniHostName(SSLConfig sslConfig) {
+            if (!sslConfig.isUseSNI()) {
+                return null;
+            }
+
+            if (sslConfig.getSniHostName() != null) {
+                return sslConfig.getSniHostName();
+            }
+
+            if (socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress) {
+                return ((InetSocketAddress) socketAddresses[nextSocketAddressIndex]).getHostName();
+            }
+
+            return null;
         }
 
         @Override
