@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -82,10 +83,10 @@ public class JdbcStoreStressTest {
         doReturn(insertSessionQuery).when(connection).prepareStatement(insertSessionSql);
 
         // UPDATE SEQUENCE NUMS
-        UpdateSequenceStatement updateSequenceNumsQuery = new UpdateSequenceStatement();
+        Database database = new Database();
 
         String updateSequenceNumsSql = JdbcStore.getUpdateSequenceNumsSql(sessionTableName, idWhereClause);
-        doReturn(updateSequenceNumsQuery).when(connection).prepareStatement(updateSequenceNumsSql);
+        doAnswer(invocationOnMock -> new UpdateSequenceStatement(database)).when(connection).prepareStatement(updateSequenceNumsSql);
 
         JdbcStore jdbcStore = new JdbcStore(settings, SESSION_ID, dataSource);
 
@@ -97,12 +98,27 @@ public class JdbcStoreStressTest {
             throw new IllegalStateException("Invalid next target sequence: " + jdbcStore.getNextTargetMsgSeqNum());
         }
 
-        return new JdbcStoreWrapper(jdbcStore, updateSequenceNumsQuery);
+        return new JdbcStoreWrapper(jdbcStore, database);
     }
 
+    /**
+     * <pre>
+     *   JVM args: [-Dfile.encoding=UTF-8, -XX:-UseBiasedLocking, -XX:+StressLCM, -XX:+StressGCM]
+     *
+     *       RESULT  SAMPLES     FREQ      EXPECT  DESCRIPTION
+     *   2, 1, 2, 1        0    0,00%   Forbidden  Invalid source and target sequences stored in the database
+     *   2, 1, 2, 2        0    0,00%   Forbidden  Invalid source sequence stored in the database
+     *   2, 2, 2, 1        1   <0,01%   Forbidden  Invalid target sequence stored in the database
+     *   2, 2, 2, 2   30,886  100,00%  Acceptable
+     *
+     * </pre>
+     */
     @State
     @JCStressTest
     @Outcome(id = "2, 2, 2, 2", expect = Expect.ACCEPTABLE)
+    @Outcome(id = "2, 2, 2, 1", expect = Expect.FORBIDDEN, desc = "Invalid target sequence stored in the database")
+    @Outcome(id = "2, 1, 2, 2", expect = Expect.FORBIDDEN, desc = "Invalid source sequence stored in the database")
+    @Outcome(id = "2, 1, 2, 1", expect = Expect.FORBIDDEN, desc = "Invalid source and target sequences stored in the database")
     public static class SingleSenderSequenceTest {
 
         private final JdbcStoreWrapper underTest;
@@ -116,17 +132,15 @@ public class JdbcStoreStressTest {
         }
 
         // application thread
-        @SuppressWarnings("unused")
         @Actor
         public void incrementSender() {
-            underTest.incrementSenderSeqNum();
+            underTest.incrementSenderSequence();
         }
 
         // QFJ Message Processor
-        @SuppressWarnings("unused")
         @Actor
         public void incrementTarget() {
-            underTest.incrementTargetSeqNum();
+            underTest.incrementTargetSequence();
         }
 
         @Arbiter
@@ -138,9 +152,20 @@ public class JdbcStoreStressTest {
         }
     }
 
+    /**
+     * <pre>
+     *   JVM args: [-Dfile.encoding=UTF-8, -XX:-UseBiasedLocking, -XX:+StressLCM, -XX:+StressGCM]
+     *
+     *       RESULT  SAMPLES     FREQ      EXPECT  DESCRIPTION
+     *   3, 2, 2, 2        1   <0,01%   Forbidden
+     *   3, 2, 3, 2   46,502  100,00%  Acceptable
+     *
+     * </pre>
+     */
     @State
     @JCStressTest
     @Outcome(id = "3, 2, 3, 2", expect = Expect.ACCEPTABLE)
+    @Outcome(expect = Expect.FORBIDDEN)
     public static class TwoSendersSequenceTest {
 
         private final JdbcStoreWrapper underTest;
@@ -154,24 +179,21 @@ public class JdbcStoreStressTest {
         }
 
         // application thread
-        @SuppressWarnings("unused")
         @Actor
         public void incrementSender1() {
-            underTest.incrementSenderSeqNum();
+            underTest.incrementSenderSequence();
         }
 
         // application thread
-        @SuppressWarnings("unused")
         @Actor
         public void incrementSender2() {
-            underTest.incrementSenderSeqNum();
+            underTest.incrementSenderSequence();
         }
 
         // QFJ Message Processor
-        @SuppressWarnings("unused")
         @Actor
         public void incrementTarget() {
-            underTest.incrementTargetSeqNum();
+            underTest.incrementTargetSequence();
         }
 
         @Arbiter
@@ -185,23 +207,23 @@ public class JdbcStoreStressTest {
 
     private static final class JdbcStoreWrapper {
 
-        private final JdbcStore messageStore;
-        private final UpdateSequenceStatement updateSequenceNumsQuery;
+        private final JdbcStore store;
+        private final Database database;
         private final Lock senderSequenceLock;
         private final Lock targetSequenceLock;
 
-        public JdbcStoreWrapper(JdbcStore messageStore, UpdateSequenceStatement updateSequenceNumsQuery) {
-            this.messageStore = messageStore;
-            this.updateSequenceNumsQuery = updateSequenceNumsQuery;
+        public JdbcStoreWrapper(JdbcStore store, Database database) {
+            this.store = store;
+            this.database = database;
             this.senderSequenceLock = new ReentrantLock();
             this.targetSequenceLock = new ReentrantLock();
         }
 
-        public void incrementSenderSeqNum() {
+        public void incrementSenderSequence() {
             senderSequenceLock.lock();
 
             try {
-                messageStore.incrNextSenderMsgSeqNum();
+                store.incrNextSenderMsgSeqNum();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -209,11 +231,11 @@ public class JdbcStoreStressTest {
             }
         }
 
-        public void incrementTargetSeqNum() {
+        public void incrementTargetSequence() {
             targetSequenceLock.lock();
 
             try {
-                messageStore.incrNextTargetMsgSeqNum();
+                store.incrNextTargetMsgSeqNum();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -223,7 +245,7 @@ public class JdbcStoreStressTest {
 
         public int getCacheSenderSequence() {
             try {
-                return messageStore.getNextSenderMsgSeqNum();
+                return store.getNextSenderMsgSeqNum();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -231,29 +253,55 @@ public class JdbcStoreStressTest {
 
         public int getCacheTargetSequence() {
             try {
-                return messageStore.getNextTargetMsgSeqNum();
+                return store.getNextTargetMsgSeqNum();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
         public int getDbSenderSequence() {
-            return updateSequenceNumsQuery.senderSeqNum;
+            return database.senderSequence;
         }
 
         public int getDbTargetSequence() {
-            return updateSequenceNumsQuery.targetSeqNum;
+            return database.targetSequence;
+        }
+    }
+
+    private static final class Database {
+
+        private final Lock lock;
+        private int senderSequence;
+        private int targetSequence;
+
+        public Database() {
+            this.lock = new ReentrantLock();
+            this.senderSequence = -1;
+            this.targetSequence = -1;
+        }
+
+        public void update(int senderSequence, int targetSequence) {
+            lock.lock();
+
+            try {
+                this.senderSequence = senderSequence;
+                this.targetSequence = targetSequence;
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
     private static final class UpdateSequenceStatement implements PreparedStatement {
 
-        private int senderSeqNum;
-        private int targetSeqNum;
+        private final Database database;
+        private int senderSequence;
+        private int targetSequence;
 
-        public UpdateSequenceStatement() {
-            this.senderSeqNum = -1;
-            this.targetSeqNum = -1;
+        public UpdateSequenceStatement(Database database) {
+            this.database = database;
+            this.senderSequence = -1;
+            this.targetSequence = -1;
         }
 
         @Override
@@ -289,9 +337,9 @@ public class JdbcStoreStressTest {
         @Override
         public void setInt(int parameterIndex, int x) {
             if (parameterIndex == 1) {
-                targetSeqNum = x;
+                targetSequence = x;
             } else if (parameterIndex == 2) {
-                senderSeqNum = x;
+                senderSequence = x;
             }
         }
 
@@ -371,6 +419,7 @@ public class JdbcStoreStressTest {
 
         @Override
         public boolean execute() {
+            database.update(senderSequence, targetSequence);
             return true;
         }
 

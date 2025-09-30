@@ -60,15 +60,13 @@ $ java -jar quickfixj-stress-test/target/quickfixj-stress-test.jar -h
 
 Some useful jcstress options include:
 
+- `h` - Display help 
 - `-t <test>` - Run specific test or test group
 - `-v` - Verbose mode
-- `-time <ms>` - Duration for each test iteration
-- `-iters <n>` - Number of iterations
 - `-jvmArgs <args>` - Additional JVM arguments
 
 ## Additional Notes
 
-- Test results are generated in the `results/` directory by default
 - For CI/CD integration, use the full path to the JAR file
 - Stress tests may take significant time to complete depending on your system resources
 - Review jcstress documentation for advanced configuration options
@@ -77,7 +75,6 @@ Some useful jcstress options include:
 
 If you encounter issues:
 
-1. Ensure all prerequisites are met
-2. Verify the JAR file was built successfully in `quickfixj-stress-test/target/`
-3. Check that you have sufficient system resources (CPU, memory)
-4. Review the jcstress output for specific error messages
+- Verify the JAR file was built successfully in `quickfixj-stress-test/target/`
+- Check that you have sufficient system resources (CPU, memory)
+- Review the jcstress output for specific error messages

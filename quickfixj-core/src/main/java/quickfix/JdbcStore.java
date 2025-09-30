@@ -194,32 +194,6 @@ class JdbcStore implements MessageStore {
         return cache.getNextTargetMsgSeqNum();
     }
 
-    int getNextSenderMsgSeqNumFromDb() throws SQLException {
-        return getNextMsgSeqNumsFromDb()[0];
-    }
-
-    int getNextTargetMsgSeqNumFromDb() throws SQLException {
-        return getNextMsgSeqNumsFromDb()[1];
-    }
-
-    int[] getNextMsgSeqNumsFromDb() throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            try (PreparedStatement query = connection.prepareStatement(SQL_GET_SEQNUMS)) {
-                setSessionIdParameters(query, 1);
-
-                try (ResultSet result = query.executeQuery()) {
-                    if (result.next()) {
-                        int targetSeqNum = result.getInt(2);
-                        int senderSeqNum = result.getInt(3);
-                        return new int[] {senderSeqNum, targetSeqNum};
-                    } else {
-                        return new int[] {-1, -1};
-                    }
-                }
-            }
-        }
-    }
-
     public void incrNextSenderMsgSeqNum() throws IOException {
         cache.incrNextSenderMsgSeqNum();
         setNextSenderMsgSeqNum(cache.getNextSenderMsgSeqNum());
