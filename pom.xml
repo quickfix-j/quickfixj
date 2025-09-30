@@ -100,7 +100,7 @@
 		<apache.mina.version>2.2.4</apache.mina.version>
 		<commons.io.version>2.20.0</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
-		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
+		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.0</jaxen.version>
                 <jmh.version>1.37</jmh.version>
 	</properties>
