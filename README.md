@@ -66,7 +66,8 @@ $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,mi
 ```
 
 ## configuration options
-https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
+
+https://html-preview.github.io/?url=https://github.com/quickfix-j/quickfixj/blob/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
 ## basics
 
