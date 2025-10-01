@@ -39,4 +39,5 @@ In this project we have further customised the file.
 ## How to Build
 
 For convenience a `build.sh` script is included in the base directory of the project.
+This project builds with JDK 1.8 and Maven 3.6.1. Later Maven versions may report a build error.
 

@@ -2754,7 +2754,7 @@
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
       <component name="Instrument" required="N"/>
-            <field name="Timestamp" required="Y"/>
+            <field name="Timestamp" required="N"/>
             <field name="MessageID" required="N"/>
             <field name="TransactTime" required="N"/>
     </message>
@@ -9103,14 +9103,16 @@
       <value enum="tn" description="TONS"/>
       <value enum="USD" description="US_DOLLARS"/>
       <value enum="Alw" description="ALLOWANCES"/>
-            <value enum="0.001" description="THOUSANDTH"/>
-            <value enum="0.0001" description="TEN_THOUSANDTH"/>
-            <value enum="0.01" description="HUNDREDTH"/>
-            <value enum="0.1" description="TENTH"/>
-            <value enum="0.25" description="QUARTER"/>
-            <value enum="0.5" description="HALF"/>
-            <value enum="1" description="ONE"/>
-            <value enum="5" description="FIVE"/>
+      <!-- CDNA CUSTOM VALUES -->
+      <value enum="0.001" description="THOUSANDTH"/>
+      <value enum="0.0001" description="TEN_THOUSANDTH"/>
+      <value enum="0.00005" description="FIVE_ONE_HUNDRED_THOUSANDTH"/>
+      <value enum="0.01" description="HUNDREDTH"/>
+      <value enum="0.1" description="TENTH"/>
+      <value enum="0.25" description="QUARTER"/>
+      <value enum="0.5" description="HALF"/>
+      <value enum="1" description="ONE"/>
+      <value enum="5" description="FIVE"/>
     </field>
     <field number="997" name="TimeUnit" type="STRING">
       <value enum="H" description="HOUR"/>
@@ -10072,6 +10074,8 @@
       <value enum="1" description="VANILLA"/>
       <value enum="2" description="CAPPED"/>
       <value enum="3" description="BINARY"/>
+      <value enum="101" description="VARIABLE"/>
+      <value enum="102" description="LINEAR"/>
     </field>
     <field number="1483" name="NoComplexEvents" type="NUMINGROUP"/>
     <field number="1484" name="ComplexEventType" type="INT">
