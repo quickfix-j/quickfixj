@@ -36,7 +36,7 @@ class InitiatorProxyIoHandler extends AbstractProxyIoHandler {
     }
 
     @Override
-    public void sessionClosed(IoSession ioSession) throws Exception {
+    public void sessionClosed(IoSession ioSession) {
         this.initiatorIoHandler.sessionClosed(ioSession);
     }
 
