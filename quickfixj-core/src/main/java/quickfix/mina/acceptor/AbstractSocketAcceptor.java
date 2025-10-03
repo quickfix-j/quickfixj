@@ -57,8 +57,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     protected AbstractSocketAcceptor(Application application,
-            MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            MessageFactory messageFactory) throws ConfigError {
                                      MessageStoreFactory messageStoreFactory, SessionSettings settings,
                                      MessageFactory messageFactory) throws ConfigError {
         this(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
@@ -327,7 +325,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     protected abstract EventHandlingStrategy getEventHandlingStrategy();
 
-    private class DefaultAcceptorSessionProvider implements AcceptorSessionProvider {
     private static class DefaultAcceptorSessionProvider implements AcceptorSessionProvider {
 
         private final Map<SessionID, Session> acceptorSessions;
