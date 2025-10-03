@@ -24,11 +24,7 @@ import quickfix.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static quickfix.mina.QueueTrackers.newDefaultQueueTracker;
 import static quickfix.mina.QueueTrackers.newMultiSessionWatermarkTracker;
@@ -215,95 +211,95 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         return getQueueSize();
     }
 
-	/**
-	 * A stand-in for the Thread class that delegates to an Executor.
-	 * Implements all the API required by pre-existing QFJ code.
-	 */
-	static final class ThreadAdapter {
+    /**
+     * A stand-in for the Thread class that delegates to an Executor.
+     * Implements all the API required by pre-existing QFJ code.
+     */
+    static final class ThreadAdapter {
 
-		private final Executor executor;
-		private final RunnableWrapper wrapper;
+        private final Executor executor;
+        private final RunnableWrapper wrapper;
 
-		ThreadAdapter(Runnable command, String name, Executor executor) {
-                    wrapper = new RunnableWrapper(command, name);
-                    this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
-		}
+        ThreadAdapter(Runnable command, String name, Executor executor) {
+            wrapper = new RunnableWrapper(command, name);
+            this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
+        }
 
-		public void join() throws InterruptedException {
-                    wrapper.join();
-		}
+        public void join() throws InterruptedException {
+            wrapper.join();
+        }
 
-		public void setDaemon(boolean b) {
-                    /* No-Op. Already set for DedicatedThreadExecutor. Not relevant for externally supplied Executors. */
-		}
+        public void setDaemon(boolean b) {
+            /* No-Op. Already set for DedicatedThreadExecutor. Not relevant for externally supplied Executors. */
+        }
 
-		public boolean isAlive() {
-                    return wrapper.isAlive();
-		}
+        public boolean isAlive() {
+            return wrapper.isAlive();
+        }
 
-		public void start() {
-                    executor.execute(wrapper);
-		}
-                
-		/**
-		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
-		 */
-		static final class RunnableWrapper implements Runnable {
+        public void start() {
+            executor.execute(wrapper);
+        }
 
-			private final CountDownLatch latch = new CountDownLatch(1);
-			private final Runnable command;
-			private final String name;
+        /**
+         * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
+         */
+        static final class RunnableWrapper implements Runnable {
 
-			public RunnableWrapper(Runnable command, String name) {
-                            this.command = command;
-                            this.name = name;
-			}
+            private final CountDownLatch latch = new CountDownLatch(1);
+            private final Runnable command;
+            private final String name;
 
-                        @Override
-                        public void run() {
-                            Thread currentThread = Thread.currentThread();
-                            String threadName = currentThread.getName();
-                            try {
-                                if (!name.equals(threadName)) {
-                                    currentThread.setName(name + " (" + threadName + ")");
-                                }
-                                command.run();
-                            } finally {
-                                latch.countDown();
-                                currentThread.setName(threadName);
-                            }
-                        }
+            public RunnableWrapper(Runnable command, String name) {
+                this.command = command;
+                this.name = name;
+            }
 
-			public void join() throws InterruptedException {
-                            latch.await();
-			}
+            @Override
+            public void run() {
+                Thread currentThread = Thread.currentThread();
+                String threadName = currentThread.getName();
+                try {
+                    if (!name.equals(threadName)) {
+                        currentThread.setName(name + " (" + threadName + ")");
+                    }
+                    command.run();
+                } finally {
+                    latch.countDown();
+                    currentThread.setName(threadName);
+                }
+            }
 
-			public boolean isAlive() {
-                            return latch.getCount() > 0;
-			}
-		}
+            public void join() throws InterruptedException {
+                latch.await();
+            }
 
-		/**
-		 * An Executor that uses its own dedicated Thread.
-		 * Provides equivalent behavior to the prior non-Executor approach.
-		 */
-		static final class DedicatedThreadExecutor implements Executor {
+            public boolean isAlive() {
+                return latch.getCount() > 0;
+            }
+        }
 
-			private final String name;
-                        private Thread thread;
-			
-			DedicatedThreadExecutor(String name) {
-				this.name = name;
-			}
+        /**
+         * An Executor that uses its own dedicated Thread.
+         * Provides equivalent behavior to the prior non-Executor approach.
+         */
+        static final class DedicatedThreadExecutor implements Executor {
 
-			@Override
-			public void execute(Runnable command) {
-				thread = new Thread(command, name);
-				thread.setDaemon(true);
-				thread.start();
-			}
-		}
+            private final String name;
+            private Thread thread;
 
-	}
+            DedicatedThreadExecutor(String name) {
+                this.name = name;
+            }
+
+            @Override
+            public void execute(Runnable command) {
+                thread = new Thread(command, name);
+                thread.setDaemon(true);
+                thread.start();
+            }
+        }
+
+    }
 
 }

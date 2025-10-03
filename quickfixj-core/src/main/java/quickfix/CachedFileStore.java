@@ -24,26 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.UtcTimestampConverter;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.io.*;
+import java.util.*;
 
 /**
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY
@@ -100,9 +82,7 @@ public class CachedFileStore implements MessageStore {
         sessionFileName = prefix + "session";
 
         final File directory = new File(msgFileName).getParentFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        directory.mkdirs();
 
         initialize(false);
     }
@@ -176,7 +156,7 @@ public class CachedFileStore implements MessageStore {
             final String s = sequenceNumberFile.readUTF();
             final int offset = s.indexOf(':');
             if (offset < 0) {
-                throw new IOException("Invalid sequenceNumbderFile '" + seqNumFileName
+                throw new IOException("Invalid sequenceNumberFile '" + seqNumFileName
                         + "' character ':' is missing");
             }
             cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
@@ -349,7 +329,7 @@ public class CachedFileStore implements MessageStore {
         final long offset = messageFileWriter.getFilePointer();
         final byte[] messageBytes = message.getBytes(CharsetSupport.getCharset());
         final int size = messageBytes.length;
-        messageIndex.put((long) sequence, new long[] { offset, size });
+        messageIndex.put((long) sequence, new long[]{offset, size});
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);
@@ -488,7 +468,7 @@ public class CachedFileStore implements MessageStore {
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         if (index == sequenceNumber) {
-                            return new long[] { offset, size };
+                            return new long[]{offset, size};
                         }
                     }
                 } catch (final IOException e) {
@@ -519,7 +499,7 @@ public class CachedFileStore implements MessageStore {
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         if (sequenceNumber >= startSequence && sequenceNumber <= endSequence) {
-                            indexPerSequenceNumber.put(sequenceNumber, new long[] { offset, size });
+                            indexPerSequenceNumber.put(sequenceNumber, new long[]{offset, size});
                         }
                     }
                 } catch (final IOException e) {

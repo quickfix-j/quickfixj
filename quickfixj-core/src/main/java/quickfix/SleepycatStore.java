@@ -19,29 +19,20 @@
 
 package quickfix;
 
+import com.sleepycat.bind.EntryBinding;
+import com.sleepycat.bind.tuple.TupleBinding;
+import com.sleepycat.bind.tuple.TupleInput;
+import com.sleepycat.bind.tuple.TupleOutput;
+import com.sleepycat.je.*;
+import org.quickfixj.CharsetSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-
-import org.quickfixj.CharsetSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sleepycat.bind.EntryBinding;
-import com.sleepycat.bind.tuple.TupleBinding;
-import com.sleepycat.bind.tuple.TupleInput;
-import com.sleepycat.bind.tuple.TupleOutput;
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
 
 /**
  * Sleepycat message and session state storage. This could be creating
@@ -211,7 +202,7 @@ public class SleepycatStore implements MessageStore {
         Cursor cursor = null;
         try {
             DatabaseEntry sequenceKey = new DatabaseEntry();
-            EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+            EntryBinding<Integer> sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
             // Must start at start-1 because db will look for next record larger
             sequenceBinding.objectToEntry(startSequence - 1, sequenceKey);
 
@@ -223,7 +214,7 @@ public class SleepycatStore implements MessageStore {
             if (retVal == OperationStatus.NOTFOUND) {
                 log.debug("{}/{} not matched in database {}", sequenceKey, messageBytes, messageDatabase.getDatabaseName());
             } else {
-                Integer sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);
+                Integer sequenceNumber = sequenceBinding.entryToObject(sequenceKey);
                 while (sequenceNumber <= endSequence) {
                     messages.add(new String(messageBytes.getData(), charsetEncoding));
                     if (log.isDebugEnabled()) {
@@ -231,7 +222,7 @@ public class SleepycatStore implements MessageStore {
                                 sequenceNumber, new String(messageBytes.getData(), charsetEncoding), sequenceKey, messageBytes);
                     }
                     cursor.getNext(sequenceKey, messageBytes, LockMode.DEFAULT);
-                    sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);
+                    sequenceNumber = sequenceBinding.entryToObject(sequenceKey);
                 }
             }
         } catch (Exception e) {
@@ -309,7 +300,7 @@ public class SleepycatStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         try {
             DatabaseEntry sequenceKey = new DatabaseEntry();
-            EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+            EntryBinding<Integer> sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
             sequenceBinding.objectToEntry(sequence, sequenceKey);
             DatabaseEntry messageBytes = new DatabaseEntry(message.getBytes(CharsetSupport.getCharset()));
             messageDatabase.put(null, sequenceKey, messageBytes);

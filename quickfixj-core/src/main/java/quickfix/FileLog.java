@@ -19,16 +19,10 @@
 
 package quickfix;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-
 import org.quickfixj.CharsetSupport;
-
 import quickfix.field.converter.UtcTimestampConverter;
+
+import java.io.*;
 
 /**
  * File log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY
@@ -69,9 +63,8 @@ public class FileLog extends AbstractLog {
         eventFileName = prefix + "event.log";
 
         File directory = new File(messagesFileName).getParentFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        directory.mkdirs();
+
 
         this.includeMillis = includeMillis;
         this.includeTimestampForMessages = includeTimestampForMessages;
@@ -94,7 +87,7 @@ public class FileLog extends AbstractLog {
 
     private void writeMessage(FileOutputStream stream, Object lock, String message, boolean forceTimestamp) {
         try {
-            synchronized(lock) {
+            synchronized (lock) {
                 if (forceTimestamp || includeTimestampForMessages) {
                     writeTimeStamp(stream);
                 }

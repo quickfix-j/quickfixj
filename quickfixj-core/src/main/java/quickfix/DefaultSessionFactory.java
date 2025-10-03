@@ -27,12 +27,7 @@ import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
@@ -56,7 +51,7 @@ public class DefaultSessionFactory implements SessionFactory {
     private final SessionScheduleFactory sessionScheduleFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-            LogFactory logFactory) {
+                                 LogFactory logFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.messageQueueFactory = new InMemoryMessageQueueFactory();
@@ -66,7 +61,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-            LogFactory logFactory, MessageFactory messageFactory) {
+                                 LogFactory logFactory, MessageFactory messageFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.messageQueueFactory = new InMemoryMessageQueueFactory();
@@ -274,7 +269,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private void processPreFixtDataDictionary(SessionID sessionID, SessionSettings settings,
-            DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
+                                              DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
         final DataDictionary dataDictionary = createDataDictionary(sessionID, settings,
                 Session.SETTING_DATA_DICTIONARY, sessionID.getBeginString());
@@ -284,7 +279,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private DataDictionary createDataDictionary(SessionID sessionID, SessionSettings settings,
-            String settingsKey, String beginString) throws ConfigError, FieldConvertError {
+                                                String settingsKey, String beginString) throws ConfigError, FieldConvertError {
         final String path = getDictionaryPath(sessionID, settings, settingsKey, beginString);
         return getDataDictionary(path);
     }
@@ -293,22 +288,22 @@ public class DefaultSessionFactory implements SessionFactory {
         ValidationSettings validationSettings = new ValidationSettings();
 
         validationSettings.setCheckFieldsOutOfOrder(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER, validationSettings.isCheckFieldsOutOfOrder()));
+                Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER, validationSettings.isCheckFieldsOutOfOrder()));
 
         validationSettings.setCheckFieldsHaveValues(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES, validationSettings.isCheckFieldsHaveValues()));
+                Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES, validationSettings.isCheckFieldsHaveValues()));
 
         validationSettings.setCheckUnorderedGroupFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS, validationSettings.isCheckUnorderedGroupFields()));
+                Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS, validationSettings.isCheckUnorderedGroupFields()));
 
         validationSettings.setCheckUserDefinedFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_VALIDATE_USER_DEFINED_FIELDS, validationSettings.isCheckUserDefinedFields()));
+                Session.SETTING_VALIDATE_USER_DEFINED_FIELDS, validationSettings.isCheckUserDefinedFields()));
 
         validationSettings.setAllowUnknownMessageFields(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS, validationSettings.isAllowUnknownMessageFields()));
+                Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS, validationSettings.isAllowUnknownMessageFields()));
 
         validationSettings.setFirstFieldInGroupIsDelimiter(settings.getBoolOrDefault(sessionID,
-                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER, validationSettings.isFirstFieldInGroupIsDelimiter()));
+                Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER, validationSettings.isFirstFieldInGroupIsDelimiter()));
 
         validateValidationSettings(validationSettings);
 
@@ -323,7 +318,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
-            DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
+                                             DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
         dataDictionaryProvider.addTransportDictionary(
                 sessionID.getBeginString(),
@@ -373,7 +368,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private String getDictionaryPath(SessionID sessionID, SessionSettings settings,
-            String settingsKey, String beginString) throws ConfigError, FieldConvertError {
+                                     String settingsKey, String beginString) throws ConfigError, FieldConvertError {
         String path;
         if (settings.isSetting(sessionID, settingsKey)) {
             path = settings.getString(sessionID, settingsKey);
@@ -410,7 +405,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 throw new ConfigError(e);
             }
         }
-        return new int[] { 5 }; // default value
+        return new int[]{5}; // default value
     }
 
     private Set<InetAddress> getInetAddresses(SessionSettings settings, SessionID sessionID)
@@ -428,26 +423,26 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private boolean getSetting(SessionSettings settings, SessionID sessionID, String key,
-            boolean defaultValue) throws ConfigError, FieldConvertError {
+                               boolean defaultValue) throws ConfigError, FieldConvertError {
         return settings.isSetting(sessionID, key) ? settings.getBool(sessionID, key) : defaultValue;
     }
 
     private int getSetting(SessionSettings settings, SessionID sessionID, String key,
-            int defaultValue) throws ConfigError, FieldConvertError {
+                           int defaultValue) throws ConfigError, FieldConvertError {
         return settings.isSetting(sessionID, key)
                 ? (int) settings.getLong(sessionID, key)
                 : defaultValue;
     }
 
     private double getSetting(SessionSettings settings, SessionID sessionID, String key,
-            double defaultValue) throws ConfigError, FieldConvertError {
+                              double defaultValue) throws ConfigError, FieldConvertError {
         return settings.isSetting(sessionID, key)
                 ? Double.parseDouble(settings.getString(sessionID, key))
                 : defaultValue;
     }
 
     private UtcTimestampPrecision getTimestampPrecision(SessionSettings settings, SessionID sessionID,
-            UtcTimestampPrecision defaultValue) throws ConfigError, FieldConvertError {
+                                                        UtcTimestampPrecision defaultValue) throws ConfigError, FieldConvertError {
         if (settings.isSetting(sessionID, Session.SETTING_TIMESTAMP_PRECISION)) {
             String string = settings.getString(sessionID, Session.SETTING_TIMESTAMP_PRECISION);
             try {
@@ -462,13 +457,13 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private List<StringField> getLogonTags(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
         List<StringField> logonTags = new ArrayList<>();
-        for (int index = 0;; index++) {
+        for (int index = 0; ; index++) {
             final String logonTagSetting = Session.SETTING_LOGON_TAG
                     + (index == 0 ? "" : NumbersCache.get(index));
             if (settings.isSetting(sessionID, logonTagSetting)) {
                 String tag = settings.getString(sessionID, logonTagSetting);
                 String[] split = tag.split("=", 2);
-                StringField stringField = new StringField(Integer.valueOf(split[0]), split[1]);
+                StringField stringField = new StringField(Integer.parseInt(split[0]), split[1]);
                 logonTags.add(stringField);
             } else {
                 break;

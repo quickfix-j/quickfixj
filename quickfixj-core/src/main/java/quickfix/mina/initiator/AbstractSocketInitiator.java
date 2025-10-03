@@ -23,19 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.Application;
-import quickfix.ConfigError;
-import quickfix.DefaultSessionFactory;
-import quickfix.FieldConvertError;
-import quickfix.Initiator;
-import quickfix.LogFactory;
-import quickfix.LogUtil;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.Session;
-import quickfix.SessionFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
+import quickfix.*;
 import quickfix.field.converter.BooleanConverter;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
@@ -45,17 +33,8 @@ import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLSupport;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -69,8 +48,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     public static final String QFJ_RECONNECT_THREAD_PREFIX = "QFJ Reconnect Thread-";
 
     protected AbstractSocketInitiator(Application application,
-            MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+                                      MessageStoreFactory messageStoreFactory, SessionSettings settings,
+                                      LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
         this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
                 messageFactory));
     }
@@ -81,8 +60,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected AbstractSocketInitiator(Application application,
-            MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            LogFactory logFactory, MessageFactory messageFactory, int numReconnectThreads) throws ConfigError {
+                                      MessageStoreFactory messageStoreFactory, SessionSettings settings,
+                                      LogFactory logFactory, MessageFactory messageFactory, int numReconnectThreads) throws ConfigError {
         this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
                 messageFactory), numReconnectThreads);
     }
@@ -114,7 +93,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private void createInitiator(final Session session, final boolean continueInitOnError) throws ConfigError, FieldConvertError {
-                
+
         SessionSettings settings = getSettings();
         final SessionID sessionID = session.getSessionID();
         final int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
@@ -216,7 +195,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     private void createSessions(boolean continueInitOnError) throws ConfigError, FieldConvertError {
         final SessionSettings settings = getSettings();
         final Map<SessionID, Session> initiatorSessions = new HashMap<>();
-        for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
+        for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext(); ) {
             final SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
                 try {
@@ -236,7 +215,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
         setSessions(initiatorSessions);
     }
-    
+
     public void createDynamicSession(SessionID sessionID) throws ConfigError {
 
         try {
@@ -263,20 +242,18 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 throw new ConfigError(e);
             }
         }
-        return new int[] { 30 };
+        return new int[]{30};
     }
 
     private SocketAddress[] getSocketAddresses(SessionID sessionID) throws ConfigError {
         final SessionSettings settings = getSettings();
         final ArrayList<SocketAddress> addresses = new ArrayList<>();
-        for (int index = 0;; index++) {
+        for (int index = 0; ; index++) {
             try {
-                final String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL
-                        + (index == 0 ? "" : Integer.toString(index));
-                final String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST
-                        + (index == 0 ? "" : Integer.toString(index));
-                final String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT
-                        + (index == 0 ? "" : Integer.toString(index));
+                final String keySuffix = index == 0 ? "" : Integer.toString(index);
+                final String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL + keySuffix;
+                final String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST + keySuffix;
+                final String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT + keySuffix;
                 int transportType = ProtocolFactory.SOCKET;
                 if (settings.isSetting(sessionID, protocolKey)) {
                     try {
@@ -325,7 +302,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected void stopInitiators() {
-        for (Iterator<IoSessionInitiator> iterator = initiators.iterator(); iterator.hasNext();) {
+        for (Iterator<IoSessionInitiator> iterator = initiators.iterator(); iterator.hasNext(); ) {
             iterator.next().stop();
             iterator.remove();
         }
@@ -342,8 +319,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected abstract EventHandlingStrategy getEventHandlingStrategy();
-    
-    
+
+
     private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
 
         private static final AtomicInteger COUNTER = new AtomicInteger(1);
