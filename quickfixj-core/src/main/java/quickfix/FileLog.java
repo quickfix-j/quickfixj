@@ -19,10 +19,16 @@
 
 package quickfix;
 
-import org.quickfixj.CharsetSupport;
-import quickfix.field.converter.UtcTimestampConverter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
-import java.io.*;
+import org.quickfixj.CharsetSupport;
+
+import quickfix.field.converter.UtcTimestampConverter;
 
 /**
  * File log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY

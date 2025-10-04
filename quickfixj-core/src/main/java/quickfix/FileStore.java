@@ -22,8 +22,23 @@ package quickfix;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.converter.UtcTimestampConverter;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN

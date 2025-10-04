@@ -20,19 +20,39 @@
 package quickfix.mina;
 
 import org.apache.mina.core.filterchain.IoFilterChainBuilder;
-import org.apache.mina.core.future.CloseFuture;
-import org.apache.mina.core.service.IoService;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.*;
+import quickfix.ConfigError;
+import quickfix.Connector;
+import quickfix.ExecutorFactory;
+import quickfix.FieldConvertError;
+import quickfix.Session;
+import quickfix.SessionFactory;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.field.converter.IntConverter;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.service.IoService;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an

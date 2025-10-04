@@ -27,7 +27,12 @@ import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
