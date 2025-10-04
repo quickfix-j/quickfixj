@@ -88,9 +88,7 @@ public class FileStore implements MessageStore, Closeable {
         sessionFileName = prefix + "session";
 
         final File directory = new File(msgFileName).getParentFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        directory.mkdirs();
 
         initialize(false);
     }
@@ -203,7 +201,7 @@ public class FileStore implements MessageStore, Closeable {
             messageIndex.pollFirstEntry();
         }
 
-        messageIndex.put(sequenceNum, new long[] { offset, size });
+        messageIndex.put(sequenceNum, new long[]{offset, size});
     }
 
     /**
