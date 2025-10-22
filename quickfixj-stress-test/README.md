@@ -29,8 +29,8 @@ $ mvn clean package -pl quickfixj-stress-test -am -Dmaven.javadoc.skip=true -Dsk
 - `-am` - Also build required dependent modules
 - `-Dmaven.javadoc.skip` - Skip JavaDoc generation
 - `-DskipTests` - Skip running unit test cases during build
-- `-DskipAT=true` - Skip acceptance tests
-- `-PskipBundlePlugin,minimal-fix-latest` - Skip bundle plugin and use minimal FIX Orchestra code genration
+- `-DskipAT=true` - Skip running acceptance tests
+- `-PskipBundlePlugin,minimal-fix-latest` - Skip bundle plugin and use minimal FIX Orchestra code generation
 
 ### Running Tests
 
