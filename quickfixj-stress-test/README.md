@@ -21,14 +21,16 @@ $ mvn clean package
 Build the stress test module with required dependencies, skipping test execution:
 
 ```bash
-$ mvn clean package -pl quickfixj-stress-test -am -Dmaven.javadoc.skip=true -DskipTests -PskipAT,skipBundlePlugin,minimal-fix-latest
+$ mvn clean package -pl quickfixj-stress-test -am -Dmaven.javadoc.skip=true -DskipTests -DskipAT=true -PskipBundlePlugin,minimal-fix-latest
 ```
 
 **Command Options Explained:**
 - `-pl quickfixj-stress-test` - Build only the stress test module
-- `-am` - Also build required dependency modules
-- `-PskipAT,skipBundlePlugin` - Skip acceptance tests and bundle plugin
+- `-am` - Also build required dependent modules
+- `-Dmaven.javadoc.skip` - Skip JavaDoc generation
 - `-DskipTests` - Skip running unit test cases during build
+- `-DskipAT=true` - Skip acceptance tests
+- `-PskipBundlePlugin,minimal-fix-latest` - Skip bundle plugin and use minimal FIX Orchestra code genration
 
 ### Running Tests
 
