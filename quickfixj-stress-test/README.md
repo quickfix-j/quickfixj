@@ -21,7 +21,7 @@ $ mvn clean package
 Build the stress test module with required dependencies, skipping test execution:
 
 ```bash
-$ mvn clean package -pl quickfixj-stress-test -am -PskipAT,skipBundlePlugin -DskipTests
+$ mvn clean package -pl quickfixj-stress-test -am -Dmaven.javadoc.skip=true -DskipTests -PskipAT,skipBundlePlugin,minimal-fix-latest
 ```
 
 **Command Options Explained:**
