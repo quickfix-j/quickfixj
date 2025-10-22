@@ -6857,7 +6857,14 @@
       <value enum="5" description="DTCC_CODE"/>
       <value enum="99" description="OTHER"/>
     </field>
-    <field number="661" name="AllocAcctIDSource" type="INT"/>
+    <field number="661" name="AllocAcctIDSource" type="INT">
+      <value enum="1" description="BIC"/>
+      <value enum="2" description="SID_CODE"/>
+      <value enum="3" description="TFM"/>
+      <value enum="4" description="OMGEO"/>
+      <value enum="5" description="DTCC_CODE"/>
+      <value enum="99" description="OTHER"/>
+    </field>
     <field number="662" name="BenchmarkPrice" type="PRICE"/>
     <field number="663" name="BenchmarkPriceType" type="INT"/>
     <field number="664" name="ConfirmID" type="STRING"/>
