@@ -521,7 +521,7 @@ public class RepeatingGroupTest {
         final Message m = new Message(
             "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=20080203-00:29:51.453\00156=ISLD\001" +
             "11=ID\00121=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00179=acct1\00180=50\001" +
-            "661=10\00179=acct2\00180=150\001661=11\00160=20080203-00:29:51.453\00110=000\001",
+            "661=1\00179=acct2\00180=150\001661=2\00160=20080203-00:29:51.453\00110=000\001",
             defaultDataDictionary, ignoreOutOfOrderSettings,false);
         try {
             defaultDataDictionary.validate(m, ignoreOutOfOrderSettings);
