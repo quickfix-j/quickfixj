@@ -10139,7 +10139,7 @@
       <value enum="2" description="REJECTED"/>
       <value enum="3" description="TERMINATE_UNASSIGN"/>
     </field>
-        <field number="7777" name="Timestamp" type="INT"/>
+        <field number="7777" name="Timestamp" type="STRING"/>
         <field number="7778" name="State" type="BOOLEAN"/>
         <field number="7779" name="PositionStatus" type="STRING">
             <value enum="1" description="ACTIVE"/>
