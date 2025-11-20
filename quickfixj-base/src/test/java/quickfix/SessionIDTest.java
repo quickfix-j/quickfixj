@@ -19,7 +19,8 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 import quickfix.field.BeginString;
 import quickfix.field.SenderCompID;
 import quickfix.field.SenderLocationID;
@@ -28,9 +29,7 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 
-import static org.junit.Assert.assertNotEquals;
-
-public class SessionIDTest extends TestCase {
+public class SessionIDTest {
     public void testAllFieldConstructor() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
                 new SenderSubID("SENDERSUB"), new SenderLocationID("SENDERLOC"), new TargetCompID(

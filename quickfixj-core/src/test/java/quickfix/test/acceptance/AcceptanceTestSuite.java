@@ -7,6 +7,8 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.apache.mina.util.AvailablePortFinder;
+import org.junit.runner.RunWith;
+import org.junit.runners.AllTests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Session;
