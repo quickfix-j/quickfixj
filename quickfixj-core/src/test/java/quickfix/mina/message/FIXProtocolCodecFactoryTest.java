@@ -19,9 +19,11 @@
 
 package quickfix.mina.message;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class FIXProtocolCodecFactoryTest extends TestCase {
+public class FIXProtocolCodecFactoryTest {
+    @Test
     public void testFactory() throws Exception {
         // Unfortunately, there's not a lot of testing that can be done here
         FIXProtocolCodecFactory factory = new FIXProtocolCodecFactory();

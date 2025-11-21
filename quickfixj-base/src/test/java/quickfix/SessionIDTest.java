@@ -19,7 +19,8 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 import quickfix.field.BeginString;
 import quickfix.field.SenderCompID;
 import quickfix.field.SenderLocationID;
@@ -28,9 +29,8 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 
-import static org.junit.Assert.assertNotEquals;
-
-public class SessionIDTest extends TestCase {
+public class SessionIDTest {
+    @Test
     public void testAllFieldConstructor() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
                 new SenderSubID("SENDERSUB"), new SenderLocationID("SENDERLOC"), new TargetCompID(
@@ -39,6 +39,7 @@ public class SessionIDTest extends TestCase {
         assertAllFields(sessionID);
     }
 
+    @Test
     public void testAllStringConstructor() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "SENDERSUB", "SENDERLOC",
                 "TARGET", "TARGETSUB", "TARGETLOC", "QUALIFIER");
@@ -56,6 +57,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("QUALIFIER", sessionID.getSessionQualifier());
     }
 
+    @Test
     public void testFieldConstructorNoLocation() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
                 new SenderSubID("SENDERSUB"), new TargetCompID("TARGET"), new TargetSubID(
@@ -63,6 +65,7 @@ public class SessionIDTest extends TestCase {
         assertFieldsNoLocation(sessionID);
     }
 
+    @Test
     public void testStringConstructorNoLocation() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "SENDERSUB", "TARGET", "TARGETSUB");
         assertFieldsNoLocation(sessionID);
@@ -79,12 +82,14 @@ public class SessionIDTest extends TestCase {
         assertEquals("", sessionID.getSessionQualifier());
     }
 
+    @Test
     public void testFieldConstructorNoLocationOrSub() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
                 new TargetCompID("TARGET"), "QUALIFIER");
         assertFieldsNoLocationOrSub(sessionID);
     }
 
+    @Test
     public void testStringConstructorNoLocationOrSub() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET", "QUALIFIER");
         assertFieldsNoLocationOrSub(sessionID);
@@ -101,12 +106,14 @@ public class SessionIDTest extends TestCase {
         assertEquals("QUALIFIER", sessionID.getSessionQualifier());
     }
 
+    @Test
     public void testFieldConstructorNoLocationSubOrQualifier() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
                 new TargetCompID("TARGET"));
         assertFieldsNoLocationSubOrQualifier(sessionID);
     }
 
+    @Test
     public void testStringConstructorNoLocationSubOrQualifier() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         assertFieldsNoLocationSubOrQualifier(sessionID);
@@ -123,6 +130,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("", sessionID.getSessionQualifier());
     }
 
+    @Test
     public void testDefaultConstructorException() throws Exception {
         try {
             new SessionID();
@@ -132,6 +140,7 @@ public class SessionIDTest extends TestCase {
         }
     }
 
+    @Test
     public void testEquals() throws Exception {
         SessionID sessionID1 = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
         SessionID sessionID2 = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
@@ -142,18 +151,21 @@ public class SessionIDTest extends TestCase {
         assertFalse(sessionID1.equals(null));
     }
 
+    @Test
     public void testHashCode() throws Exception {
         SessionID sessionID1 = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
         SessionID sessionID2 = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
         assertEquals(sessionID1.hashCode(), sessionID2.hashCode());
     }
 
+    @Test
     public void testNullInFieldConstructor() {
         SessionID sessionID = new SessionID((BeginString) null, null, null, null, null, null, null,
                 null);
         assertEmptyStrings(sessionID);
     }
 
+    @Test
     public void testNullInStringConstructor() {
         SessionID sessionID = new SessionID((String) null, null, null, null, null, null, null, null);
         assertEmptyStrings(sessionID);
@@ -170,6 +182,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("", sessionID.getSessionQualifier());
     }
 
+    @Test
     public void testStringConstructor() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2:SENDER/SSUB/SLOC->TARGET/TSUB/TLOC:QUALIFIER");
         assertEquals("FIX.4.2", sessionID.getBeginString());
@@ -183,6 +196,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("FIX.4.2:SENDER/SSUB/SLOC->TARGET/TSUB/TLOC:QUALIFIER", sessionID.toString());
     }
 
+    @Test
     public void testStringConstructorNoSubOrLocation() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
         assertEquals("FIX.4.2", sessionID.getBeginString());
@@ -192,6 +206,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("FIX.4.2:SENDER->TARGET:QUALIFIER", sessionID.toString());
     }
 
+    @Test
     public void testStringConstructorNoSubLocationOrQualifier() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2:SENDER->TARGET");
         assertEquals("FIX.4.2", sessionID.getBeginString());
@@ -201,6 +216,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("FIX.4.2:SENDER->TARGET", sessionID.toString());
     }
 
+    @Test
     public void testStringConstructorInvalidID() throws Exception {
         try {
             new SessionID("FIX.4.2:SENDER");
@@ -210,6 +226,7 @@ public class SessionIDTest extends TestCase {
         }
     }
 
+    @Test
     public void testFromStringUnsupported() {
         SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         try {
