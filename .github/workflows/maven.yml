@@ -22,7 +22,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: 'corretto'
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven
@@ -49,7 +49,7 @@ jobs:
       - name: Set up Windows JDK
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: 'corretto'
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven on Windows
