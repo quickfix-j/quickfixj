@@ -173,10 +173,6 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     public void testSetAndGetMessageWithAsciiCharacters() throws IOException {
         MessageStore underTest = getStore();
 
-        if (underTest instanceof SleepycatStore) {
-            return;
-        }
-
         underTest.set(1, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789");
 
         List<String> messages = new ArrayList<>();
@@ -188,11 +184,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
     public void testSetAndGetMessageWithUnicodeCharacters() throws IOException {
         MessageStore underTest = getStore();
-
-        if (underTest instanceof SleepycatStore) {
-            return;
-        }
-
+        
         CharsetSupport.setCharset("UTF-8");
 
         try {
