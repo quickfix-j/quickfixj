@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fix major="4" type="FIX" minor="4">
+  <header>
+  </header>
+  <messages>
+    <message name="NestedGroupTest" msgtype="ZZ" msgcat="app">
+      <group name="NoOuterGrp" required="N">
+        <component name="InnerComponent" required="N"/>
+      </group>
+    </message>
+  </messages>
+  <components>
+    <component name="InnerComponent">
+      <component name="DeepComponent"/>
+    </component>
+    <component name="DeepComponent">
+      <!-- The first concrete field deep inside the component tree -->
+      <field name="FieldA" required="N"/>
+      <field name="FieldB" required="N"/>
+    </component>
+  </components>
+  <fields>
+    <!-- Group counter field -->
+    <field number="1000" name="NoOuterGrp" type="NUMINGROUP"/>
+    <!-- Deepest first field that should become the group delimiter -->
+    <field number="1001" name="FieldA" type="STRING"/>
+    <field number="1002" name="FieldB" type="STRING"/>
+  </fields>
+  <trailer>
+  </trailer>
+</fix>
