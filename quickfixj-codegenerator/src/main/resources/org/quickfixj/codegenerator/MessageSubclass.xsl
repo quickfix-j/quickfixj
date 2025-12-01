@@ -205,6 +205,15 @@ import quickfix.Group;</xsl:if>
 	</xsl:if>
 </xsl:template>
 
+<!-- New: ensure recursion continues inside component definitions (no group ancestor needed) -->
+<xsl:template mode="group-delimeter" match="component">
+	<xsl:if test="position() = 1">
+		<xsl:variable name="name" select="@name"/>
+		<xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"
+			mode="group-delimeter"/>
+	</xsl:if>
+</xsl:template>
+
   <!-- Find the component numbers and order -->
 
 <xsl:template mode="component-field-numbers" match="field">
