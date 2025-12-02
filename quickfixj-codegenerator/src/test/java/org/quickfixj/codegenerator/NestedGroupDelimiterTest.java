@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +51,7 @@ public class NestedGroupDelimiterTest {
 
         try {
             generator.generate(task);
-        } catch (MojoExecutionException e) {
+        } catch (CodeGenerationException e) {
             // Surface with context for easier debugging in CI
             throw new AssertionError("Code generation failed: " + e.getMessage(), e);
         }
