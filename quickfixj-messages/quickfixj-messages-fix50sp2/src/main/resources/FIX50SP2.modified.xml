@@ -8135,6 +8135,7 @@
       <value enum="0" description="SUBMITTED"/>
       <value enum="1" description="ACCEPTED"/>
       <value enum="2" description="REJECTED"/>
+      <value enum="10" description="SETTLED"/>
     </field>
     <field number="707" name="PosAmtType" type="STRING">
       <value enum="CASH" description="CASH_AMOUNT"/>
