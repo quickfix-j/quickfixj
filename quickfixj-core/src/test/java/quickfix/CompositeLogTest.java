@@ -20,9 +20,10 @@
 package quickfix;
 
 import static org.mockito.Mockito.*;
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class CompositeLogTest extends TestCase {
+public class CompositeLogTest {
+    @Test
     public void testCompositeLog() throws Exception {
         Log mockLog1 = mock(Log.class);
         Log mockLog2 = mock(Log.class);

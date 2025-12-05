@@ -7,6 +7,8 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.apache.mina.util.AvailablePortFinder;
+import org.junit.runner.RunWith;
+import org.junit.runners.AllTests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Session;
@@ -26,6 +28,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Note on inheritance:
+ * This class intentionally extends junit.framework.TestSuite (JUnit 3) even though
+ * it is run with the JUnit 4 runner {@link org.junit.runners.AllTests}.
+ *
+ * Rationale:
+ * - The static {@code suite()} method below programmatically builds a hierarchical
+ *   TestSuite tree and wraps instances of this class into {@link junit.extensions.TestSetup}
+ *   via {@code new AcceptanceTestServerSetUp(new AcceptanceTestSuite(...))}.
+ * - {@link junit.extensions.TestSetup} expects a {@link junit.framework.Test} and later
+ *   casts {@code getTest()} to {@link junit.framework.TestSuite}. Therefore
+ *   {@code AcceptanceTestSuite} must itself be a TestSuite instance.
+ * - The AllTests runner discovers and executes the returned {@link junit.framework.Test}
+ *   from {@code suite()}; the inheritance here is required for composition, not for discovery.
+ */
+@RunWith(AllTests.class)
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
     private static final String ATEST_TRANSPORT_KEY = "atest.transport";
