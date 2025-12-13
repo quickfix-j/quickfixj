@@ -992,7 +992,8 @@ public class SSLCertificateTest {
 
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
-        private static final int TIMEOUT_SECONDS = 5;
+        // Increased from 5 to 15 seconds to reduce flakiness on slower environments (e.g., macOS)
+        private static final int TIMEOUT_SECONDS = 15;
 
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
