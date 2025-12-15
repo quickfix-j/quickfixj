@@ -54,19 +54,9 @@ class JdbcStore implements MessageStore {
 
     public JdbcStore(SessionSettings settings, SessionID sessionID, DataSource ds) throws Exception {
         this.sessionID = sessionID;
-        if (settings.isSetting(sessionID, SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
-            sessionTableName = settings
-                    .getString(sessionID, SETTING_JDBC_STORE_SESSIONS_TABLE_NAME);
-        } else {
-            sessionTableName = DEFAULT_SESSION_TABLE_NAME;
-        }
 
-        if (settings.isSetting(sessionID, SETTING_JDBC_STORE_MESSAGES_TABLE_NAME)) {
-            messageTableName = settings
-                    .getString(sessionID, SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
-        } else {
-            messageTableName = DEFAULT_MESSAGE_TABLE_NAME;
-        }
+        sessionTableName = getSessionTableName(settings, sessionID);
+        messageTableName = getMessageTableName(settings, sessionID);
 
         if (settings.isSetting(sessionID, SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE)) {
             defaultSessionIdPropertyValue = settings.getString(sessionID,
@@ -90,34 +80,67 @@ class JdbcStore implements MessageStore {
         loadCache();
     }
 
+    public static String getSessionTableName(SessionSettings settings, SessionID sessionID) throws ConfigError {
+        if (settings.isSetting(sessionID, SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
+            return settings.getString(sessionID, SETTING_JDBC_STORE_SESSIONS_TABLE_NAME);
+        } else {
+            return DEFAULT_SESSION_TABLE_NAME;
+        }
+    }
+
+    public static String getMessageTableName(SessionSettings settings, SessionID sessionID) throws ConfigError {
+        if (settings.isSetting(sessionID, SETTING_JDBC_STORE_MESSAGES_TABLE_NAME)) {
+            return settings.getString(sessionID, SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
+        } else {
+            return DEFAULT_MESSAGE_TABLE_NAME;
+        }
+    }
+
+    public static String getUpdateSequenceNumsSql(String sessionTableName, String idWhereClause) {
+        return "UPDATE " + sessionTableName + " SET incoming_seqnum=?, " + "outgoing_seqnum=? WHERE " + idWhereClause;
+    }
+
+    public static String getInsertSessionSql(String sessionTableName, String idColumns, String idPlaceholders) {
+        return "INSERT INTO " + sessionTableName + " (" + idColumns + ", creation_time,incoming_seqnum, outgoing_seqnum) VALUES (" + idPlaceholders + ",?,?,?)";
+    }
+
+    public static String getSequenceNumsSql(String sessionTableName, String idWhereClause) {
+        return "SELECT creation_time, incoming_seqnum, outgoing_seqnum FROM " + sessionTableName + " WHERE " + idWhereClause;
+    }
+
+    public static String getUpdateMessageSql(String messageTableName, String idWhereClause) {
+        return "UPDATE " + messageTableName + " SET message=? " + "WHERE " + idWhereClause + " and msgseqnum=?";
+    }
+
+    public static String getInsertMessageSql(String messageTableName, String idColumns, String idPlaceholders) {
+        return "INSERT INTO " + messageTableName + " (" + idColumns + ", msgseqnum,message) VALUES (" + idPlaceholders + ",?,?)";
+    }
+
+    public static String getMessagesSql(String messageTableName, String idWhereClause) {
+        return "SELECT message FROM " + messageTableName + " WHERE " + idWhereClause + " and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
+    }
+
+    public static String getUpdateSessionSql(String sessionTableName, String idWhereClause) {
+        return "UPDATE " + sessionTableName + " SET creation_time=?, " + "incoming_seqnum=?, outgoing_seqnum=? " + "WHERE " + idWhereClause;
+    }
+
+    public static String getDeleteMessagesSql(String messageTableName, String idWhereClause) {
+        return "DELETE FROM " + messageTableName + " WHERE " + idWhereClause;
+    }
+
     private void setSqlStrings() {
         String idWhereClause = JdbcUtil.getIDWhereClause(extendedSessionIdSupported);
         String idColumns = JdbcUtil.getIDColumns(extendedSessionIdSupported);
         String idPlaceholders = JdbcUtil.getIDPlaceholders(extendedSessionIdSupported);
 
-        SQL_UPDATE_SEQNUMS = "UPDATE " + sessionTableName + " SET incoming_seqnum=?, "
-                + "outgoing_seqnum=? WHERE " + idWhereClause;
-
-        SQL_INSERT_SESSION = "INSERT INTO " + sessionTableName + " (" + idColumns
-                + ", creation_time,incoming_seqnum, outgoing_seqnum) VALUES (" + idPlaceholders
-                + ",?,?,?)";
-
-        SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, outgoing_seqnum FROM "
-                + sessionTableName + " WHERE " + idWhereClause;
-
-        SQL_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? " + "WHERE "
-                + idWhereClause + " and msgseqnum=?";
-
-        SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (" + idColumns
-                + ", msgseqnum,message) VALUES (" + idPlaceholders + ",?,?)";
-
-        SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE " + idWhereClause
-                + " and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
-
-        SQL_UPDATE_SESSION = "UPDATE " + sessionTableName + " SET creation_time=?, "
-                + "incoming_seqnum=?, outgoing_seqnum=? " + "WHERE " + idWhereClause;
-
-        SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE " + idWhereClause;
+        SQL_UPDATE_SEQNUMS = getUpdateSequenceNumsSql(sessionTableName, idWhereClause);
+        SQL_INSERT_SESSION = getInsertSessionSql(sessionTableName, idColumns, idPlaceholders);
+        SQL_GET_SEQNUMS = getSequenceNumsSql(sessionTableName, idWhereClause);
+        SQL_UPDATE_MESSAGE = getUpdateMessageSql(messageTableName, idWhereClause);
+        SQL_INSERT_MESSAGE = getInsertMessageSql(messageTableName, idColumns, idPlaceholders);
+        SQL_GET_MESSAGES = getMessagesSql(messageTableName, idWhereClause);
+        SQL_UPDATE_SESSION = getUpdateSessionSql(sessionTableName, idWhereClause);
+        SQL_DELETE_MESSAGES = getDeleteMessagesSql(messageTableName, idWhereClause);
     }
 
     private void loadCache() throws SQLException, IOException {
@@ -238,7 +261,6 @@ class JdbcStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         Connection connection = null;
         PreparedStatement insert = null;
-        ResultSet rs = null;
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement(SQL_INSERT_MESSAGE);
@@ -263,7 +285,6 @@ class JdbcStore implements MessageStore {
                 }
             }
         } finally {
-            JdbcUtil.close(sessionID, rs);
             JdbcUtil.close(sessionID, insert);
             JdbcUtil.close(sessionID, connection);
         }

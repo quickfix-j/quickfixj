@@ -58,6 +58,7 @@ jobs:
             org.quickfixj.quickfixj-orchestration
             org.quickfixj.quickfixj-parent
             org.quickfixj.quickfixj-perf-test
+            org.quickfixj.quickfixj-stress-test
 
       - name: Deploy SNAPSHOT
         run: ./mvnw deploy -pl '!quickfixj-distribution' -B -V -Dmaven.install.skip=true -DskipTests -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
