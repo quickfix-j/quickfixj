@@ -13,7 +13,7 @@ jobs:
     if: github.repository == 'quickfix-j/quickfixj'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -22,7 +22,7 @@ jobs:
           cache: maven
 
       - name: Build SNAPSHOT
-        run: ./mvnw clean package -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: ./mvnw clean package -pl '!quickfixj-distribution' -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
 
       - name: Delete old packages
         continue-on-error: true
@@ -61,6 +61,6 @@ jobs:
             org.quickfixj.quickfixj-stress-test
 
       - name: Deploy SNAPSHOT
-        run: ./mvnw deploy -B -V -DskipTests -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: ./mvnw deploy -pl '!quickfixj-distribution' -B -V -Dmaven.install.skip=true -DskipTests -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
