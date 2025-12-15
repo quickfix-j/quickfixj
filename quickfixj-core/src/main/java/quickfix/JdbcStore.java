@@ -43,7 +43,8 @@ class JdbcStore implements MessageStore {
     private final String defaultSessionIdPropertyValue;
     private final boolean persistMessages;
 
-    private String SQL_UPDATE_SEQNUMS;
+    private String SQL_UPDATE_INCOMING_SEQNUM;
+    private String SQL_UPDATE_OUTGOING_SEQNUM;
     private String SQL_INSERT_SESSION;
     private String SQL_GET_SEQNUMS;
     private String SQL_UPDATE_MESSAGE;
@@ -96,8 +97,12 @@ class JdbcStore implements MessageStore {
         }
     }
 
-    public static String getUpdateSequenceNumsSql(String sessionTableName, String idWhereClause) {
-        return "UPDATE " + sessionTableName + " SET incoming_seqnum=?, " + "outgoing_seqnum=? WHERE " + idWhereClause;
+    public static String getUpdateIncomingSequenceNumberSql(String sessionTableName, String idWhereClause) {
+        return "UPDATE " + sessionTableName + " SET incoming_seqnum=? WHERE " + idWhereClause;
+    }
+
+    public static String getUpdateOutgoingSequenceNumberSql(String sessionTableName, String idWhereClause) {
+        return "UPDATE " + sessionTableName + " SET outgoing_seqnum=? WHERE " + idWhereClause;
     }
 
     public static String getInsertSessionSql(String sessionTableName, String idColumns, String idPlaceholders) {
@@ -133,7 +138,8 @@ class JdbcStore implements MessageStore {
         String idColumns = JdbcUtil.getIDColumns(extendedSessionIdSupported);
         String idPlaceholders = JdbcUtil.getIDPlaceholders(extendedSessionIdSupported);
 
-        SQL_UPDATE_SEQNUMS = getUpdateSequenceNumsSql(sessionTableName, idWhereClause);
+        SQL_UPDATE_INCOMING_SEQNUM = getUpdateIncomingSequenceNumberSql(sessionTableName, idWhereClause);
+        SQL_UPDATE_OUTGOING_SEQNUM = getUpdateOutgoingSequenceNumberSql(sessionTableName, idWhereClause);
         SQL_INSERT_SESSION = getInsertSessionSql(sessionTableName, idColumns, idPlaceholders);
         SQL_GET_SEQNUMS = getSequenceNumsSql(sessionTableName, idWhereClause);
         SQL_UPDATE_MESSAGE = getUpdateMessageSql(messageTableName, idWhereClause);
@@ -293,23 +299,39 @@ class JdbcStore implements MessageStore {
 
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
-        storeSequenceNumbers();
+        storeOutgoingSequenceNumbers();
     }
 
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         cache.setNextTargetMsgSeqNum(next);
-        storeSequenceNumbers();
+        storeIncomingSequenceNumbers();
     }
 
-    private void storeSequenceNumbers() throws IOException {
+    private void storeIncomingSequenceNumbers() throws IOException {
         Connection connection = null;
         PreparedStatement update = null;
         try {
             connection = dataSource.getConnection();
-            update = connection.prepareStatement(SQL_UPDATE_SEQNUMS);
+            update = connection.prepareStatement(SQL_UPDATE_INCOMING_SEQNUM);
             update.setInt(1, cache.getNextTargetMsgSeqNum());
-            update.setInt(2, cache.getNextSenderMsgSeqNum());
-            setSessionIdParameters(update, 3);
+            setSessionIdParameters(update, 2);
+            update.execute();
+        } catch (SQLException e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            JdbcUtil.close(sessionID, update);
+            JdbcUtil.close(sessionID, connection);
+        }
+    }
+
+    private void storeOutgoingSequenceNumbers() throws IOException {
+        Connection connection = null;
+        PreparedStatement update = null;
+        try {
+            connection = dataSource.getConnection();
+            update = connection.prepareStatement(SQL_UPDATE_OUTGOING_SEQNUM);
+            update.setInt(1, cache.getNextSenderMsgSeqNum());
+            setSessionIdParameters(update, 2);
             update.execute();
         } catch (SQLException e) {
             throw new IOException(e.getMessage(), e);
