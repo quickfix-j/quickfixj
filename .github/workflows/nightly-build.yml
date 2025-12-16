@@ -38,7 +38,6 @@ jobs:
             org.quickfixj.quickfixj-codegenerator
             org.quickfixj.quickfixj-core
             org.quickfixj.quickfixj-dictgenerator
-            org.quickfixj.quickfixj-distribution
             org.quickfixj.quickfixj-examples
             org.quickfixj.quickfixj-examples-banzai
             org.quickfixj.quickfixj-examples-executor
