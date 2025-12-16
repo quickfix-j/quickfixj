@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.function.IntSupplier;
 
 import javax.sql.DataSource;
 
@@ -299,38 +300,21 @@ class JdbcStore implements MessageStore {
 
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
-        storeOutgoingSequenceNumbers();
+        storeSequenceNumber(SQL_UPDATE_OUTGOING_SEQNUM, cache::getNextSenderMsgSeqNum);
     }
 
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         cache.setNextTargetMsgSeqNum(next);
-        storeIncomingSequenceNumbers();
+        storeSequenceNumber(SQL_UPDATE_INCOMING_SEQNUM, cache::getNextTargetMsgSeqNum);
     }
 
-    private void storeIncomingSequenceNumbers() throws IOException {
+    private void storeSequenceNumber(String sequenceUpdateSql, IntSupplier sequence) throws IOException {
         Connection connection = null;
         PreparedStatement update = null;
         try {
             connection = dataSource.getConnection();
-            update = connection.prepareStatement(SQL_UPDATE_INCOMING_SEQNUM);
-            update.setInt(1, cache.getNextTargetMsgSeqNum());
-            setSessionIdParameters(update, 2);
-            update.execute();
-        } catch (SQLException e) {
-            throw new IOException(e.getMessage(), e);
-        } finally {
-            JdbcUtil.close(sessionID, update);
-            JdbcUtil.close(sessionID, connection);
-        }
-    }
-
-    private void storeOutgoingSequenceNumbers() throws IOException {
-        Connection connection = null;
-        PreparedStatement update = null;
-        try {
-            connection = dataSource.getConnection();
-            update = connection.prepareStatement(SQL_UPDATE_OUTGOING_SEQNUM);
-            update.setInt(1, cache.getNextSenderMsgSeqNum());
+            update = connection.prepareStatement(sequenceUpdateSql);
+            update.setInt(1, sequence.getAsInt());
             setSessionIdParameters(update, 2);
             update.execute();
         } catch (SQLException e) {
