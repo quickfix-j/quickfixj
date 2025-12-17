@@ -299,12 +299,12 @@ class JdbcStore implements MessageStore {
 
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
-        storeSequenceNumber(SQL_UPDATE_OUTGOING_SEQNUM, cache.getNextSenderMsgSeqNum());
+        storeSequenceNumber(SQL_UPDATE_OUTGOING_SEQNUM, next);
     }
 
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         cache.setNextTargetMsgSeqNum(next);
-        storeSequenceNumber(SQL_UPDATE_INCOMING_SEQNUM, cache.getNextTargetMsgSeqNum());
+        storeSequenceNumber(SQL_UPDATE_INCOMING_SEQNUM, next);
     }
 
     private void storeSequenceNumber(String sequenceUpdateSql, int sequence) throws IOException {
