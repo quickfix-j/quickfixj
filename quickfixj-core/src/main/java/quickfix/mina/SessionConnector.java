@@ -312,8 +312,7 @@ public abstract class SessionConnector implements Connector {
 
     protected void startSessionTimer() {
         // Check if a session timer is already running to avoid creating multiple timers
-        if (sessionTimerFuture != null && !sessionTimerFuture.isDone()) {
-            log.debug("SessionTimer already running, not creating a new one");
+        if (checkSessionTimerRunning()) {
             return;
         }
         Runnable timerTask = new SessionTimerTask();
