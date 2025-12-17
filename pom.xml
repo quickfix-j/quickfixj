@@ -70,7 +70,7 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-        <maven.version>3.9.11</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+        <maven.version>3.9.12</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
 		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
