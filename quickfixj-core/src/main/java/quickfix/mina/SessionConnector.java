@@ -296,21 +296,6 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
-    protected void logError(SessionID sessionID, IoSession protocolSession, String message, Throwable t) {
-        log.error(message + getLogSuffix(sessionID, protocolSession), t);
-    }
-
-    private String getLogSuffix(SessionID sessionID, IoSession protocolSession) {
-        String suffix = ":";
-        if (sessionID != null) {
-            suffix += "sessionID=" + sessionID.toString() + ";";
-        }
-        if (protocolSession != null) {
-            suffix += "address=" + protocolSession.getRemoteAddress();
-        }
-        return suffix;
-    }
-
     protected void startSessionTimer() {
         Runnable timerTask = new SessionTimerTask();
         if (shortLivedExecutor != null) {
