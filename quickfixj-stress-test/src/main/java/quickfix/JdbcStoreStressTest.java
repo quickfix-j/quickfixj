@@ -34,6 +34,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.IntConsumer;
 
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -85,8 +86,15 @@ public class JdbcStoreStressTest {
         // UPDATE SEQUENCE NUMS
         Database database = new Database();
 
-        String updateSequenceNumsSql = JdbcStore.getUpdateSequenceNumsSql(sessionTableName, idWhereClause);
-        doAnswer(invocationOnMock -> new UpdateSequenceStatement(database)).when(connection).prepareStatement(updateSequenceNumsSql);
+        String updateIncomingSequenceNumberSql = JdbcStore.getUpdateIncomingSequenceNumberSql(sessionTableName, idWhereClause);
+        doAnswer(invocationOnMock -> new UpdateSequenceStatement(database::updateTargetSequence))
+                .when(connection)
+                .prepareStatement(updateIncomingSequenceNumberSql);
+
+        String updateOutgoingSequenceNumberSql = JdbcStore.getUpdateOutgoingSequenceNumberSql(sessionTableName, idWhereClause);
+        doAnswer(invocationOnMock -> new UpdateSequenceStatement(database::updateSenderSequence))
+                .when(connection)
+                .prepareStatement(updateOutgoingSequenceNumberSql);
 
         JdbcStore jdbcStore = new JdbcStore(settings, SESSION_ID, dataSource);
 
@@ -280,11 +288,20 @@ public class JdbcStoreStressTest {
             this.targetSequence = -1;
         }
 
-        public void update(int senderSequence, int targetSequence) {
+        public void updateSenderSequence(int senderSequence) {
             lock.lock();
 
             try {
                 this.senderSequence = senderSequence;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public void updateTargetSequence(int targetSequence) {
+            lock.lock();
+
+            try {
                 this.targetSequence = targetSequence;
             } finally {
                 lock.unlock();
@@ -294,14 +311,12 @@ public class JdbcStoreStressTest {
 
     private static final class UpdateSequenceStatement implements PreparedStatement {
 
-        private final Database database;
-        private int senderSequence;
-        private int targetSequence;
+        private final IntConsumer dbUpdater;
+        private int sequence;
 
-        public UpdateSequenceStatement(Database database) {
-            this.database = database;
-            this.senderSequence = -1;
-            this.targetSequence = -1;
+        public UpdateSequenceStatement(IntConsumer dbUpdater) {
+            this.dbUpdater = dbUpdater;
+            this.sequence = -1;
         }
 
         @Override
@@ -337,9 +352,7 @@ public class JdbcStoreStressTest {
         @Override
         public void setInt(int parameterIndex, int x) {
             if (parameterIndex == 1) {
-                targetSequence = x;
-            } else if (parameterIndex == 2) {
-                senderSequence = x;
+                sequence = x;
             }
         }
 
@@ -419,7 +432,7 @@ public class JdbcStoreStressTest {
 
         @Override
         public boolean execute() {
-            database.update(senderSequence, targetSequence);
+            dbUpdater.accept(sequence);
             return true;
         }
 

@@ -104,6 +104,36 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
     }
 
+    public void testIncrementSequences() throws ConfigError, SQLException, IOException {
+        initializeTableDefinitions("xsessions", "messages");
+        JdbcStore store = (JdbcStore) getMessageStoreFactory("xsessions", "messages").create(
+                getSessionID());
+        store.reset();
+
+        assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
+        assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
+
+        store.incrNextSenderMsgSeqNum();
+
+        assertEquals("wrong value", 2, store.getNextSenderMsgSeqNum());
+        assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
+
+        store.incrNextTargetMsgSeqNum();
+
+        assertEquals("wrong value", 2, store.getNextSenderMsgSeqNum());
+        assertEquals("wrong value", 2, store.getNextTargetMsgSeqNum());
+
+        store.incrNextTargetMsgSeqNum();
+
+        assertEquals("wrong value", 2, store.getNextSenderMsgSeqNum());
+        assertEquals("wrong value", 3, store.getNextTargetMsgSeqNum());
+
+        store.incrNextSenderMsgSeqNum();
+
+        assertEquals("wrong value", 3, store.getNextSenderMsgSeqNum());
+        assertEquals("wrong value", 3, store.getNextTargetMsgSeqNum());
+    }
+
     public void testMessageStorageMessagesWithCustomMessagesTableName() throws Exception {
         initializeTableDefinitions("sessions", "xmessages");
         JdbcStore store = (JdbcStore) getMessageStoreFactory("sessions", "xmessages").create(

@@ -126,19 +126,11 @@ public class MemoryStoreStressTest {
         }
 
         public int getSenderSequence() {
-            try {
-                return store.getNextSenderMsgSeqNum();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            return store.getNextSenderMsgSeqNum();
         }
 
         public int getTargetSequence() {
-            try {
-                return store.getNextTargetMsgSeqNum();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            return store.getNextTargetMsgSeqNum();
         }
     }
 }
