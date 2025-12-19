@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import quickfix.field.converter.IntConverter;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
@@ -339,11 +340,7 @@ public class SessionSettings {
      * @throws FieldConvertError error during field type conversion.
      */
     public int getInt(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        try {
-            return Integer.parseInt(getString(sessionID, key));
-        } catch (final NumberFormatException e) {
-            throw new FieldConvertError(e.getMessage());
-        }
+        return IntConverter.convert(getString(sessionID, key));
     }
 
     /**
@@ -410,7 +407,21 @@ public class SessionSettings {
     public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
         return BooleanConverter.convert(getString(sessionID, key));
     }
+    
+    /**
+     * Get a boolean setting from the default section if present or use default value.
+     */
+    public boolean getBoolOrDefault(String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(key) ? getBool(key) : defaultValue;
+    }
 
+    /**
+     * Get a boolean setting if present or use default value.
+     */
+    public boolean getBoolOrDefault(SessionID sessionID, String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(sessionID, key) ? getBool(sessionID, key) : defaultValue;
+    }
+    
     /**
      * Sets a string-valued session setting.
      *

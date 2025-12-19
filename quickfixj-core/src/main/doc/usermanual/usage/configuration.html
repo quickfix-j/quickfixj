@@ -368,6 +368,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD><I>FirstFieldInGroupIsDelimiter</I></TD>
+    <TD>Session validation setting for enabling whether first found field in repeating group will be used as
+        delimiter. Values are "Y" or "N". Default is "N". ValidateUnorderedGroupFields should be set to "N"</TD>
+    <TD>Y<br>
+        N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD><I>ValidateIncomingMessage</I></TD>
     <TD>Allow to bypass the message validation (against the dictionary). Default is "Y".</TD>
     <TD>Y<br>
@@ -508,6 +516,13 @@
     <TD> Host to connect to. Only used with a SocketInitiator </TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
     <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectTimeout</I> </TD>
+
+    <TD> Connection timeout in seconds. Only used with a SocketInitiator </TD>
+    <TD> positive integer </TD>
+    <TD> 60 </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
 
@@ -698,6 +713,22 @@
           Algorithm Names</a></TD>
     <TD></TD>
     <TD></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD valign="top"> <I>UseSNI</I></TD>
+      <TD>
+          Enables the SSL engine to use Server Name Indication (SNI). This option is only applicable for initiators.
+          <p>If provided, <i>SNIHostName</i> will be used as the server name. Otherwise, <i>SocketConnectHost</i> or <i>SocketConnectHost&lt;n&gt;</i> will be used.</p>
+          <p>Note: When this option is disabled, the JVM may still implicitly send the SSL <code>server_name</code> extension.</p>
+      </TD>
+      <TD>Y<BR>N</TD>
+      <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD valign="top"> <I>SNIHostName</I></TD>
+      <TD>SNI host name to be used as desired Server Name Indication (SNI) parameter.</TD>
+      <TD></TD>
+      <TD></TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">

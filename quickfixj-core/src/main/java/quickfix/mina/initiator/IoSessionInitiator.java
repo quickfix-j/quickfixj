@@ -39,6 +39,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.InitiatorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
@@ -64,20 +65,23 @@ public class IoSessionInitiator {
     private Future<?> reconnectFuture;
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
-            SocketAddress localAddress, int[] reconnectIntervalInSeconds,
+            SocketAddress localAddress, int connectTimeout, int[] reconnectIntervalInSeconds,
             ScheduledExecutorService executor, SessionSettings sessionSettings, NetworkingOptions networkingOptions,
             EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, SSLConfig sslConfig,
             String proxyType, String proxyVersion, String proxyHost, int proxyPort,
             String proxyUser, String proxyPassword, String proxyDomain, String proxyWorkstation) throws ConfigError {
         this.executor = executor;
+
+        final long connectTimeoutMillis = connectTimeout * 1000L;
         final long[] reconnectIntervalInMillis = new long[reconnectIntervalInSeconds.length];
         for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
             reconnectIntervalInMillis[ii] = reconnectIntervalInSeconds[ii] * 1000L;
         }
+
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress,
-                    userIoFilterChainBuilder, fixSession, reconnectIntervalInMillis,
+                    userIoFilterChainBuilder, fixSession, connectTimeoutMillis, reconnectIntervalInMillis,
                     sessionSettings, networkingOptions, eventHandlingStrategy, sslConfig,
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, log);
         } catch (GeneralSecurityException e) {
@@ -94,6 +98,7 @@ public class IoSessionInitiator {
         private final IoFilterChainBuilder userIoFilterChainBuilder;
         private IoConnector ioConnector;
         private final Session fixSession;
+        private final long connectTimeoutMillis;
         private final long[] reconnectIntervalInMillis;
         private final SessionSettings sessionSettings;
         private final NetworkingOptions networkingOptions;
@@ -119,7 +124,7 @@ public class IoSessionInitiator {
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
                 SocketAddress localAddress, IoFilterChainBuilder userIoFilterChainBuilder,
-                Session fixSession, long[] reconnectIntervalInMillis,
+                Session fixSession, long connectTimeoutMillis, long[] reconnectIntervalInMillis,
                 SessionSettings sessionSettings, NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
                 String proxyType, String proxyVersion, String proxyHost,
                 int proxyPort, String proxyUser, String proxyPassword, String proxyDomain,
@@ -129,6 +134,7 @@ public class IoSessionInitiator {
             this.localAddress = localAddress;
             this.userIoFilterChainBuilder = userIoFilterChainBuilder;
             this.fixSession = fixSession;
+            this.connectTimeoutMillis = connectTimeoutMillis;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
             this.sessionSettings = sessionSettings;
             this.networkingOptions = networkingOptions;
@@ -153,16 +159,15 @@ public class IoSessionInitiator {
 
             boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;
 
-            SslFilter sslFilter = null;
             if (sslEnabled) {
-                sslFilter = installSslFilter(ioFilterChainBuilder);
+                installSslFilter(ioFilterChainBuilder);
             }
 
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
-            IoConnector newConnector;
-            newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
+            IoConnector newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
             networkingOptions.apply(newConnector);
+            newConnector.setConnectTimeoutMillis(connectTimeoutMillis);
             newConnector.setHandler(new InitiatorIoHandler(fixSession, sessionSettings, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
@@ -186,17 +191,32 @@ public class IoSessionInitiator {
             ioConnector = newConnector;
         }
 
-        private SslFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
+        private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SslFilter sslFilter = new SslFilter(sslContext);
+            final SslFilter sslFilter = new InitiatorSslFilter(sslContext, getSniHostName(sslConfig));
             sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
             sslFilter.setEndpointIdentificationAlgorithm(sslConfig.getEndpointIdentificationAlgorithm());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
-            return sslFilter;
+        }
+
+        public String getSniHostName(SSLConfig sslConfig) {
+            if (!sslConfig.isUseSNI()) {
+                return null;
+            }
+
+            if (sslConfig.getSniHostName() != null) {
+                return sslConfig.getSniHostName();
+            }
+
+            if (socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress) {
+                return ((InetSocketAddress) socketAddresses[nextSocketAddressIndex]).getHostName();
+            }
+
+            return null;
         }
 
         @Override

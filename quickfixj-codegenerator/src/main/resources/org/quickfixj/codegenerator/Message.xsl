@@ -80,6 +80,11 @@ public class Message extends quickfix.Message {
         return new Header(this);
     }
 
+    @Override
+    public Header getHeader() {
+        return (Message.Header)header;
+    }
+
 	public static class Header extends quickfix.Message.Header {
 
 		static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;

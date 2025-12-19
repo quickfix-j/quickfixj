@@ -586,4 +586,24 @@ public class FieldConvertersTest {
 
         CharArrayConverter.convert("");
     }
+
+    @Test
+    public void testConvertToLocalDateTimeLeapSecond() throws Exception {
+        LocalDateTime dateTime = UtcTimestampConverter.convertToLocalDateTime("19981231-23:59:60");
+        assertLocalDateTimeFieldsLeapSecond(dateTime);
+        
+        dateTime = UtcTimestampConverter.convertToLocalDateTime("19981231-23:59:60.123456789012");
+        assertLocalDateTimeFieldsLeapSecond(dateTime);
+    }
+
+    private void assertLocalDateTimeFieldsLeapSecond(LocalDateTime dateTime) {
+        assertEquals(23, dateTime.getHour());
+        assertEquals(59, dateTime.getMinute());
+        assertEquals(59, dateTime.getSecond());
+        assertEquals(1998, dateTime.getYear());
+        assertEquals(12, dateTime.getMonthValue());
+        assertEquals(31, dateTime.getDayOfMonth());
+        assertEquals(999999999, dateTime.getNano());
+    }
+
 }

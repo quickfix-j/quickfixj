@@ -66,17 +66,20 @@ $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,mi
 ```
 
 ## configuration options
-https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
+
+https://html-preview.github.io/?url=https://github.com/quickfix-j/quickfixj/blob/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
 ## basics
 
-### example applications
+### related projects
 
-QuickFIX/J includes some example applications in the `quickfixj-examples` module. Moreover, here are some links to example applications:
+QuickFIX/J includes some example applications in the `quickfixj-examples` module. Additionally, here are some links to related projects:
 
 Examples by Geoffrey Gershaw: https://github.com/ggershaw/Examples
 
 Examples from QuickFIX/J Spring Boot Starter: https://github.com/esanchezros/quickfixj-spring-boot-starter-examples
+
+AssertJ assertions for QuickFIX/J: https://github.com/esanchezros/assertj-quickfixj
 
 If you would like to be added to this list, please open a PR with the changes.
 
@@ -320,3 +323,71 @@ Many integrations require specialisation of the FIX Messages, Components and/or 
 ![image info](./src/main/puml/custom_dependencies.png)
 
 ![image info](./src/main/puml/custom_dependencies_fixt11_fixlatest.png)
+
+### Using SNAPSHOTs
+
+The nightly SNAPSHOT releases are available on **GitHub Packages**. 
+GitHub Packages requires authentication - even for public repositories. 
+You need to use a [Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) 
+with `read:packages` permission.
+
+#### Maven Setup:
+
+Add the authentication part to your `settings.xml` file in `servers`:
+
+```xml
+<!--settings.xml-->
+<servers>
+  <server>
+    <id>github-quickfixj</id>
+    <username>USERNAME</username> <!-- Your GitHub username -->
+    <password>GITHUB_PAT</password> <!-- Your GitHub PAT -->
+  </server>
+</servers>
+```
+
+Add the GitHub Packages repository in `repositories` and the desired `SNAPSHOT` version in `dependencies`:
+
+```xml
+<!--pom.xml-->
+<repositories>
+  <repository>
+    <id>github-quickfixj</id>
+    <name>GitHub Packages for quickfixj</name>
+    <url>https://maven.pkg.github.com/quickfix-j/quickfixj</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+
+  <!-- other repositories-->
+</repositories>
+
+
+<dependencies>
+  <dependency>
+    <groupId>org.quickfixj</groupId>
+    <artifactId>quickfixj-all</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </dependency>
+  
+  <!-- other dependencies-->
+</dependencies>
+```
+
+#### Gradle Setup (groovy):
+
+Add the following to your `build.gradle` file:
+
+```groovy
+//build.gradle
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/quickfix-j/quickfixj")
+        credentials {
+            username = "USERNAME" // Your GitHub username
+            password = "GITHUB_PAT" // Your GitHub PAT
+        }
+    }
+}
+```

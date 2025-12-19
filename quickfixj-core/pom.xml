@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.10</version>
+            <version>${hsqldb.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -118,6 +118,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-example</artifactId>
+			<version>4.2.9.Final</version>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.burningwave</groupId>
+            <artifactId>tools</artifactId>
+            <version>0.27.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
 		</dependency>
@@ -132,11 +144,11 @@
 			<version>18.3.12</version>
 			<optional>true</optional>
 		</dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>4.0.3</version>
-    </dependency>
+		<dependency>
+		  <groupId>com.zaxxer</groupId>
+		  <artifactId>HikariCP</artifactId>
+		  <version>4.0.3</version>
+		</dependency>
   </dependencies>
 
 
@@ -218,6 +230,15 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
+	  <extensions>
+		  <!-- required by Netty cross-platform build -->
+		  <extension>
+			  <groupId>kr.motd.maven</groupId>
+			  <artifactId>os-maven-plugin</artifactId>
+			  <version>1.7.1</version>
+		  </extension>
+	  </extensions>
 	</build>
 
 	<reporting>
@@ -234,7 +255,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
-				<version>3.4.0</version>
+				<version>3.6.0</version>
 			</plugin>
 		</plugins>
 	</reporting>

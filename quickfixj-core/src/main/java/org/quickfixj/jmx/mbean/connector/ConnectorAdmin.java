@@ -25,8 +25,10 @@ import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Acceptor;
+import quickfix.ConfigError;
 import quickfix.Connector;
 import quickfix.Initiator;
+import quickfix.RuntimeError;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -140,6 +142,15 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     private ObjectName[] toObjectNameArray(List<ObjectName> sessions) {
         return sessions.toArray(new ObjectName[sessions.size()]);
+    }
+
+    public void start() throws IOException {
+        log.info("JMX operation: start {} {}", getRole(), this);
+        try {
+            connector.start();
+        } catch (ConfigError | RuntimeError e) {
+            throw JmxSupport.toIOException(e);
+        }
     }
 
     public void stop(boolean force) {

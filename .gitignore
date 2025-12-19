@@ -1,5 +1,7 @@
 # ignore maven build directories
 target/
+# ignore maven wrapper jar that gets built locally
+.mvn/wrapper/maven-wrapper.jar
 # ignore Eclipse configuration files
 .project
 .classpath
@@ -12,3 +14,5 @@ target/
 # ignore NetBeans configuration
 nb-configuration.xml
 *.bak
+# ignore vim swap files
+*.swp
