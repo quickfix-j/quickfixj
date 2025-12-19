@@ -30,7 +30,7 @@ public enum FieldType {
 
     UNKNOWN,
     STRING,
-    CHAR,
+    CHAR(Character.class),
     PRICE(Double.class),
     INT(Integer.class),
     AMT(Double.class),
