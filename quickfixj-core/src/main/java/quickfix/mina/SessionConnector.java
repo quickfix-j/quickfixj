@@ -311,6 +311,10 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void startSessionTimer() {
+        // Check if a session timer is already running to avoid creating multiple timers
+        if (checkSessionTimerRunning()) {
+            return;
+        }
         Runnable timerTask = new SessionTimerTask();
         if (shortLivedExecutor != null) {
             timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
