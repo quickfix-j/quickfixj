@@ -11,18 +11,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-13]
+        os: [ubuntu-latest, macOS-14]
         java: [8, 11, 21]
       fail-fast: false
       max-parallel: 4
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: 'corretto'
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven
@@ -39,9 +39,9 @@ jobs:
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Configure pagefile
-        uses: al-cheb/configure-pagefile-action@v1.4
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 8GB
           maximum-size: 16GB
@@ -49,7 +49,7 @@ jobs:
       - name: Set up Windows JDK
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: 'corretto'
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven on Windows
