@@ -118,8 +118,12 @@ public class DefaultMessageFactory implements MessageFactory {
             // try using our own classloader
             factoryClass = (Class<? extends MessageFactory>) Class.forName(factoryClassName);
         } catch (ClassNotFoundException e) {
-                // try using context classloader (i.e. allow caller to specify it)
-            Thread.currentThread().getContextClassLoader().loadClass(factoryClassName);
+            // try using context classloader (i.e. allow caller to specify it)
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+
+            if (contextClassLoader != null) {
+                factoryClass = (Class<? extends MessageFactory>) contextClassLoader.loadClass(factoryClassName);
+            }
         }
         // if factory is found, add it
         if (factoryClass != null) {
