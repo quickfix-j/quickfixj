@@ -29,22 +29,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Note on inheritance:
- * This class intentionally extends junit.framework.TestSuite (JUnit 3) even though
- * it is run with the JUnit 4 runner {@link org.junit.runners.AllTests}.
- *
- * Rationale:
- * - The static {@code suite()} method below programmatically builds a hierarchical
- *   TestSuite tree and wraps instances of this class into {@link junit.extensions.TestSetup}
- *   via {@code new AcceptanceTestServerSetUp(new AcceptanceTestSuite(...))}.
- * - {@link junit.extensions.TestSetup} expects a {@link junit.framework.Test} and later
- *   casts {@code getTest()} to {@link junit.framework.TestSuite}. Therefore
- *   {@code AcceptanceTestSuite} must itself be a TestSuite instance.
- * - The AllTests runner discovers and executes the returned {@link junit.framework.Test}
- *   from {@code suite()}; the inheritance here is required for composition, not for discovery.
+ * Acceptance test suite that programmatically discovers and runs FIX protocol tests.
+ * <p>
+ * This class uses composition to hold a {@link TestSuite} internally, rather than
+ * extending it directly. The static {@code suite()} method builds a hierarchical
+ * test tree that is executed via the JUnit 4 {@link AllTests} runner.
  */
 @RunWith(AllTests.class)
-public class AcceptanceTestSuite extends TestSuite {
+public class AcceptanceTestSuite {
+
+    private final TestSuite delegate;
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
     private static final String ATEST_TRANSPORT_KEY = "atest.transport";
     private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
@@ -149,7 +143,7 @@ public class AcceptanceTestSuite extends TestSuite {
         SystemTime.setTimeSource(null);
 
         String name = testDirectory.substring(testDirectory.lastIndexOf(File.separatorChar) + 1);
-        this.setName(name + (multithreaded ? "-threaded" : ""));
+        this.delegate = new TestSuite(name + (multithreaded ? "-threaded" : ""));
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout;
@@ -178,17 +172,24 @@ public class AcceptanceTestSuite extends TestSuite {
         addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
 
+    /**
+     * Returns the internal {@link TestSuite} that contains all the acceptance tests.
+     */
+    public TestSuite getTestSuite() {
+        return delegate;
+    }
+
     protected void addTests(File directory) {
         if (!directory.exists())
             return;
         if (!directory.isDirectory()) {
-            addTest(new AcceptanceTest(directory.getPath()));
+            delegate.addTest(new AcceptanceTest(directory.getPath()));
         } else {
             if (directory.exists()) {
                 File[] files = directory.listFiles(new TestDefinitionFilter());
                 for (File file : files) {
                     if (!file.isDirectory() && !isTestSkipped(file)) {
-                        addTest(new AcceptanceTest(file.getPath()));
+                        delegate.addTest(new AcceptanceTest(file.getPath()));
                     }
                 }
                 for (File file : files) {
@@ -209,21 +210,24 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     private static final class AcceptanceTestServerSetUp extends TestSetup {
-        private final boolean threaded;
-        private final Map<Object, Object> overridenProperties;
+        private final AcceptanceTestSuite acceptanceSuite;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private ATServer server;
 
         private AcceptanceTestServerSetUp(AcceptanceTestSuite suite) {
-            super(suite);
-            this.threaded = suite.isMultithreaded();
-            this.overridenProperties = suite.getOverridenProperties();
+            super(suite.getTestSuite());
+            this.acceptanceSuite = suite;
         }
 
         protected void setUp() throws Exception {
             super.setUp();
-            server = new ATServer((TestSuite) getTest(), threaded, transportType, port, overridenProperties);
+            server = new ATServer(
+                    acceptanceSuite.getTestSuite(),
+                    acceptanceSuite.isMultithreaded(),
+                    transportType,
+                    port,
+                    acceptanceSuite.getOverridenProperties());
             server.setUsingMemoryStore(true);
             executor.execute(server);
             server.waitForInitialization();
