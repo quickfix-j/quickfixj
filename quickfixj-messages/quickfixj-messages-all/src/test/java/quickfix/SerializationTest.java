@@ -19,7 +19,8 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,14 +35,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 
-public class SerializationTest extends TestCase {
+public class SerializationTest {
 
     private String srcDir;
-    
-    public SerializationTest(String name) {
-        super(name);
-    }
 
+    @Test
     public void testSerializationWithDataDictionary() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=96\001",
@@ -51,6 +49,7 @@ public class SerializationTest extends TestCase {
         outs.writeObject(message);
     }
 
+    @Test
     public void testSerialization() {
         String buildDirectoryName = System.getProperty("buildDirectory");
         // generated-sources
@@ -274,6 +273,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
+    @Test
     public void testSerialVersionUUID() throws ClassNotFoundException {
         String buildDirectoryName = System.getProperty("buildDirectory");
         String baseDirectory = buildDirectoryName + "/classes";

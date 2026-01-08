@@ -22,9 +22,10 @@ package quickfix;
 import java.util.Observable;
 import java.util.Observer;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class ListenerSupportTest extends TestCase {
+public class ListenerSupportTest {
     private static class ObserverForTest implements Observer {
         public Object arg;
 
@@ -33,6 +34,7 @@ public class ListenerSupportTest extends TestCase {
         }
     }
 
+    @Test
     public void testMulticasting() throws Exception {
         ListenerSupport support = new ListenerSupport(Observer.class);
         ObserverForTest observer = new ObserverForTest();
