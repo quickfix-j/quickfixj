@@ -82,6 +82,8 @@
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 							<excludeSession>true</excludeSession><!-- fixt11 has already been generated -->
 							<generateFixt11Package>false</generateFixt11Package>
+							<!-- Skip if codegen is up-to-date (same property as quickfixj-codegenerator) -->
+							<skip>${codegen.uptodate}</skip>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -110,6 +112,8 @@
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 							<excludeSession>true</excludeSession><!-- fixt11 has already been generated -->
 							<generateFixt11Package>false</generateFixt11Package>
+							<!-- Skip if codegen is up-to-date (same property as quickfixj-codegenerator) -->
+							<skip>${codegen.uptodate}</skip>
 						</configuration>
 					</plugin>
 					<plugin>
@@ -247,6 +251,14 @@
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
 				<version>${project.version}</version>
+				<!-- 
+					Skip code generation if 'codegen.uptodate' is true.
+					This property is set by the build-helper-maven-plugin above based on 
+					comparing timestamps of FIX XML inputs vs. generated Java sources.
+				-->
+				<configuration>
+					<skip>${codegen.uptodate}</skip>
+				</configuration>
 				<executions>
 					<execution>
 						<id>fix40</id>
@@ -419,13 +431,72 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
 				<executions>
+					<!-- 
+						Check if FIX specification XML files have changed since last code generation.
+						Uses Ant's uptodate task to compare timestamps of source XML files against
+						a marker file. Sets 'codegen.uptodate' property to true if marker is newer.
+					-->
 					<execution>
+						<id>add-source</id>
 						<phase>process-sources</phase>
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
 								<source>${project.build.directory}/generated-sources</source>
 							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Check if code generation can be skipped by comparing input/output timestamps -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<!-- Check if inputs are newer than marker file -->
+					<execution>
+						<id>check-codegen-uptodate</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<!-- Check if marker file exists and is newer than all input XMLs -->
+								<uptodate property="codegen.uptodate" 
+								          targetfile="${project.build.directory}/codegen-marker.txt">
+									<srcfiles dir="${project.basedir}/.." includes="
+										quickfixj-messages-fix40/src/main/resources/FIX40.xml,
+										quickfixj-messages-fix41/src/main/resources/FIX41.xml,
+										quickfixj-messages-fix42/src/main/resources/FIX42.xml,
+										quickfixj-messages-fix43/src/main/resources/FIX43.xml,
+										quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml,
+										quickfixj-messages-fix50/src/main/resources/FIX50.xml,
+										quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml,
+										quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml"/>
+								</uptodate>
+								<condition property="codegen.skip.message" value="Skipping code generation - inputs unchanged" else="">
+									<isset property="codegen.uptodate"/>
+								</condition>
+								<echo message="${codegen.skip.message}"/>
+							</target>
+						</configuration>
+					</execution>
+					<!-- Create marker file after successful code generation -->
+					<execution>
+						<id>create-codegen-marker-file</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.build.directory}"/>
+								<touch file="${project.build.directory}/codegen-marker.txt"/>
+								<echo message="Code generation completed - marker file updated"/>
+							</target>
 						</configuration>
 					</execution>
 				</executions>
