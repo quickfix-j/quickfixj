@@ -362,7 +362,7 @@
 			<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>
 			  <artifactId>maven-antrun-plugin</artifactId>
-			  <version>3.2.0</version>
+			  <version>${maven-antrun-plugin-version}</version>
 			  <executions>
 				<execution>
 				  <phase>process-sources</phase>
@@ -452,7 +452,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>${maven-antrun-plugin-version}</version>
 				<executions>
 					<!-- Check if inputs are newer than marker file -->
 					<execution>
