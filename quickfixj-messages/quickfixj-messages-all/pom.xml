@@ -358,13 +358,19 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- exclude classes that are provided by the quickfixj-base dependency -->
+			<!-- 
+				Maven Ant Run Plugin - consolidates all Ant-based tasks:
+				1. Exclude classes provided by quickfixj-base dependency (process-sources phase)
+				2. Check if code generation can be skipped by comparing timestamps (initialize phase)
+				3. Create marker file after successful code generation (generate-sources phase)
+			-->
 			<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>
 			  <artifactId>maven-antrun-plugin</artifactId>
 			  <version>${maven-antrun-plugin-version}</version>
 			  <executions>
 				<execution>
+				  <id>delete-base-classes</id>
 				  <phase>process-sources</phase>
 				  <goals>
 					<goal>run</goal>
@@ -425,6 +431,51 @@
 					</target>
 				  </configuration>
 				</execution>
+				<!-- Check if inputs are newer than marker file -->
+				<execution>
+					<id>check-codegen-uptodate</id>
+					<phase>initialize</phase>
+					<goals>
+						<goal>run</goal>
+					</goals>
+					<configuration>
+						<exportAntProperties>true</exportAntProperties>
+						<target>
+							<!-- Check if marker file exists and is newer than all input XMLs -->
+							<uptodate property="codegen.uptodate" 
+							          targetfile="${project.build.directory}/codegen-marker.txt">
+								<srcfiles dir="${project.basedir}/.." includes="
+									quickfixj-messages-fix40/src/main/resources/FIX40.xml,
+									quickfixj-messages-fix41/src/main/resources/FIX41.xml,
+									quickfixj-messages-fix42/src/main/resources/FIX42.xml,
+									quickfixj-messages-fix43/src/main/resources/FIX43.xml,
+									quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml,
+									quickfixj-messages-fix50/src/main/resources/FIX50.xml,
+									quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml,
+									quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml"/>
+							</uptodate>
+							<condition property="codegen.skip.message" value="Skipping code generation - inputs unchanged" else="">
+								<isset property="codegen.uptodate"/>
+							</condition>
+							<echo message="${codegen.skip.message}"/>
+						</target>
+					</configuration>
+				</execution>
+				<!-- Create marker file after successful code generation -->
+				<execution>
+					<id>create-codegen-marker-file</id>
+					<phase>generate-sources</phase>
+					<goals>
+						<goal>run</goal>
+					</goals>
+					<configuration>
+						<target>
+							<mkdir dir="${project.build.directory}"/>
+							<touch file="${project.build.directory}/codegen-marker.txt"/>
+							<echo message="Code generation completed - marker file updated"/>
+						</target>
+					</configuration>
+				</execution>
 			  </executions>
 			</plugin>
 			<plugin>
@@ -444,59 +495,6 @@
 							<sources>
 								<source>${project.build.directory}/generated-sources</source>
 							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Check if code generation can be skipped by comparing input/output timestamps -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>${maven-antrun-plugin-version}</version>
-				<executions>
-					<!-- Check if inputs are newer than marker file -->
-					<execution>
-						<id>check-codegen-uptodate</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<exportAntProperties>true</exportAntProperties>
-							<target>
-								<!-- Check if marker file exists and is newer than all input XMLs -->
-								<uptodate property="codegen.uptodate" 
-								          targetfile="${project.build.directory}/codegen-marker.txt">
-									<srcfiles dir="${project.basedir}/.." includes="
-										quickfixj-messages-fix40/src/main/resources/FIX40.xml,
-										quickfixj-messages-fix41/src/main/resources/FIX41.xml,
-										quickfixj-messages-fix42/src/main/resources/FIX42.xml,
-										quickfixj-messages-fix43/src/main/resources/FIX43.xml,
-										quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml,
-										quickfixj-messages-fix50/src/main/resources/FIX50.xml,
-										quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml,
-										quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml"/>
-								</uptodate>
-								<condition property="codegen.skip.message" value="Skipping code generation - inputs unchanged" else="">
-									<isset property="codegen.uptodate"/>
-								</condition>
-								<echo message="${codegen.skip.message}"/>
-							</target>
-						</configuration>
-					</execution>
-					<!-- Create marker file after successful code generation -->
-					<execution>
-						<id>create-codegen-marker-file</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<mkdir dir="${project.build.directory}"/>
-								<touch file="${project.build.directory}/codegen-marker.txt"/>
-								<echo message="Code generation completed - marker file updated"/>
-							</target>
 						</configuration>
 					</execution>
 				</executions>
