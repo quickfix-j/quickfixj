@@ -1,6 +1,10 @@
 package quickfix;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static quickfix.FixVersions.*;
 import static quickfix.field.ApplVerID.*;
 
@@ -9,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import quickfix.field.*;
+import quickfix.fix44.MessageFactory;
 import quickfix.test.util.ExpectedTestFailure;
 
 /**
@@ -79,6 +84,24 @@ public class DefaultMessageFactoryTest {
         assertEquals(quickfix.fixlatest.News.NoLinesOfText.class, factory.create(FixVersions.FIXLATEST, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
         assertNull("if group can't be created return null",
                 factory.create(BEGINSTRING_FIX40, MsgType.MARKET_DATA_SNAPSHOT_FULL_REFRESH, NoMDEntries.FIELD));
+    }
+
+    @Test
+    public void testContextClassLoaderFactory() throws ClassNotFoundException {
+        ClassLoader customLoader = mock(ClassLoader.class);
+        doReturn(MessageFactory.class).when(customLoader).loadClass("foo.DefaultMessageFactory");
+
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(customLoader);
+
+        try {
+            factory.addFactory(BEGINSTRING_FIX44, "foo.DefaultMessageFactory");
+        } finally {
+            Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
+
+        verify(customLoader).loadClass("foo.DefaultMessageFactory");
+        verifyNoMoreInteractions(customLoader);
     }
 
     private static void assertMessage(Class<?> expectedMessageClass, String expectedMessageType, Message message) throws Exception {

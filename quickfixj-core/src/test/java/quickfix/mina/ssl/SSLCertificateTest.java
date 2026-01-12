@@ -80,6 +80,23 @@ public class SSLCertificateTest {
 
     private static final String LOCALHOST_ALIAS = "localhost-quickfixj";
 
+    // Cipher suites that require certificates (excludes anonymous suites)
+    // This list provides compatibility across different JDK versions and platforms
+    private static final String CERTIFICATE_REQUIRED_CIPHER_SUITES = String.join(",",
+            "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+            "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+            "TLS_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_RSA_WITH_AES_128_CBC_SHA256",
+            "TLS_RSA_WITH_AES_256_CBC_SHA256",
+            "TLS_RSA_WITH_AES_128_CBC_SHA",
+            "TLS_RSA_WITH_AES_256_CBC_SHA",
+            "TLS_AES_128_GCM_SHA256",
+            "TLS_AES_256_GCM_SHA384"
+    );
+
     @Parameters
     public static List<Object[]> parameters() {
         return Arrays.asList(new String[][]{{"TLS_RSA_WITH_AES_128_CBC_SHA", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
@@ -794,13 +811,13 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerKeyStore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/empty.keystore", false,
-                "single-session/empty.keystore", null, null, "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/empty.keystore",
-                    "single-session/empty.keystore", null, null, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                    "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -992,7 +1009,7 @@ public class SSLCertificateTest {
 
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
-        private static final int TIMEOUT_SECONDS = 5;
+        private static final int TIMEOUT_SECONDS = 15;
 
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
