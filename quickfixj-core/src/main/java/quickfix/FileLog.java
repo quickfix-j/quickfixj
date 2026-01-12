@@ -69,9 +69,8 @@ public class FileLog extends AbstractLog {
         eventFileName = prefix + "event.log";
 
         File directory = new File(messagesFileName).getParentFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        directory.mkdirs();
+
 
         this.includeMillis = includeMillis;
         this.includeTimestampForMessages = includeTimestampForMessages;
@@ -94,7 +93,7 @@ public class FileLog extends AbstractLog {
 
     private void writeMessage(FileOutputStream stream, Object lock, String message, boolean forceTimestamp) {
         try {
-            synchronized(lock) {
+            synchronized (lock) {
                 if (forceTimestamp || includeTimestampForMessages) {
                     writeTimeStamp(stream);
                 }
