@@ -53,6 +53,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -3095,6 +3096,35 @@ public class SessionTest {
         }
     }
 
+    private class FailingResponder implements Responder {
+        public int sendCallCount = 0;
+        public int maxSuccessfulSends;
+        public List<String> sentMessages = new ArrayList<>();
+
+        public FailingResponder(int maxSuccessfulSends) {
+            this.maxSuccessfulSends = maxSuccessfulSends;
+        }
+
+        @Override
+        public boolean send(String data) {
+            sendCallCount++;
+            if (sendCallCount <= maxSuccessfulSends) {
+                sentMessages.add(data);
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public String getRemoteAddress() {
+            return null;
+        }
+
+        @Override
+        public void disconnect() {
+        }
+    }
+
     @Test
     public void testSendWithAllowPosDupAsFalse_ShouldRemovePossDupFlagAndOrigSendingTime() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
@@ -3160,5 +3190,48 @@ public class SessionTest {
 
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testResendAbortsWhenSendReturnsFalse() throws Exception {
+        // QFJ-646: Stop sending resend-messages when the responder has gone away
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
+            // Create a responder that will succeed for first 2 sends, then fail
+            FailingResponder responder = new FailingResponder(2);
+            session.setResponder(responder);
+            final SessionState state = getSessionState(session);
+
+            // Logon
+            final Logon logon = new Logon();
+            setUpHeader(session.getSessionID(), logon, true, 1);
+            logon.setInt(HeartBtInt.FIELD, 30);
+            logon.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logon.toString(); // calculate length/checksum
+            session.next(logon);
+
+            // Send 5 application messages
+            session.send(createAppMessage(2));
+            session.send(createAppMessage(3));
+            session.send(createAppMessage(4));
+            session.send(createAppMessage(5));
+            session.send(createAppMessage(6));
+
+            // Reset the responder to simulate disconnect and reconnect
+            responder = new FailingResponder(2);
+            session.setResponder(responder);
+
+            // Request resend of messages 2-6
+            Message resendRequest = createResendRequest(2, 2);
+            resendRequest.toString(); // calculate length/checksum
+            processMessage(session, resendRequest);
+
+            // With the fix, only the first 2 messages should be sent successfully before aborting
+            // The 3rd send attempt will fail and cause the abort
+            // Without the fix, all 5 messages would be attempted (but 3+ would fail)
+            assertEquals("Should attempt 3 sends (2 succeed, 1 fails and aborts)", 3, responder.sendCallCount);
+            assertEquals("Only 2 messages should succeed", 2, responder.sentMessages.size());
+        }
     }
 }
