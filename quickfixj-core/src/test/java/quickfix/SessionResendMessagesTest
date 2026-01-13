@@ -1,0 +1,98 @@
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import quickfix.*;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class SessionResendMessagesTest {
+
+    private Session session;
+    private Application mockApplication;
+    private MessageStore mockStore;
+    private LogFactory mockLogFactory;
+    private Log mockLog;
+    private static final int HEARTBEAT_INTERVAL = 30;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        mockApplication = mock(Application.class);
+        mockStore = mock(MessageStore.class);
+        MessageStoreFactory mockStoreFactory = mock(MessageStoreFactory.class);
+        when(mockStoreFactory.create(any(SessionID.class))).thenReturn(mockStore);
+        DataDictionaryProvider mockDataDictProvider = mock(DataDictionaryProvider.class);
+        mockLogFactory = mock(LogFactory.class);
+        mockLog = mock(Log.class);
+        when(mockLogFactory.create(any(SessionID.class))).thenReturn(mockLog);
+
+        session = new Session(
+                mockApplication,
+                mockStoreFactory,
+                new SessionID("FIX.4.4", "SENDER", "TARGET"),
+                mockDataDictProvider,
+                mock(SessionSchedule.class),
+                mockLogFactory,
+                mock(MessageFactory.class),
+                HEARTBEAT_INTERVAL
+        );
+    }
+
+    @Test
+    void testResendMessagesBatchedRetrieval() throws Exception {
+        // Prepare 1200 messages (expect two batches: 1000, then 200)
+        int beginSeqNo = 1;
+        int endSeqNo = 1200;
+        ArrayList<String> batch1 = new ArrayList<>();
+        ArrayList<String> batch2 = new ArrayList<>();
+        for (int i = beginSeqNo; i <= endSeqNo; i++) {
+            String msgStr = "8=FIX.4.4\u00019=12\u000135=0\u000134=" + i + "\u0001" +
+                    "49=SENDER\u000156=TARGET\u000110=000\u0001";
+            if (i <= 1000) batch1.add(msgStr);
+            else batch2.add(msgStr);
+        }
+
+        doAnswer(invocation -> {
+            int start = invocation.getArgument(0);
+            int end = invocation.getArgument(1);
+            ArrayList<String> msgs = invocation.getArgument(2);
+            if (start == 1 && end == 1001) msgs.addAll(batch1);
+            else if (start == 1001 && end == 1200) msgs.addAll(batch2);
+            else fail("Unexpected batch: " + start + " to " + end);
+            return null;
+        }).when(mockStore).get(anyInt(), anyInt(), anyList());
+
+        Message receivedMessage = new Message();
+        session.resendMessages(receivedMessage, beginSeqNo, endSeqNo);
+
+        // Verify batches requested
+        verify(mockStore).get(1, 1001, new ArrayList<>());
+        verify(mockStore).get(1001, 1200, new ArrayList<>());
+        verifyNoMoreInteractions(mockStore);
+    }
+
+    @Test
+    void testResendMessagesSkipsCorruptedMessage() throws Exception {
+        int beginSeqNo = 1, endSeqNo = 2;
+        ArrayList<String> messages = new ArrayList<>();
+        // First message is valid, second is corrupted
+        messages.add("8=FIX.4.4\u00019=12\u000135=0\u000134=1\u000149=SENDER\u000156=TARGET\u000110=000\u0001");
+        messages.add("corrupted message");
+
+        doAnswer(invocation -> {
+            ArrayList<String> msgs = invocation.getArgument(2);
+            msgs.addAll(messages);
+            return null;
+        }).when(mockStore).get(anyInt(), anyInt(), anyList());
+
+        Message receivedMessage = new Message();
+        session.resendMessages(receivedMessage, beginSeqNo, endSeqNo);
+
+        // Should log an error for the corrupted message and process the first one
+        verify(mockLog, atLeastOnce()).onErrorEvent(contains("Error handling ResendRequest"));
+    }
+}
