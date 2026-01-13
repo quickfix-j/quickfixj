@@ -2402,7 +2402,12 @@ public class Session implements Closeable {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
                     getLog().onEvent("Resending message: " + msgSeqNum);
-                    send(msg.toString());
+                    boolean sent = send(msg.toString());
+                    if (!sent) {
+                        LOG.warn("Resend aborted: send() returned false for message " + msgSeqNum);
+                        // Abort resend operation immediately - don't send any more messages
+                        return;
+                    }
                     begin = 0;
                     appMessageJustSent = true;
                 } else {
