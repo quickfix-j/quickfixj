@@ -2666,6 +2666,21 @@
             <field name="MessageID" required="N"/>
             <component name="MDFullGrp" required="N"/>
     </message>
+    <message name="AccountSummaryReportRequest" msgtype="UA" msgcat="app">
+      <field name="AccountSummaryReportRequestID" required="Y"/>
+      <field name="SubscriptionRequestType" required="Y"/>
+      <component name="Parties" required="Y"/>
+    </message>
+    <message name="AccountSummaryReport" msgtype="CQ" msgcat="app">
+      <field name="AccountSummaryReportID" required="Y"/>
+      <field name="AccountSummaryReportRequestID" required="N"/>
+      <field name="AccountSummaryReportRequestResult" required="Y"/>
+      <field name="ClearingBusinessDate" required="Y"/>
+      <field name="TransactTime" required="N"/>
+      <field name="Text" required="N"/>
+      <component name="Parties" required="Y"/>
+      <component name="CollateralAmountGrp" required="N"/>
+    </message>
     <message name="SecurityStatusRequest" msgtype="e" msgcat="app">
       <field name="SecurityStatusReqID" required="Y"/>
       <component name="Instrument" required="Y"/>
@@ -3132,6 +3147,13 @@
         </message>
   </messages>
   <components>
+    <component name="CollateralAmountGrp">
+      <group name="NoCollateralAmounts" required="Y">
+        <field name="CurrentCollateralAmount" required="N"/>
+        <field name="CollateralCurrency" required="N"/>
+        <field name="CollateralType" required="N"/>
+      </group>
+    </component>
     <component name="MDFullGrp">
       <group name="NoMDEntries" required="Y">
         <field name="MDEntryType" required="Y"/>
@@ -5500,6 +5522,13 @@
     </component>
   </components>
   <fields>
+    <field number="20004" name="AccountSummaryReportRequestID" type="STRING"/>
+    <field number="20005" name="AccountSummaryReportRequestResult" type="INT"/>
+    <field number="1699" name="AccountSummaryReportID" type="STRING"/>
+    <field number="1703" name="NoCollateralAmounts" type="NUMINGROUP"/>
+    <field number="1704" name="CurrentCollateralAmount" type="AMT"/>
+    <field number="1705" name="CollateralCurrency" type="CURRENCY"/>
+    <field number="1706" name="CollateralType" type="STRING"/>
     <field number="1" name="Account" type="STRING"/>
     <field number="2" name="AdvId" type="STRING"/>
     <field number="3" name="AdvRefID" type="STRING"/>

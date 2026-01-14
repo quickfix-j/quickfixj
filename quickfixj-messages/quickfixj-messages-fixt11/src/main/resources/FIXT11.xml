@@ -243,6 +243,8 @@
       <value enum="BX" description="APPLICATION_MESSAGE_REQUEST_ACK"/>
       <value enum="BY" description="APPLICATION_MESSAGE_REPORT"/>
       <value enum="BZ" description="ORDER_MASS_ACTION_REPORT"/>
+      <value enum="CQ" description="ACCOUNT_SUMMARY_REPORT"/>
+      <value enum="UA" description="ACCOUNT_SUMMARY_REPORT_REQUEST"/>
     </field>
     <field number="36" name="NewSeqNo" type="SEQNUM"/>
     <field number="43" name="PossDupFlag" type="BOOLEAN">
