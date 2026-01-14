@@ -181,7 +181,7 @@ public class SessionResendRequestFailureTest {
         session.next(message);
     }
 
-    private SessionState getSessionState(Session session) throws Exception {
+    private SessionState getSessionState(Session session) throws NoSuchFieldException, IllegalAccessException {
         final java.lang.reflect.Field field = Session.class.getDeclaredField("state");
         field.setAccessible(true);
         return (SessionState) field.get(session);
