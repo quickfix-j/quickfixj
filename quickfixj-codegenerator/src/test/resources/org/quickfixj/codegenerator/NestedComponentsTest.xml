@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fix major="4" minor="4">
+  <header>
+    <field name="BeginString" required="Y"/>
+    <field name="BodyLength" required="Y"/>
+    <field name="MsgType" required="Y"/>
+    <field name="SenderCompID" required="Y"/>
+    <field name="TargetCompID" required="Y"/>
+    <field name="MsgSeqNum" required="Y"/>
+    <field name="SendingTime" required="Y"/>
+  </header>
+  <trailer>
+    <field name="CheckSum" required="Y"/>
+  </trailer>
+  <messages>
+    <message name="TestMessage" msgtype="TEST" msgcat="app">
+      <component name="NestedTwice" required="N"/>
+    </message>
+  </messages>
+  <components>
+    <component name="Level2">
+      <field name="Text" required="N"/>
+    </component>
+    <component name="Level1">
+      <component name="Level2" required="N"/>
+    </component>
+    <component name="NestedTwice">
+      <group name="NoEntries" required="N">
+        <component name="Level1" required="N"/>
+      </group>
+    </component>
+  </components>
+  <fields>
+    <field number="58" name="Text" type="STRING"/>
+    <field number="20001" name="NoEntries" type="NUMINGROUP"/>
+  </fields>
+</fix>
