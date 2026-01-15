@@ -74,13 +74,19 @@ public class SessionResendRequestFailureTest {
             session.disconnect("Simulating disconnect", false);
             assertFalse("Session should be disconnected", session.isLoggedOn());
             
+            // Log ResendRange after disconnect
+            System.out.println("ResendRange after disconnect: begin=" + state.getResendRange().getBeginSeqNo() 
+                + ", end=" + state.getResendRange().getEndSeqNo());
+            
             // Reconnect with a fresh responder
             final UnitTestResponder freshResponder = new UnitTestResponder();
             session.setResponder(freshResponder);
-            logonTo(session, 11); // Logon with next sequence number
             
-            // Step 6: Send another message that should trigger the ResendRequest again
-            processMessage(session, createHeartbeatMessage(12));
+            // Log ResendRange before reconnect logon
+            System.out.println("ResendRange before reconnect logon: begin=" + state.getResendRange().getBeginSeqNo() 
+                + ", end=" + state.getResendRange().getEndSeqNo());
+            
+            logonTo(session, 11); // Logon with next sequence number - this should trigger ResendRequest
             
             // Expected: ResendRequest should be sent again because the previous one failed
             // Actual (BUG): ResendRequest is NOT sent because ResendRange is still marked as "sent"
