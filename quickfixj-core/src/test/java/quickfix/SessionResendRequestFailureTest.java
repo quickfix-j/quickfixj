@@ -19,8 +19,8 @@ public class SessionResendRequestFailureTest {
     /**
      * Test demonstrates the problem: 
      * 1. Session connects and logs on
-     * 2. Receives message with high sequence number, triggering ResendRequest
-     * 3. Session disconnects BEFORE the ResendRequest is actually sent (responder becomes null)
+     * 2. Session disconnects
+     * 3. generateResendRequest() is called while responder.send() returns false
      * 4. ResendRange is still marked as "sent" even though sendRaw returned false
      * 5. On reconnection, ResendRequest is NOT re-sent because it's marked as already sent
      */
@@ -52,33 +52,33 @@ public class SessionResendRequestFailureTest {
             logonTo(session, 1);
             assertTrue("Session should be logged on", session.isLoggedOn());
             
-            // Step 2: Receive a message with sequence number gap (e.g., expect 2, get 10)
-            // This should trigger a ResendRequest
+            // Step 2: Get session state and verify initial sequence number
             final SessionState state = getSessionState(session);
             assertEquals("Expected target seq num should be 2", 2, state.getNextTargetMsgSeqNum());
             
-            // Step 3: Configure responder to fail (simulating disconnect before send completes)
+            // Step 3: Disconnect (simulating connection loss)
+            session.disconnect("Simulating disconnect", false);
+            assertFalse("Session should be disconnected", session.isLoggedOn());
+            
+            // Step 4: Configure responder to fail (simulating scenario where responder becomes null)
             responder.setShouldFail(true);
             
-            // Receive heartbeat with seq num 10 (gap from 2 to 9)
-            // This should trigger ResendRequest, but it will fail to send
-            processMessage(session, createHeartbeatMessage(10));
+            // Step 5: Call generateResendRequest directly to trigger ResendRequest
+            // This will call sendResendRequest() which calls sendRaw(), but sendRaw will fail
+            // because responder.send() returns false
+            callGenerateResendRequest(session, FixVersions.BEGINSTRING_FIX44, 10);
             
-            // Step 4: Verify that ResendRange is marked as sent even though sendRaw failed
+            // Step 6: Verify that ResendRange is marked as sent even though sendRaw failed (BUG!)
             assertTrue("ResendRange should be marked as requested (BUG!)", state.isResendRequested());
             SessionState.ResendRange resendRange = state.getResendRange();
             assertEquals("ResendRange begin should be 2", 2, resendRange.getBeginSeqNo());
             assertEquals("ResendRange end should be 9", 9, resendRange.getEndSeqNo());
             
-            // Step 5: Disconnect and reconnect
-            session.disconnect("Simulating disconnect", false);
-            assertFalse("Session should be disconnected", session.isLoggedOn());
-            
-            // Log ResendRange after disconnect
-            System.out.println("ResendRange after disconnect: begin=" + state.getResendRange().getBeginSeqNo() 
+            // Log ResendRange after failed send
+            System.out.println("ResendRange after failed send: begin=" + state.getResendRange().getBeginSeqNo() 
                 + ", end=" + state.getResendRange().getEndSeqNo());
             
-            // Reconnect with a fresh responder
+            // Step 7: Reconnect with a fresh responder
             final UnitTestResponder freshResponder = new UnitTestResponder();
             session.setResponder(freshResponder);
             
@@ -191,6 +191,12 @@ public class SessionResendRequestFailureTest {
         final java.lang.reflect.Field field = Session.class.getDeclaredField("state");
         field.setAccessible(true);
         return (SessionState) field.get(session);
+    }
+
+    private void callGenerateResendRequest(Session session, String beginString, int msgSeqNum) throws Exception {
+        final java.lang.reflect.Method method = Session.class.getDeclaredMethod("generateResendRequest", String.class, int.class);
+        method.setAccessible(true);
+        method.invoke(session, beginString, msgSeqNum);
     }
 
     /**
