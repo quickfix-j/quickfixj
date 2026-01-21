@@ -80,9 +80,24 @@ public class SSLCertificateTest {
 
     private static final String LOCALHOST_ALIAS = "localhost-quickfixj";
 
+    // Cipher suites that require certificates (excludes anonymous suites)
+    // This list provides compatibility across different JDK versions and platforms
+    private static final String CERTIFICATE_REQUIRED_CIPHER_SUITES = String.join(",",
+            "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+            "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+            "TLS_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_RSA_WITH_AES_128_CBC_SHA256",
+            "TLS_RSA_WITH_AES_256_CBC_SHA256",
+            "TLS_AES_128_GCM_SHA256",
+            "TLS_AES_256_GCM_SHA384"
+    );
+
     @Parameters
     public static List<Object[]> parameters() {
-        return Arrays.asList(new String[][]{{"TLS_RSA_WITH_AES_128_CBC_SHA", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
+        return Arrays.asList(new String[][]{{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
     }
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
