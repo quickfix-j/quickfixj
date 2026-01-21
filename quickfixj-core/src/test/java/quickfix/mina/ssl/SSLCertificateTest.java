@@ -91,15 +91,13 @@ public class SSLCertificateTest {
             "TLS_RSA_WITH_AES_256_GCM_SHA384",
             "TLS_RSA_WITH_AES_128_CBC_SHA256",
             "TLS_RSA_WITH_AES_256_CBC_SHA256",
-            "TLS_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_RSA_WITH_AES_256_CBC_SHA",
             "TLS_AES_128_GCM_SHA256",
             "TLS_AES_256_GCM_SHA384"
     );
 
     @Parameters
     public static List<Object[]> parameters() {
-        return Arrays.asList(new String[][]{{"TLS_RSA_WITH_AES_128_CBC_SHA", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
+        return Arrays.asList(new String[][]{{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
     }
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
