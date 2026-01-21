@@ -21,22 +21,26 @@ package quickfix;
 
 import java.util.Locale;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class DayConverterTest extends TestCase {
+public class DayConverterTest {
     private Locale defaultLocale;
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         Locale.setDefault(defaultLocale);
-        super.tearDown();
     }
 
+    @Test
     public void testConversionToInt() throws Exception {
         assertEquals(1, DayConverter.toInteger("sU"));
         assertEquals(4, DayConverter.toInteger("WEDnes"));
@@ -54,6 +58,7 @@ public class DayConverterTest extends TestCase {
         assertEquals(2, DayConverter.toInteger("Mo"));
     }
 
+    @Test
     public void testConversionToString() throws Exception {
         Locale.setDefault(Locale.US);
         assertEquals("sunday", DayConverter.toString(1));
