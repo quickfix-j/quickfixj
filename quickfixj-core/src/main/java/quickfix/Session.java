@@ -2404,7 +2404,7 @@ public class Session implements Closeable {
                     getLog().onEvent("Resending message: " + msgSeqNum);
                     boolean sent = send(msg.toString());
                     if (!sent) {
-                        LOG.warn("Resend aborted: send() returned false for message " + msgSeqNum);
+                        getLog().onWarnEvent("Resend aborted: send() returned false for message " + msgSeqNum);
                         // Abort resend operation immediately - don't send any more messages
                         return;
                     }
