@@ -3193,7 +3193,8 @@ public class SessionTest {
     }
 
     /**
-     * QFJ-646: Verify that resend operations abort when send() returns false.
+     * https://github.com/quickfix-j/quickfixj/issues/646
+     * Verify that resend operations abort when send() returns false.
      * When a responder disconnects mid-resend, the resend operation should stop
      * immediately rather than attempting to send all remaining messages.
      */
