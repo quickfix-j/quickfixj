@@ -3192,9 +3192,13 @@ public class SessionTest {
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
     }
 
+    /**
+     * QFJ-646: Verify that resend operations abort when send() returns false.
+     * When a responder disconnects mid-resend, the resend operation should stop
+     * immediately rather than attempting to send all remaining messages.
+     */
     @Test
     public void testResendAbortsWhenSendReturnsFalse() throws Exception {
-        // QFJ-646: Stop sending resend-messages when the responder has gone away
         final UnitTestApplication application = new UnitTestApplication();
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
