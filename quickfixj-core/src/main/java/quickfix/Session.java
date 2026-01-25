@@ -410,7 +410,7 @@ public class Session implements Closeable {
 
     private final Object responderLock = new Object(); // unique instance
     // @GuardedBy(responderLock)
-    private Responder responder;
+    private volatile Responder responder;
 
     // The session time checks were causing performance problems
     // so we are checking only once per second.
@@ -2789,16 +2789,16 @@ public class Session implements Closeable {
     }
 
     private boolean send(String messageString) {
-        getLog().onOutgoing(messageString);
-        Responder responder;
-        synchronized (responderLock) {
-            responder = this.responder;
-        }
-        if (responder == null) {
+        Responder responder = this.responder;
+        if(null != responder) {
+            try {
+                return responder.send(messageString);
+            } finally {
+                getLog().onOutgoing(messageString);
+            }
+        } else
             getLog().onEvent("No responder, not sending message: " + messageString);
-            return false;
-        }
-        return responder.send(messageString);
+        return false;
     }
 
     private boolean isCorrectCompID(Message message) throws FieldNotFound {
