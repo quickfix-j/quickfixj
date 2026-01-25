@@ -67,12 +67,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Represents a FIX message.
  */
-public class Message extends FieldMap {
+public class Message extends FieldMap implements IMessage  {
 
     static final long serialVersionUID = -3193357271891865972L;
 
@@ -434,6 +435,30 @@ public class Message extends FieldMap {
 
     public Header getHeader() {
         return header;
+    }
+
+    public final int getHeaderInt(int field) throws FieldNotFound {
+        return header.getInt(field);
+    }
+
+    public final void setHeaderInt(int field, int value) {
+        header.setInt(field, value);
+    }
+
+    public final String getHeaderString(int field) throws FieldNotFound {
+        return header.getString(field);
+    }
+
+    public final void setHeaderString(int field, String value) {
+        header.setString(field, value);
+    }
+
+    public final void setHeaderUtcTimeStamp(int field, LocalDateTime value, UtcTimestampPrecision timestampPrecision) {
+        header.setUtcTimeStamp(field, value, timestampPrecision);
+    }
+
+    public final void removeHeaderField(int field) {
+        header.removeField(field);
     }
 
     public final Trailer getTrailer() {
