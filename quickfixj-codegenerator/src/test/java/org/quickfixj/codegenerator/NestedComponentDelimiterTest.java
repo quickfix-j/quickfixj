@@ -7,9 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Test for issue #1084: Verify that MessageCodeGenerator correctly sets the 
@@ -18,7 +19,9 @@ import org.junit.Test;
  */
 public class NestedComponentDelimiterTest {
 
-    private File outputDirectory = new File("./target/test-output/nested-component-test");
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
     private File dictFile = new File("./src/test/resources/org/quickfixj/codegenerator/NestedComponentsTest.xml");
     private File schemaDirectory = new File("./src/main/resources/org/quickfixj/codegenerator");
     private String fieldPackage = "quickfix.field";
@@ -27,13 +30,7 @@ public class NestedComponentDelimiterTest {
 
     @Before
     public void setup() throws IOException {
-        if (outputDirectory.exists()) {
-            FileUtils.cleanDirectory(outputDirectory);
-        } else {
-            outputDirectory.mkdirs();
-        }
         generator = new MessageCodeGenerator();
-        System.out.println("Successfully created an instance of the QuickFIX source generator");
     }
 
     @Test
@@ -44,7 +41,7 @@ public class NestedComponentDelimiterTest {
         task.setSpecification(dictFile);
         task.setTransformDirectory(schemaDirectory);
         task.setMessagePackage(messagePackage);
-        task.setOutputBaseDirectory(outputDirectory);
+        task.setOutputBaseDirectory(tempFolder.getRoot());
         task.setFieldPackage(fieldPackage);
         task.setOverwrite(true);
         task.setOrderedFields(true);
@@ -53,7 +50,7 @@ public class NestedComponentDelimiterTest {
         generator.generate(task);
 
         // Verify that the NestedTwice component was generated
-        String componentPath = outputDirectory.getAbsolutePath() + "/quickfix/test/component/NestedTwice.java";
+        String componentPath = tempFolder.getRoot().getAbsolutePath() + "/quickfix/test/component/NestedTwice.java";
         File componentFile = new File(componentPath);
         assertTrue("NestedTwice component file should exist", componentFile.exists());
 
