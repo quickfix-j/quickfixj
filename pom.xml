@@ -56,7 +56,8 @@
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
 		<module>quickfixj-perf-test</module>
-	</modules>
+        <module>quickfixj-stress-test</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -65,11 +66,11 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>3.0</hamcrest.version>
-		<junit.jupiter.version>5.14.1</junit.jupiter.version>
+		<junit.jupiter.version>5.14.2</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-  <maven.version>3.9.11</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+        <maven.version>3.9.12</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
 		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
@@ -89,10 +90,10 @@
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
-		<maven-plugin-testing-harness.version>3.4.0</maven-plugin-testing-harness.version>
+		<maven-plugin-testing-harness.version>3.5.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
-		<xml-maven-plugin-version>1.2.0</xml-maven-plugin-version>
+		<xml-maven-plugin-version>1.2.1</xml-maven-plugin-version>
 		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
 		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
@@ -102,7 +103,9 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.0</jaxen.version>
-                <jmh.version>1.37</jmh.version>
+        <jmh.version>1.37</jmh.version>
+        <jcstress.version>0.16</jcstress.version>
+        <hsqldb.version>1.8.0.10</hsqldb.version>
 	</properties>
 
    <dependencyManagement>
@@ -273,7 +276,7 @@
 					<version>${maven-compiler-plugin-version}</version>
 					<inherited>true</inherited>
 					<configuration>
-						<forceJavacCompilerUse>true</forceJavacCompilerUse> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
+						<forceLegacyJavacApi>true</forceLegacyJavacApi> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
 						<meminitial>2g</meminitial>
 						<maxmem>4g</maxmem>
 					</configuration>

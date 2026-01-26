@@ -19,19 +19,22 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class ExceptionTest extends TestCase {
+public class ExceptionTest {
 
+    @Test
     public void testRejectLogon() {
         new RejectLogon();
     }
     
+    @Test
     public void testSessionNotFound() {
         new SessionNotFound();
         new SessionNotFound("test");
     }
     
+    @Test
     public void testSessionException() {
         new SessionException();
         new SessionException("test");

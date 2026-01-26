@@ -27,6 +27,7 @@ import quickfix.ConfigError;
 import quickfix.Connector;
 import quickfix.ExecutorFactory;
 import quickfix.FieldConvertError;
+import quickfix.LogUtil;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -243,7 +244,7 @@ public abstract class SessionConnector implements Connector {
             try {
                 session.logout();
             } catch (Throwable e) {
-                logError(session.getSessionID(), null, "Error during logout", e);
+                LogUtil.logThrowable(session.getLog(), "Error during logout", e);
             }
         }
 
@@ -255,7 +256,7 @@ public abstract class SessionConnector implements Connector {
                             session.disconnect("Forcibly disconnecting session", false);
                         }
                     } catch (Throwable e) {
-                        logError(session.getSessionID(), null, "Error during disconnect", e);
+                        LogUtil.logThrowable(session.getLog(), "Error during disconnect", e);
                     }
                 }
             } else {
@@ -295,22 +296,11 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
-    protected void logError(SessionID sessionID, IoSession protocolSession, String message, Throwable t) {
-        log.error(message + getLogSuffix(sessionID, protocolSession), t);
-    }
-
-    private String getLogSuffix(SessionID sessionID, IoSession protocolSession) {
-        String suffix = ":";
-        if (sessionID != null) {
-            suffix += "sessionID=" + sessionID.toString() + ";";
-        }
-        if (protocolSession != null) {
-            suffix += "address=" + protocolSession.getRemoteAddress();
-        }
-        return suffix;
-    }
-
     protected void startSessionTimer() {
+        // Check if a session timer is already running to avoid creating multiple timers
+        if (checkSessionTimerRunning()) {
+            return;
+        }
         Runnable timerTask = new SessionTimerTask();
         if (shortLivedExecutor != null) {
             timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
@@ -347,7 +337,7 @@ public abstract class SessionConnector implements Connector {
                     try {
                         session.next();
                     } catch (IOException e) {
-                        logError(session.getSessionID(), null, "Error in session timer processing", e);
+                        LogUtil.logThrowable(session.getLog(), "Error in session timer processing", e);
                     }
                 }
             } catch (Throwable e) {

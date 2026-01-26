@@ -19,9 +19,8 @@
 
 package quickfix;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.lang.reflect.Constructor;
@@ -32,24 +31,15 @@ import quickfix.fix42.NewOrderSingle;
 /**
  * Conditionally test that BigDecimals are handled correctly if we've generated
  * the message fields with BigDecimal support
- *
- * @author toli
- * @version $Id$
  */
-public class BigDecimalFieldTest extends TestCase {
-    public BigDecimalFieldTest(String inName) {
-        super(inName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(BigDecimalFieldTest.class);
-    }
+public class BigDecimalFieldTest {
 
     /**
      * Verify that the round-tripping of BigDecimals works with messages
      * Run the real test inside the testcase only if we have a BigDecimal-ized fields,
      * ie if we have a constructor taking a BigDecimal.
      */
+    @Test
     public void testBigDecimalRoundTripping() throws Exception {
         // check to see if we have a BigDecimal constructor
         try {
@@ -58,7 +48,7 @@ public class BigDecimalFieldTest extends TestCase {
             BigDecimal originalPrice = new BigDecimal("10.3000");
             assertEquals(4, originalPrice.scale());
             Message message = new NewOrderSingle();
-            message.setField(cons.newInstance (new BigDecimal("10.3000")));
+            message.setField(cons.newInstance(new BigDecimal("10.3000")));
             BigDecimal extractedPrice = message.getDecimal(Price.FIELD);
             assertEquals(4, extractedPrice.scale());
             assertEquals(new BigDecimal("10.3000"), extractedPrice);
