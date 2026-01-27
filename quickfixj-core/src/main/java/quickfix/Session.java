@@ -2401,7 +2401,8 @@ public class Session implements Closeable {
             // According to FIX spec, only Reject messages should be resent among admin messages
             if (MessageUtils.isAdminMessage(msgType)) {
                 if (MsgType.REJECT.equals(msgType)) {
-                    // Reject messages should be resent, but don't call toApp() for admin messages
+                    // Reject messages should be resent
+                    // Note: We don't call resendApproved() here to avoid calling toApp() on admin messages
                     initializeResendFields(msg);
                     if (begin != 0) {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
