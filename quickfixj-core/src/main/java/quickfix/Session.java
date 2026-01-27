@@ -2277,7 +2277,8 @@ public class Session implements Closeable {
 
         // Check for proper sequence reset response
         if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
+            disconnect("Expected Logon response to have reset sequence numbers in response to ResetSeqNumFlag", true);
+            return;
         }
 
         state.setResetSent(false);
@@ -2401,7 +2402,12 @@ public class Session implements Closeable {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
                     getLog().onEvent("Resending message: " + msgSeqNum);
-                    send(msg.toString());
+                    boolean sent = send(msg.toString());
+                    if (!sent) {
+                        // Abort resend operation immediately - don't send any more messages
+                        getLog().onWarnEvent("Resending messages aborted.");
+                        return;
+                    }
                     begin = 0;
                     appMessageJustSent = true;
                 } else {

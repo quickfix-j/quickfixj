@@ -38,6 +38,8 @@ public class SSLConfig {
 	private String[] enabledCipherSuites;
 	private boolean needClientAuth;
 	private String endpointIdentificationAlgorithm;
+    private boolean useSNI;
+    private String sniHostName;
 
 	public String[] getEnabledCipherSuites() {
 		return enabledCipherSuites;
@@ -87,7 +89,15 @@ public class SSLConfig {
 		return endpointIdentificationAlgorithm;
 	}
 
-	public void setEnabledCipherSuites(String[] enabledCipherSuites) {
+    public boolean isUseSNI() {
+        return useSNI;
+    }
+
+    public String getSniHostName() {
+        return sniHostName;
+    }
+
+    public void setEnabledCipherSuites(String[] enabledCipherSuites) {
 		this.enabledCipherSuites = enabledCipherSuites;
 	}
 
@@ -119,7 +129,15 @@ public class SSLConfig {
 		this.endpointIdentificationAlgorithm = endpointIdentificationAlgorithm;
 	}
 
-	public void setTrustManagerFactoryAlgorithm(String trustManagerFactoryAlgorithm) {
+    public void setUseSNI(boolean useSNI) {
+        this.useSNI = useSNI;
+    }
+
+    public void setSniHostName(String sniHostName) {
+        this.sniHostName = sniHostName;
+    }
+
+    public void setTrustManagerFactoryAlgorithm(String trustManagerFactoryAlgorithm) {
 		this.trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm;
 	}
 
@@ -151,12 +169,14 @@ public class SSLConfig {
 				Objects.equals(trustStoreType, sslConfig.trustStoreType) &&
 				Arrays.equals(enabledProtocols, sslConfig.enabledProtocols) &&
 				Arrays.equals(enabledCipherSuites, sslConfig.enabledCipherSuites) &&
-				Objects.equals(endpointIdentificationAlgorithm, sslConfig.endpointIdentificationAlgorithm);
+				Objects.equals(endpointIdentificationAlgorithm, sslConfig.endpointIdentificationAlgorithm) &&
+                Objects.equals(useSNI, sslConfig.useSNI) &&
+                Objects.equals(sniHostName, sslConfig.sniHostName);
 	}
 
 	@Override
 	public int hashCode() {
-		int result = Objects.hash(keyStoreName, keyManagerFactoryAlgorithm, keyStoreType, trustStoreName, trustManagerFactoryAlgorithm, trustStoreType, needClientAuth, endpointIdentificationAlgorithm);
+        int result = Objects.hash(keyStoreName, keyManagerFactoryAlgorithm, keyStoreType, trustStoreName, trustManagerFactoryAlgorithm, trustStoreType, needClientAuth, endpointIdentificationAlgorithm, useSNI, sniHostName);
 		result = 31 * result + Arrays.hashCode(keyStorePassword);
 		result = 31 * result + Arrays.hashCode(trustStorePassword);
 		result = 31 * result + Arrays.hashCode(enabledProtocols);

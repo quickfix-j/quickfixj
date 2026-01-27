@@ -5,26 +5,24 @@ permissions:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
   schedule:
     - cron: '0 1 * * *'
 
 jobs:
   release-snapshot:
+    if: github.repository == 'quickfix-j/quickfixj'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
           cache: maven
 
       - name: Build SNAPSHOT
-        run: ./mvnw clean package -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: ./mvnw clean package -pl '!quickfixj-distribution' -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
 
       - name: Delete old packages
         continue-on-error: true
@@ -40,7 +38,6 @@ jobs:
             org.quickfixj.quickfixj-codegenerator
             org.quickfixj.quickfixj-core
             org.quickfixj.quickfixj-dictgenerator
-            org.quickfixj.quickfixj-distribution
             org.quickfixj.quickfixj-examples
             org.quickfixj.quickfixj-examples-banzai
             org.quickfixj.quickfixj-examples-executor
@@ -60,8 +57,9 @@ jobs:
             org.quickfixj.quickfixj-orchestration
             org.quickfixj.quickfixj-parent
             org.quickfixj.quickfixj-perf-test
+            org.quickfixj.quickfixj-stress-test
 
       - name: Deploy SNAPSHOT
-        run: ./mvnw deploy -B -V -DskipTests -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: ./mvnw deploy -pl '!quickfixj-distribution' -B -V -Dmaven.install.skip=true -DskipTests -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

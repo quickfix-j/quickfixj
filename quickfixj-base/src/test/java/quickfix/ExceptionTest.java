@@ -19,25 +19,30 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class ExceptionTest extends TestCase {
+public class ExceptionTest {
 
+    @Test
     public void testDoNotSend() {
         new DoNotSend();
     }
 
+    @Test
     public void testIncorrectDataFormat() {
         IncorrectDataFormat e = new IncorrectDataFormat(5, "test");
         assertEquals(5, e.getField());
         assertEquals("test", e.getData());
     }
 
+    @Test
     public void testIncorrectTagValue() {
         new IncorrectTagValue(5);
-        IncorrectTagValue e = new IncorrectTagValue(5, "test");
+        new IncorrectTagValue(5, "test");
     }
 
+    @Test
     public void testRuntimeError() {
         new RuntimeError();
         new RuntimeError("test");

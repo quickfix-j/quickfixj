@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.10</version>
+            <version>${hsqldb.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -120,10 +120,16 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-example</artifactId>
-			<version>4.2.2.Final</version>
+			<version>4.2.9.Final</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>org.burningwave</groupId>
+            <artifactId>tools</artifactId>
+            <version>0.27.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
 		</dependency>

@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -677,11 +678,17 @@ public class DataDictionaryTest {
 
     @Test
     public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
+        Locale originalLocale = Locale.getDefault();
+        Locale.setDefault(Locale.US);
         try {
-            new DataDictionary("FIX_External_DTD.xml");
-            fail("should fail to load dictionary with external DTD");
-        } catch (ConfigError e) {
-            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
+            try {
+                new DataDictionary("FIX_External_DTD.xml");
+                fail("should fail to load dictionary with external DTD");
+            } catch (ConfigError e) {
+                assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
+            }
+        } finally {
+            Locale.setDefault(originalLocale);
         }
     }
     

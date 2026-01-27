@@ -1,12 +1,15 @@
 {
-  "name": "Java",
-  "image": "mcr.microsoft.com/devcontainers/java:1-21",
-  "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "version": "none",
-      "installMaven": "true",
-      "mavenVersion": "3.9.9",
-      "installGradle": "false"
-    }
-  }
+    "name": "Java",
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+        // Install java.
+        // See https://github.com/devcontainers/features/tree/main/src/java#options for details.
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "8",
+            "installGradle": false,
+            "jdkDistro": "tem"
+        }
+    },
+
+    "onCreateCommand": "./mvnw install -B -V -Dmaven.javadoc.skip=true -DskipTests -Dmaven.compiler.failOnError=false -PskipBundlePlugin,minimal-fix-latest"    
 }
