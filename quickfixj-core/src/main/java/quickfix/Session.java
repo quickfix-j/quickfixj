@@ -2352,13 +2352,10 @@ public class Session implements Closeable {
             state.get(beginSeqNo, endSeqNo, messages);
         } catch (final IOException e) {
             if (forceResendWhenCorruptedStore) {
-                LOG.error("Cannot read messages from stores, resend HeartBeats", e);
+                LOG.error("Cannot read messages from stores, will gap fill over missing messages", e);
+                // Add null placeholders for corrupted messages instead of fake Heartbeats
                 for (int i = beginSeqNo; i < endSeqNo; i++) {
-                    final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
-                            MsgType.HEARTBEAT);
-                    initializeHeader(heartbeat.getHeader());
-                    heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
-                    messages.add(heartbeat.toString());
+                    messages.add(null);
                 }
             } else {
                 throw e;
@@ -2375,6 +2372,15 @@ public class Session implements Closeable {
             final Message msg;
             try {
                 // QFJ-626
+                // Handle null placeholders from corrupted store
+                if (message == null) {
+                    // Mark for gap fill
+                    if (begin == 0) {
+                        begin = current;
+                    }
+                    current++;
+                    continue;
+                }
                 msg = parseMessage(message);
                 msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             } catch (final Exception e) {
@@ -2391,11 +2397,32 @@ public class Session implements Closeable {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
 
-            if (MessageUtils.isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
-                if (begin == 0) {
-                    begin = msgSeqNum;
+            // Check if message is an admin message
+            // According to FIX spec, only Reject messages should be resent among admin messages
+            if (MessageUtils.isAdminMessage(msgType)) {
+                if (MsgType.REJECT.equals(msgType)) {
+                    // Reject messages should be resent, but don't call toApp() for admin messages
+                    initializeResendFields(msg);
+                    if (begin != 0) {
+                        generateSequenceReset(receivedMessage, begin, msgSeqNum);
+                    }
+                    getLog().onEvent("Resending Reject message: " + msgSeqNum);
+                    boolean sent = send(msg.toString());
+                    if (!sent) {
+                        // Abort resend operation immediately - don't send any more messages
+                        getLog().onWarnEvent("Resending messages aborted.");
+                        return;
+                    }
+                    begin = 0;
+                    appMessageJustSent = true;
+                } else {
+                    // Other admin messages should NOT be resent, mark for gap fill
+                    if (begin == 0) {
+                        begin = msgSeqNum;
+                    }
                 }
             } else {
+                // Application message - resend normally
                 initializeResendFields(msg);
                 if (resendApproved(msg)) {
                     if (begin != 0) {
