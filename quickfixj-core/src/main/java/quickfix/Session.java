@@ -2352,10 +2352,13 @@ public class Session implements Closeable {
             state.get(beginSeqNo, endSeqNo, messages);
         } catch (final IOException e) {
             if (forceResendWhenCorruptedStore) {
-                LOG.error("Cannot read messages from stores, will gap fill over missing messages", e);
-                // Add null placeholders for corrupted messages instead of fake Heartbeats
+                getLog().onErrorEvent("Cannot read messages from stores, resend HeartBeats: " + e.getMessage());
                 for (int i = beginSeqNo; i < endSeqNo; i++) {
-                    messages.add(null);
+                    final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
+                            MsgType.HEARTBEAT);
+                    initializeHeader(heartbeat.getHeader());
+                    heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
+                    messages.add(heartbeat.toString());
                 }
             } else {
                 throw e;
@@ -2372,15 +2375,6 @@ public class Session implements Closeable {
             final Message msg;
             try {
                 // QFJ-626
-                // Handle null placeholders from corrupted store
-                if (message == null) {
-                    // Mark for gap fill
-                    if (begin == 0) {
-                        begin = current;
-                    }
-                    current++;
-                    continue;
-                }
                 msg = parseMessage(message);
                 msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             } catch (final Exception e) {
