@@ -1407,9 +1407,10 @@ public class SessionTest {
         
         // Create session with default settings (ForceResendWhenCorruptedStore=false)
         try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
-            // Use a responder that captures all sent messages
-            FailingResponder responder = new FailingResponder(100); // Allow many successful sends
-            session.setResponder(responder);
+            // Use a mock responder to capture all sent messages
+            Responder mockResponder = mock(Responder.class);
+            when(mockResponder.send(anyString())).thenReturn(true);
+            session.setResponder(mockResponder);
             final SessionState state = getSessionState(session);
             
             // Logon
@@ -1432,19 +1433,23 @@ public class SessionTest {
             Message heartbeatMsg = createHeartbeatMessage(5);
             session.send(heartbeatMsg);
             
-            // Clear the sent messages from initial send
-            int initialMessageCount = responder.sentMessages.size();
-            responder.sentMessages.clear();
-            responder.sendCallCount = 0;
+            // Reset mock to track only resend messages
+            Mockito.reset(mockResponder);
+            when(mockResponder.send(anyString())).thenReturn(true);
             
             // Request resend of messages 1-5
             Message resendRequest = createResendRequest(100, 1);
             resendRequest.toString(); // calculate length/checksum
             processMessage(session, resendRequest);
             
-            // Verify messages sent during resend
+            // Capture all messages sent during resend
+            ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+            verify(mockResponder, atLeastOnce()).send(messageCaptor.capture());
+            List<String> sentMessages = messageCaptor.getAllValues();
+            
+            // Parse sent messages
             List<Message> resentMessages = new ArrayList<>();
-            for (String msgData : responder.sentMessages) {
+            for (String msgData : sentMessages) {
                 resentMessages.add(new Message(msgData));
             }
             
