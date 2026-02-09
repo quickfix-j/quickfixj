@@ -19,29 +19,25 @@ public class SessionSequenceResetTest {
 
     private Session session;
     private Application application;
-    private MessageStoreFactory messageStoreFactory;
-    private MessageStore messageStore;
     private Responder responder;
     private SessionID sessionID;
     private DataDictionaryProvider dataDictionaryProvider;
     private List<String> sentMessages;
+    private List<Message> receivedAppMessages;
 
     @Before
     public void setUp() throws Exception {
         // Initialize session ID
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
-        // Mock application
+        // Mock application to capture received messages
         application = mock(Application.class);
-
-        // Mock message store
-        messageStore = mock(MessageStore.class);
-        when(messageStore.getNextSenderMsgSeqNum()).thenReturn(1);
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(1);
-        when(messageStore.getCreationTime()).thenReturn(new java.util.Date());
-
-        messageStoreFactory = mock(MessageStoreFactory.class);
-        when(messageStoreFactory.create(any(SessionID.class))).thenReturn(messageStore);
+        receivedAppMessages = new ArrayList<>();
+        doAnswer(invocation -> {
+            Message message = invocation.getArgument(0);
+            receivedAppMessages.add(message);
+            return null;
+        }).when(application).fromApp(any(Message.class), any(SessionID.class));
 
         // Mock data dictionary provider
         dataDictionaryProvider = mock(DataDictionaryProvider.class);
@@ -49,7 +45,7 @@ public class SessionSequenceResetTest {
         when(dataDictionaryProvider.getSessionDataDictionary(anyString())).thenReturn(dataDictionary);
         when(dataDictionaryProvider.getApplicationDataDictionary(any(ApplVerID.class))).thenReturn(dataDictionary);
 
-        // Mock responder
+        // Mock responder to capture sent messages
         responder = mock(Responder.class);
         sentMessages = new ArrayList<>();
         doAnswer(invocation -> {
@@ -58,11 +54,10 @@ public class SessionSequenceResetTest {
             return true;
         }).when(responder).send(anyString());
 
-        // Create session using SessionFactoryTestSupport Builder
+        // Create session using SessionFactoryTestSupport Builder with MemoryStore (default)
         session = new SessionFactoryTestSupport.Builder()
                 .setSessionId(sessionID)
                 .setApplication(application)
-                .setMessageStoreFactory(messageStoreFactory)
                 .setDataDictionaryProvider(dataDictionaryProvider)
                 .setIsInitiator(false)
                 .setValidateSequenceNumbers(true)
@@ -86,18 +81,11 @@ public class SessionSequenceResetTest {
         logon.getHeader().setUtcTimeStamp(SendingTime.FIELD, LocalDateTime.now());
         logon.toString(); // calculate length and checksum
 
-        // Configure message store
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(1);
-        when(messageStore.getNextSenderMsgSeqNum()).thenReturn(1);
-
         // Process the Logon message to establish session
         session.next(logon);
 
         // Verify session is logged on
         assertTrue("Session should be logged on", session.isLoggedOn());
-
-        // Update message store for next message (expecting seqnum 2)
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(2);
 
         // Step 2: Receive an application message with seqnum 2
         NewOrderSingle nos1 = new NewOrderSingle();
@@ -115,12 +103,16 @@ public class SessionSequenceResetTest {
 
         session.next(nos1);
 
-        // Update for next expected message (now expecting 3)
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(3);
+        // Verify the first message was processed
+        assertEquals("Should have received 1 application message", 1, receivedAppMessages.size());
+        assertEquals("First message should be ORDER1", "ORDER1", 
+                     receivedAppMessages.get(0).getString(ClOrdID.FIELD));
 
         // Step 3: Receive a message with sequence number 50 (gap from 3 to 49)
-        // This should trigger a ResendRequest
+        // This should trigger a ResendRequest and queue the message
         sentMessages.clear();
+        receivedAppMessages.clear();
+        
         NewOrderSingle nos2 = new NewOrderSingle();
         nos2.set(new ClOrdID("ORDER50"));
         nos2.set(new Symbol("TEST"));
@@ -157,6 +149,9 @@ public class SessionSequenceResetTest {
         int endSeqNo = parsedResendRequest.getInt(EndSeqNo.FIELD);
         assertTrue("ResendRequest EndSeqNo should be 0 or 49", endSeqNo == 0 || endSeqNo == 49);
 
+        // The message with seqnum 50 should NOT have been processed yet (it's queued)
+        assertEquals("Queued message should not be processed yet", 0, receivedAppMessages.size());
+
         // Step 5: Respond with a SequenceReset-GapFill from 3 to 50
         sentMessages.clear();
         SequenceReset sequenceReset = new SequenceReset();
@@ -172,12 +167,17 @@ public class SessionSequenceResetTest {
         // Process the SequenceReset
         session.next(sequenceReset);
 
-        // Step 6: Verify the next expected target sequence number is now 50
-        verify(messageStore).setNextTargetMsgSeqNum(50);
+        // Step 6: Verify that the queued message (seqnum 50) was processed after the gap was filled
+        // The SequenceReset-GapFill causes the queued message to be processed immediately
+        assertEquals("Queued message should now be processed", 1, receivedAppMessages.size());
+        assertEquals("Processed message should be ORDER50", "ORDER50", 
+                     receivedAppMessages.get(0).getString(ClOrdID.FIELD));
+        assertEquals("Processed message should have seqnum 50", 50, 
+                     receivedAppMessages.get(0).getHeader().getInt(MsgSeqNum.FIELD));
 
-        // Step 7: Verify that the queued message (seqnum 50) is now processed
-        // This should have been automatically processed after the gap was filled
-        verify(application, atLeastOnce()).fromApp(any(Message.class), eq(sessionID));
+        // Verify the sequence number advanced to 51 after processing the queued message
+        assertEquals("Expected target sequence number should be 51 after processing queued message", 51, 
+                     session.getStore().getNextTargetMsgSeqNum());
 
         // Verify no reject was sent
         for (String msg : sentMessages) {
@@ -187,10 +187,6 @@ public class SessionSequenceResetTest {
 
     @Test
     public void testSequenceResetWithoutGapFillShouldResetSequence() throws Exception {
-        // Set up session as logged on
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(1);
-        when(messageStore.getNextSenderMsgSeqNum()).thenReturn(1);
-
         // Send and receive logon to establish session
         Logon logon = new Logon();
         logon.set(new EncryptMethod(EncryptMethod.NONE_OTHER));
@@ -203,9 +199,6 @@ public class SessionSequenceResetTest {
         logon.toString(); // calculate length and checksum
 
         session.next(logon);
-
-        // Update sequence numbers
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(2);
 
         // Send SequenceReset WITHOUT GapFill (hard reset)
         SequenceReset sequenceReset = new SequenceReset();
@@ -222,15 +215,12 @@ public class SessionSequenceResetTest {
         session.next(sequenceReset);
 
         // Verify the sequence number was reset to 50
-        verify(messageStore).setNextTargetMsgSeqNum(50);
+        assertEquals("Expected target sequence number should be 50", 50, 
+                     session.getStore().getNextTargetMsgSeqNum());
     }
 
     @Test
     public void testSequenceResetWithInvalidNewSeqNoShouldGenerateReject() throws Exception {
-        // Set up session as logged on
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(1);
-        when(messageStore.getNextSenderMsgSeqNum()).thenReturn(1);
-
         // Establish session first
         Logon logon = new Logon();
         logon.set(new EncryptMethod(EncryptMethod.NONE_OTHER));
@@ -245,7 +235,6 @@ public class SessionSequenceResetTest {
         session.next(logon);
 
         // Send several messages to advance sequence numbers
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(2);
         for (int i = 2; i <= 10; i++) {
             NewOrderSingle nos = new NewOrderSingle();
             nos.set(new ClOrdID("ORDER" + i));
@@ -260,13 +249,12 @@ public class SessionSequenceResetTest {
             nos.getHeader().setUtcTimeStamp(SendingTime.FIELD, LocalDateTime.now());
             nos.toString(); // calculate length and checksum
 
-            when(messageStore.getNextTargetMsgSeqNum()).thenReturn(i);
             session.next(nos);
-            when(messageStore.getNextTargetMsgSeqNum()).thenReturn(i + 1);
         }
 
         // Now expecting seqnum 11
-        when(messageStore.getNextTargetMsgSeqNum()).thenReturn(11);
+        assertEquals("Expected target sequence number should be 11", 11, 
+                     session.getStore().getNextTargetMsgSeqNum());
         sentMessages.clear();
 
         // Send SequenceReset with NewSeqNo LOWER than expected (invalid)
