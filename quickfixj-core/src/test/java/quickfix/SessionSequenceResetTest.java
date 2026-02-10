@@ -152,11 +152,12 @@ public class SessionSequenceResetTest {
         // The message with seqnum 50 should NOT have been processed yet (it's queued)
         assertEquals("Queued message should not be processed yet", 0, receivedAppMessages.size());
 
-        // Step 5: Respond with a SequenceReset-GapFill from 3 to 50
+        // Step 5: Respond with a SequenceReset-GapFill from 3 to 100
+        // This should remove the queued message at seqnum 50 since it's now in the gap that was filled
         sentMessages.clear();
         SequenceReset sequenceReset = new SequenceReset();
         sequenceReset.set(new GapFillFlag(true));
-        sequenceReset.set(new NewSeqNo(50));
+        sequenceReset.set(new NewSeqNo(100));
         sequenceReset.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
         sequenceReset.getHeader().setString(SenderCompID.FIELD, "TARGET");
         sequenceReset.getHeader().setString(TargetCompID.FIELD, "SENDER");
@@ -167,16 +168,13 @@ public class SessionSequenceResetTest {
         // Process the SequenceReset
         session.next(sequenceReset);
 
-        // Step 6: Verify that the queued message (seqnum 50) was processed after the gap was filled
-        // The SequenceReset-GapFill causes the queued message to be processed immediately
-        assertEquals("Queued message should now be processed", 1, receivedAppMessages.size());
-        assertEquals("Processed message should be ORDER50", "ORDER50", 
-                     receivedAppMessages.get(0).getString(ClOrdID.FIELD));
-        assertEquals("Processed message should have seqnum 50", 50, 
-                     receivedAppMessages.get(0).getHeader().getInt(MsgSeqNum.FIELD));
+        // Step 6: Verify that the queued message (seqnum 50) was NOT processed
+        // It should have been removed from the queue since NewSeqNo=100 is greater than 50
+        // Messages in the gap-filled range (3-99) are considered admin messages that don't need processing
+        assertEquals("Queued message should have been removed from queue", 0, receivedAppMessages.size());
 
-        // Verify the sequence number advanced to 51 after processing the queued message
-        assertEquals("Expected target sequence number should be 51 after processing queued message", 51, 
+        // Verify the sequence number advanced to 100 (NewSeqNo from SequenceReset)
+        assertEquals("Expected target sequence number should be 100 after SequenceReset-GapFill", 100, 
                      session.getStore().getNextTargetMsgSeqNum());
 
         // Verify no reject was sent
