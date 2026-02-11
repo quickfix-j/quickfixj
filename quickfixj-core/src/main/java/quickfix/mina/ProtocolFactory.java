@@ -170,7 +170,9 @@ public class ProtocolFactory {
         // Set Proxy-Authorization header for Basic authentication if credentials are provided
         // Some proxy servers require this header to be set upfront rather than waiting for a 407 response
         // Note: NTLM authentication requires a multi-step handshake and should not set headers upfront
-        if (proxyUser != null && proxyPassword != null && proxyDomain == null && proxyWorkstation == null) {
+        if (proxyUser != null && !proxyUser.isEmpty() 
+                && proxyPassword != null && !proxyPassword.isEmpty()
+                && proxyDomain == null && proxyWorkstation == null) {
             Map<String, List<String>> headers = new HashMap<>();
             String credentials = proxyUser + ":" + proxyPassword;
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));

@@ -101,6 +101,11 @@ public class ProtocolFactoryTest {
         // NTLM requires multi-step handshake, so Proxy-Authorization header should not be set upfront
         assertTrue("Headers should be null or not contain Proxy-Authorization for NTLM", 
                    headers == null || !headers.containsKey("Proxy-Authorization"));
+        
+        // Verify NTLM properties are set correctly for the MINA proxy handler to use
+        Map<String, String> props = request.getProperties();
+        assertNotNull("Properties should not be null", props);
+        assertTrue("Properties should contain user credentials", props.size() >= 4);
     }
 
     @Test
