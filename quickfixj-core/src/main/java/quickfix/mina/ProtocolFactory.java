@@ -21,7 +21,12 @@ package quickfix.mina;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 import org.apache.mina.core.service.IoAcceptor;
@@ -145,6 +150,8 @@ public class ProtocolFactory {
                                                        String proxyPassword,
                                                        String proxyDomain,
                                                        String proxyWorkstation) {
+        HttpProxyRequest req = new HttpProxyRequest(address);
+        
         HashMap<String, String> props = new HashMap<>();
         props.put(HttpProxyConstants.USER_PROPERTY, proxyUser);
         props.put(HttpProxyConstants.PWD_PROPERTY, proxyPassword);
@@ -152,13 +159,31 @@ public class ProtocolFactory {
             props.put(HttpProxyConstants.DOMAIN_PROPERTY, proxyDomain);
             props.put(HttpProxyConstants.WORKSTATION_PROPERTY, proxyWorkstation);
         }
-
-        HttpProxyRequest req = new HttpProxyRequest(address);
         req.setProperties(props);
+        
         if (proxyVersion != null && proxyVersion.equalsIgnoreCase("1.1")) {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_1);
         } else {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_0);
+        }
+
+        // Set Proxy-Authorization header if credentials are provided
+        // Some proxy servers require this header to be set upfront rather than
+        // waiting for a 407 response
+        if (proxyUser != null && proxyPassword != null) {
+            Map<String, List<String>> headers = new HashMap<>();
+            
+            // Use NTLM authentication if domain and workstation are provided
+            if (proxyDomain != null && proxyWorkstation != null) {
+                headers.put("Proxy-Authorization", Collections.singletonList("NTLM"));
+            } else {
+                // Use Basic authentication
+                String credentials = proxyUser + ":" + proxyPassword;
+                String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+                headers.put("Proxy-Authorization", Collections.singletonList("Basic " + encodedCredentials));
+            }
+            
+            req.setHeaders(headers);
         }
 
         return req;
