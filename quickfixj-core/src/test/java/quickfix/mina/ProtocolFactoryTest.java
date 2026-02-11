@@ -37,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static quickfix.mina.ProtocolFactory.PROXY_AUTHORIZATION_HEADER;
 
 public class ProtocolFactoryTest {
 
@@ -69,9 +70,9 @@ public class ProtocolFactoryTest {
         
         Map<String, List<String>> headers = request.getHeaders();
         assertNotNull("Headers should not be null", headers);
-        assertTrue("Headers should contain Proxy-Authorization", headers.containsKey("Proxy-Authorization"));
+        assertTrue("Headers should contain Proxy-Authorization", headers.containsKey(PROXY_AUTHORIZATION_HEADER));
         
-        List<String> authHeaders = headers.get("Proxy-Authorization");
+        List<String> authHeaders = headers.get(PROXY_AUTHORIZATION_HEADER);
         assertNotNull("Proxy-Authorization header should not be null", authHeaders);
         assertEquals("Should have exactly one Proxy-Authorization header", 1, authHeaders.size());
         
@@ -100,7 +101,7 @@ public class ProtocolFactoryTest {
         Map<String, List<String>> headers = request.getHeaders();
         // NTLM requires multi-step handshake, so Proxy-Authorization header should not be set upfront
         assertTrue("Headers should be null or not contain Proxy-Authorization for NTLM", 
-                   headers == null || !headers.containsKey("Proxy-Authorization"));
+                   headers == null || !headers.containsKey(PROXY_AUTHORIZATION_HEADER));
         
         // Verify NTLM properties are set correctly for the MINA proxy handler to use
         Map<String, String> props = request.getProperties();
@@ -124,6 +125,6 @@ public class ProtocolFactoryTest {
         Map<String, List<String>> headers = request.getHeaders();
         // Headers should either be null or not contain Proxy-Authorization
         assertTrue("Headers should be null or empty when no credentials provided", 
-                   headers == null || !headers.containsKey("Proxy-Authorization"));
+                   headers == null || !headers.containsKey(PROXY_AUTHORIZATION_HEADER));
     }
 }

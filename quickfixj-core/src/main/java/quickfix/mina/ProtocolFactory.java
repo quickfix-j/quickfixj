@@ -57,6 +57,8 @@ public class ProtocolFactory {
 
     public final static int SOCKET = 0;
     public final static int VM_PIPE = 1;
+    
+    public final static String PROXY_AUTHORIZATION_HEADER = "Proxy-Authorization";
 
     public static String getTypeString(int type) {
         switch (type) {
@@ -176,7 +178,7 @@ public class ProtocolFactory {
             Map<String, List<String>> headers = new HashMap<>();
             String credentials = proxyUser + ":" + proxyPassword;
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-            headers.put("Proxy-Authorization", Collections.singletonList("Basic " + encodedCredentials));
+            headers.put(PROXY_AUTHORIZATION_HEADER, Collections.singletonList("Basic " + encodedCredentials));
             req.setHeaders(headers);
         }
 
