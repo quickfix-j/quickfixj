@@ -85,7 +85,7 @@ public class ProtocolFactoryTest {
     }
 
     @Test
-    public void shouldSetNTLMAuthorizationHeaderForHttpProxyWithDomain() throws ConfigError {
+    public void shouldNotSetAuthorizationHeaderForNTLMAuthentication() throws ConfigError {
         InetSocketAddress address = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
         InetSocketAddress proxyAddress = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
 
@@ -98,15 +98,9 @@ public class ProtocolFactoryTest {
         HttpProxyRequest request = (HttpProxyRequest) proxySession.getRequest();
         
         Map<String, List<String>> headers = request.getHeaders();
-        assertNotNull("Headers should not be null", headers);
-        assertTrue("Headers should contain Proxy-Authorization", headers.containsKey("Proxy-Authorization"));
-        
-        List<String> authHeaders = headers.get("Proxy-Authorization");
-        assertNotNull("Proxy-Authorization header should not be null", authHeaders);
-        assertEquals("Should have exactly one Proxy-Authorization header", 1, authHeaders.size());
-        
-        String authHeader = authHeaders.get(0);
-        assertEquals("Auth header should be 'NTLM'", "NTLM", authHeader);
+        // NTLM requires multi-step handshake, so Proxy-Authorization header should not be set upfront
+        assertTrue("Headers should be null or not contain Proxy-Authorization for NTLM", 
+                   headers == null || !headers.containsKey("Proxy-Authorization"));
     }
 
     @Test

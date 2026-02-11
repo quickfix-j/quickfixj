@@ -150,8 +150,6 @@ public class ProtocolFactory {
                                                        String proxyPassword,
                                                        String proxyDomain,
                                                        String proxyWorkstation) {
-        HttpProxyRequest req = new HttpProxyRequest(address);
-        
         HashMap<String, String> props = new HashMap<>();
         props.put(HttpProxyConstants.USER_PROPERTY, proxyUser);
         props.put(HttpProxyConstants.PWD_PROPERTY, proxyPassword);
@@ -159,6 +157,8 @@ public class ProtocolFactory {
             props.put(HttpProxyConstants.DOMAIN_PROPERTY, proxyDomain);
             props.put(HttpProxyConstants.WORKSTATION_PROPERTY, proxyWorkstation);
         }
+
+        HttpProxyRequest req = new HttpProxyRequest(address);
         req.setProperties(props);
         
         if (proxyVersion != null && proxyVersion.equalsIgnoreCase("1.1")) {
@@ -167,22 +167,14 @@ public class ProtocolFactory {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_0);
         }
 
-        // Set Proxy-Authorization header if credentials are provided
-        // Some proxy servers require this header to be set upfront rather than
-        // waiting for a 407 response
-        if (proxyUser != null && proxyPassword != null) {
+        // Set Proxy-Authorization header for Basic authentication if credentials are provided
+        // Some proxy servers require this header to be set upfront rather than waiting for a 407 response
+        // Note: NTLM authentication requires a multi-step handshake and should not set headers upfront
+        if (proxyUser != null && proxyPassword != null && proxyDomain == null && proxyWorkstation == null) {
             Map<String, List<String>> headers = new HashMap<>();
-            
-            // Use NTLM authentication if domain and workstation are provided
-            if (proxyDomain != null && proxyWorkstation != null) {
-                headers.put("Proxy-Authorization", Collections.singletonList("NTLM"));
-            } else {
-                // Use Basic authentication
-                String credentials = proxyUser + ":" + proxyPassword;
-                String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-                headers.put("Proxy-Authorization", Collections.singletonList("Basic " + encodedCredentials));
-            }
-            
+            String credentials = proxyUser + ":" + proxyPassword;
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            headers.put("Proxy-Authorization", Collections.singletonList("Basic " + encodedCredentials));
             req.setHeaders(headers);
         }
 
