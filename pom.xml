@@ -90,7 +90,7 @@
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
-		<maven-plugin-testing-harness.version>3.5.0</maven-plugin-testing-harness.version>
+		<maven-plugin-testing-harness.version>3.5.1</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.2.1</xml-maven-plugin-version>
