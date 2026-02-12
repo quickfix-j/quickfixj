@@ -21,6 +21,8 @@ package quickfix.mina;
 
 import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.proxy.ProxyConnector;
+import org.apache.mina.proxy.handlers.http.HttpProxyRequest;
+import org.apache.mina.proxy.handlers.http.HttpSmartProxyHandler;
 import org.apache.mina.proxy.session.ProxyIoSession;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.util.AvailablePortFinder;
@@ -28,8 +30,15 @@ import org.junit.Test;
 import quickfix.ConfigError;
 
 import java.net.InetSocketAddress;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static quickfix.mina.ProtocolFactory.PROXY_AUTHORIZATION_HEADER;
 
 public class ProtocolFactoryTest {
 
@@ -45,5 +54,96 @@ public class ProtocolFactoryTest {
 
         ProxyIoSession proxySession = proxyConnector.getProxyIoSession();
         assertNull(proxySession.getPreferedOrder());
+    }
+
+    @Test
+    public void shouldSetBasicAuthorizationHeaderForHttpProxy() throws ConfigError {
+        InetSocketAddress address = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+        InetSocketAddress proxyAddress = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+
+        IoConnector connector = ProtocolFactory.createIoConnector(address);
+        ProxyConnector proxyConnector = ProtocolFactory
+                .createIoProxyConnector((SocketConnector) connector, address, proxyAddress, "http", "1.0", "testuser",
+                                        "testpassword", null, null);
+
+        ProxyIoSession proxySession = proxyConnector.getProxyIoSession();
+        
+        // Verify HttpSmartProxyHandler is set
+        assertNotNull("Handler should be set", proxySession.getHandler());
+        assertTrue("Handler should be HttpSmartProxyHandler",
+                   proxySession.getHandler() instanceof HttpSmartProxyHandler);
+        
+        HttpProxyRequest request = (HttpProxyRequest) proxySession.getRequest();
+        
+        Map<String, List<String>> headers = request.getHeaders();
+        assertNotNull("Headers should not be null", headers);
+        assertTrue("Headers should contain Proxy-Authorization", headers.containsKey(PROXY_AUTHORIZATION_HEADER));
+        
+        List<String> authHeaders = headers.get(PROXY_AUTHORIZATION_HEADER);
+        assertNotNull("Proxy-Authorization header should not be null", authHeaders);
+        assertEquals("Should have exactly one Proxy-Authorization header", 1, authHeaders.size());
+        
+        String authHeader = authHeaders.get(0);
+        assertTrue("Auth header should start with 'Basic '", authHeader.startsWith("Basic "));
+        
+        // Verify the encoded credentials
+        String encodedPart = authHeader.substring("Basic ".length());
+        String decoded = new String(Base64.getDecoder().decode(encodedPart));
+        assertEquals("Decoded credentials should match", "testuser:testpassword", decoded);
+    }
+
+    @Test
+    public void shouldNotSetAuthorizationHeaderForNTLMAuthentication() throws ConfigError {
+        InetSocketAddress address = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+        InetSocketAddress proxyAddress = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+
+        IoConnector connector = ProtocolFactory.createIoConnector(address);
+        ProxyConnector proxyConnector = ProtocolFactory
+                .createIoProxyConnector((SocketConnector) connector, address, proxyAddress, "http", "1.0", "testuser",
+                                        "testpassword", "TESTDOMAIN", "TESTWORKSTATION");
+
+        ProxyIoSession proxySession = proxyConnector.getProxyIoSession();
+        
+        // Verify HttpSmartProxyHandler is set for NTLM too
+        assertNotNull("Handler should be set", proxySession.getHandler());
+        assertTrue("Handler should be HttpSmartProxyHandler for NTLM",
+                   proxySession.getHandler() instanceof HttpSmartProxyHandler);
+        
+        HttpProxyRequest request = (HttpProxyRequest) proxySession.getRequest();
+        
+        Map<String, List<String>> headers = request.getHeaders();
+        // NTLM requires multi-step handshake, so Proxy-Authorization header should not be set upfront
+        assertTrue("Headers should be null or not contain Proxy-Authorization for NTLM", 
+                   headers == null || !headers.containsKey(PROXY_AUTHORIZATION_HEADER));
+        
+        // Verify NTLM properties are set correctly for the MINA proxy handler to use
+        Map<String, String> props = request.getProperties();
+        assertNotNull("Properties should not be null", props);
+        assertTrue("Properties should contain user credentials", props.size() >= 4);
+    }
+
+    @Test
+    public void shouldNotSetAuthorizationHeaderWhenCredentialsNotProvided() throws ConfigError {
+        InetSocketAddress address = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+        InetSocketAddress proxyAddress = new InetSocketAddress(AvailablePortFinder.getNextAvailable());
+
+        IoConnector connector = ProtocolFactory.createIoConnector(address);
+        ProxyConnector proxyConnector = ProtocolFactory
+                .createIoProxyConnector((SocketConnector) connector, address, proxyAddress, "http", "1.0", null,
+                                        null, null, null);
+
+        ProxyIoSession proxySession = proxyConnector.getProxyIoSession();
+        
+        // Verify HttpSmartProxyHandler is set even when no credentials provided
+        assertNotNull("Handler should be set", proxySession.getHandler());
+        assertTrue("Handler should be HttpSmartProxyHandler when no credentials",
+                   proxySession.getHandler() instanceof HttpSmartProxyHandler);
+        
+        HttpProxyRequest request = (HttpProxyRequest) proxySession.getRequest();
+        
+        Map<String, List<String>> headers = request.getHeaders();
+        // Headers should either be null or not contain Proxy-Authorization
+        assertTrue("Headers should be null or empty when no credentials provided", 
+                   headers == null || !headers.containsKey(PROXY_AUTHORIZATION_HEADER));
     }
 }
