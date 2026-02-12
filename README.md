@@ -2,7 +2,7 @@ QuickFIX/J
 ==========
 [![Java CI](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core)
+[![Maven Central](https://maven-badges.sml.io/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.sml.io/maven-central/org.quickfixj/quickfixj-core)
 
 This is the official QuickFIX/J project repository.
 
@@ -67,7 +67,7 @@ $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,mi
 
 ## configuration options
 
-https://html-preview.github.io/?url=https://github.com/quickfix-j/quickfixj/blob/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
+https://quickfix-j.github.io/quickfixj/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
 ## basics
 
