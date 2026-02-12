@@ -568,6 +568,242 @@ mvn clean install
 
 ---
 
+## Example: Complete Custom Build for FIX Latest
+
+Here's a complete example using FIX Orchestra for FIX Latest:
+
+### Project Structure
+
+```
+yourapp-fixmessages-latest/
+├── pom.xml
+└── src/
+    └── main/
+        └── resources/
+            └── FIXLatest_Custom.xml
+```
+
+### pom.xml for FIX Latest
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.yourcompany</groupId>
+    <artifactId>yourapp-fixmessages-latest</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    
+    <name>Your Application - FIX Latest Custom Messages</name>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <quickfixj.version>3.0.0</quickfixj.version>
+        <quickfixj-orchestra.version>3.0.0</quickfixj-orchestra.version>
+        <generator.decimal>false</generator.decimal>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-base</artifactId>
+            <version>${quickfixj.version}</version>
+        </dependency>
+        
+        <!-- Optional: Include standard FIXT1.1 messages -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-messages-fixt11</artifactId>
+            <version>${quickfixj.version}</version>
+        </dependency>
+        
+        <!-- Required for Orchestra code generation -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-orchestration</artifactId>
+            <version>${quickfixj-orchestra.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.quickfixj</groupId>
+                <artifactId>quickfixj-from-fix-orchestra-code-generator-maven-plugin</artifactId>
+                <version>${quickfixj-orchestra.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-fixlatest-messages</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Path to your custom Orchestra file -->
+                            <orchestrationFilePath>src/main/resources/FIXLatest_Custom.xml</orchestrationFilePath>
+                            
+                            <!-- Output directory for generated sources -->
+                            <outputBaseDirectory>target/generated-sources</outputBaseDirectory>
+                            
+                            <!-- Use BigDecimal for decimal types (optional) -->
+                            <generateBigDecimal>${generator.decimal}</generateBigDecimal>
+                            
+                            <!-- Generate only application layer messages (exclude session) -->
+                            <generateOnlySession>false</generateOnlySession>
+                            
+                            <!-- Set to true to exclude session layer messages -->
+                            <excludeSession>false</excludeSession>
+                            
+                            <!-- Generate FIXT1.1 in separate package -->
+                            <generateFixt11Package>true</generateFixt11Package>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>target/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+### Custom FIX Orchestra File
+
+Create `src/main/resources/FIXLatest_Custom.xml`. You can start with the standard FIX Orchestra repository from the `quickfixj-orchestration` module and customize it:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<fixr:repository xmlns:fixr="http://fixprotocol.io/2020/orchestra/repository"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://fixprotocol.io/2020/orchestra/repository 
+                                     https://www.fixtrading.org/FIXimate/FIXimate3.0/Base/Orchestra_repository_2020.xsd"
+                 name="FIXLatest_Custom"
+                 version="FIXLatest"
+                 specUrl="http://www.fixtradingcommunity.org/pg/structure/tech-specs/fix-version/fix-latest">
+    
+    <!-- Define custom datatypes -->
+    <fixr:datatypes>
+        <!-- Include standard datatypes and add custom ones -->
+    </fixr:datatypes>
+    
+    <!-- Define custom fields -->
+    <fixr:fields>
+        <!-- Example custom field -->
+        <fixr:field id="10000" name="MyCustomField" type="String">
+            <fixr:annotation>
+                <fixr:documentation>Custom field for specific use case</fixr:documentation>
+            </fixr:annotation>
+        </fixr:field>
+    </fixr:fields>
+    
+    <!-- Define custom components -->
+    <fixr:components>
+        <!-- Add custom components here -->
+    </fixr:components>
+    
+    <!-- Define custom messages -->
+    <fixr:messages>
+        <!-- Extend or customize messages -->
+        <fixr:message name="NewOrderSingle" id="68" msgType="D" category="SingleGeneralOrderHandling">
+            <fixr:structure>
+                <!-- Add your custom field to the message -->
+                <fixr:fieldRef id="10000" presence="optional"/>
+            </fixr:structure>
+        </fixr:message>
+    </fixr:messages>
+    
+</fixr:repository>
+```
+
+**Note**: For a complete starting point, extract the Orchestra file from the `quickfixj-orchestration` artifact:
+
+```bash
+# Download and extract the standard FIX Orchestra file
+mvn dependency:get -Dartifact=org.quickfixj:quickfixj-orchestration:3.0.0
+# Extract from your local Maven repository: ~/.m2/repository/org/quickfixj/quickfixj-orchestration/3.0.0/
+```
+
+### Build Command
+
+```bash
+mvn clean install
+```
+
+This will:
+1. Generate FIX Latest message classes from your custom Orchestra file
+2. Compile them into a JAR
+3. Install the JAR to your local Maven repository
+
+### Use in Your Application
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.quickfixj</groupId>
+        <artifactId>quickfixj-core</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.yourcompany</groupId>
+        <artifactId>yourapp-fixmessages-latest</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+</dependencies>
+```
+
+### Key Differences from FIX 4.4 Example
+
+1. **Uses FIX Orchestra format** instead of QuickFIX Dictionary XML
+2. **Different Maven plugin**: `quickfixj-from-fix-orchestra-code-generator-maven-plugin`
+3. **More configuration options** for session vs application layer messages
+4. **FIXT1.1 integration** - can generate or depend on standard FIXT1.1
+5. **Richer metadata** - Orchestra includes workflow rules and annotations
+
+### Configuration Options Explained
+
+- **orchestrationFilePath**: Path to your custom FIX Orchestra XML file
+- **generateBigDecimal**: Use `BigDecimal` instead of `Double` for decimal types
+- **generateOnlySession**: Set to `true` to generate only session layer messages
+- **excludeSession**: Set to `true` to exclude session layer messages (generate only application layer)
+- **generateFixt11Package**: Generate FIXT1.1 messages in a separate package
+---
+
+
 ## Additional Resources
 
 - [QuickFIX/J Messages README](https://github.com/quickfix-j/quickfixj/blob/main/quickfixj-messages/readme.md)
