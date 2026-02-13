@@ -2352,7 +2352,7 @@ public class Session implements Closeable {
             state.get(beginSeqNo, endSeqNo, messages);
         } catch (final IOException e) {
             if (forceResendWhenCorruptedStore) {
-                LOG.error("Cannot read messages from stores, resend HeartBeats", e);
+                getLog().onErrorEvent("Cannot read messages from stores, resend HeartBeats: " + e.getMessage());
                 for (int i = beginSeqNo; i < endSeqNo; i++) {
                     final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
                             MsgType.HEARTBEAT);
@@ -2391,11 +2391,33 @@ public class Session implements Closeable {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
 
-            if (MessageUtils.isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
-                if (begin == 0) {
-                    begin = msgSeqNum;
+            // Check if message is an admin message
+            // According to FIX spec, only Reject messages should be resent among admin messages
+            if (MessageUtils.isAdminMessage(msgType)) {
+                if (MsgType.REJECT.equals(msgType)) {
+                    // Reject messages should be resent
+                    // Note: We don't call resendApproved() here to avoid calling toApp() on admin messages
+                    initializeResendFields(msg);
+                    if (begin != 0) {
+                        generateSequenceReset(receivedMessage, begin, msgSeqNum);
+                    }
+                    getLog().onEvent("Resending Reject message: " + msgSeqNum);
+                    boolean sent = send(msg.toString());
+                    if (!sent) {
+                        // Abort resend operation immediately - don't send any more messages
+                        getLog().onWarnEvent("Resending messages aborted.");
+                        return;
+                    }
+                    begin = 0;
+                    appMessageJustSent = true;
+                } else {
+                    // Other admin messages should NOT be resent, mark for gap fill
+                    if (begin == 0) {
+                        begin = msgSeqNum;
+                    }
                 }
             } else {
+                // Application message - resend normally
                 initializeResendFields(msg);
                 if (resendApproved(msg)) {
                     if (begin != 0) {
