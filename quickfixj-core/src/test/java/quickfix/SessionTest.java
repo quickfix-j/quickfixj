@@ -1398,6 +1398,115 @@ public class SessionTest {
         }
     }
 
+    // Test for issue #597 - demonstrates current behavior where Reject messages are NOT resent
+    // This test documents the bug before PR #1124's fix
+    @Test
+    public void testRejectMessagesNotResentInCurrentCode() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        
+        // Create session with default settings (ForceResendWhenCorruptedStore=false)
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
+            // Use a mock responder to capture all sent messages
+            Responder mockResponder = mock(Responder.class);
+            when(mockResponder.send(anyString())).thenReturn(true);
+            session.setResponder(mockResponder);
+            final SessionState state = getSessionState(session);
+            
+            // Logon
+            final Logon logonToSend = new Logon();
+            setUpHeader(session.getSessionID(), logonToSend, true, 1);
+            logonToSend.setInt(HeartBtInt.FIELD, 30);
+            logonToSend.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logonToSend.toString(); // calculate length/checksum
+            session.next(logonToSend);
+            
+            // Send messages that will be stored:
+            // seq 2: application message
+            session.send(createAppMessage(2));
+            // seq 3: Reject message (session-level but should be resent per FIX spec)
+            Message rejectMsg = createReject(3, 1);
+            session.send(rejectMsg);
+            // seq 4: application message
+            session.send(createAppMessage(4));
+            // seq 5: Heartbeat message (session-level, should NOT be resent)
+            Message heartbeatMsg = createHeartbeatMessage(5);
+            session.send(heartbeatMsg);
+            
+            // Reset mock to track only resend messages
+            Mockito.reset(mockResponder);
+            when(mockResponder.send(anyString())).thenReturn(true);
+            
+            // Request resend of messages 1-5
+            Message resendRequest = createResendRequest(100, 1);
+            resendRequest.toString(); // calculate length/checksum
+            processMessage(session, resendRequest);
+            
+            // Capture all messages sent during resend
+            ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+            verify(mockResponder, atLeastOnce()).send(messageCaptor.capture());
+            List<String> sentMessages = messageCaptor.getAllValues();
+            
+            // Parse sent messages
+            List<Message> resentMessages = new ArrayList<>();
+            for (String msgData : sentMessages) {
+                resentMessages.add(new Message(msgData));
+            }
+            
+            // Current behavior verification:
+            // 1. Should have sent: SequenceReset(1-2), AppMsg(2), SequenceReset(3-4), AppMsg(4), SequenceReset(5-6)
+            // The Reject message should be included in a gap fill (bug)
+            
+            boolean foundSeqReset1 = false;  // Gap fill for Logon (seq 1)
+            boolean foundAppMsg2 = false;
+            boolean foundSeqReset3 = false;  // Gap fill that includes Reject (seq 3) - this is the bug
+            boolean foundAppMsg4 = false;
+            boolean foundSeqReset5 = false;  // Gap fill for Heartbeat (seq 5)
+            boolean foundRejectResend = false;
+            
+            for (Message msg : resentMessages) {
+                String msgType = msg.getHeader().getString(MsgType.FIELD);
+                int msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+                
+                if (msgType.equals(SequenceReset.MSGTYPE)) {
+                    boolean isGapFill = msg.isSetField(GapFillFlag.FIELD) && msg.getBoolean(GapFillFlag.FIELD);
+                    int newSeqNo = msg.getInt(NewSeqNo.FIELD);
+                    
+                    if (isGapFill && msgSeqNum == 1 && newSeqNo == 2) {
+                        foundSeqReset1 = true; // Gap fill over Logon
+                    } else if (isGapFill && msgSeqNum == 3 && newSeqNo == 4) {
+                        foundSeqReset3 = true; // Gap fill over Reject (bug - should not gap fill)
+                    } else if (isGapFill && msgSeqNum == 5 && newSeqNo == 6) {
+                        foundSeqReset5 = true; // Gap fill over Heartbeat
+                    }
+                } else if (msgType.equals(News.MSGTYPE)) {
+                    // Application message
+                    boolean isPossDup = msg.getHeader().isSetField(PossDupFlag.FIELD) 
+                                        && msg.getHeader().getBoolean(PossDupFlag.FIELD);
+                    assertTrue("Application message should have PossDupFlag set", isPossDup);
+                    
+                    if (msgSeqNum == 2) {
+                        foundAppMsg2 = true;
+                    } else if (msgSeqNum == 4) {
+                        foundAppMsg4 = true;
+                    }
+                } else if (msgType.equals(Reject.MSGTYPE)) {
+                    foundRejectResend = true;
+                }
+            }
+            
+            // Verify current behavior (documents the bug)
+            assertTrue("Should send gap fill for Logon (seq 1)", foundSeqReset1);
+            assertTrue("Should resend application message (seq 2)", foundAppMsg2);
+            assertTrue("Should send gap fill for Reject (seq 3) - this is the bug", foundSeqReset3);
+            assertTrue("Should resend application message (seq 4)", foundAppMsg4);
+            assertTrue("Should send gap fill for Heartbeat (seq 5)", foundSeqReset5);
+            assertFalse("Reject message should NOT be resent in current code (bug)", foundRejectResend);
+            
+            assertFalse(state.isResendRequested());
+        }
+    }
+
     // QFJ-493
     @Test
     public void testGapFillSatisfiesResendRequest() throws Exception {
