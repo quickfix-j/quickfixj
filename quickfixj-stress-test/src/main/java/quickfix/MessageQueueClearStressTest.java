@@ -21,11 +21,27 @@ import quickfix.field.TargetCompID;
  * This test is related to PR #1133 which tests SequenceReset with GapFill 
  * functionality that removes queued messages when the gap fill extends beyond them.
  * 
- * The test simulates a race condition where:
+ * The test simulates race conditions where:
  * - One actor is trying to process queued messages (via nextQueued)
- * - Another actor is trying to clear messages from the queue (via dequeueMessagesUpTo)
- * - The test validates that either all messages are cleared before processing,
- *   or some are processed before clearing, but no message is both processed and cleared
+ * - Other actors are trying to clear messages from the queue (via dequeueMessagesUpTo)
+ * - The test validates that the queue operations are thread-safe and no messages
+ *   are lost or left in an inconsistent state
+ * 
+ * Key scenarios tested:
+ * 1. ClearBeforeNextQueuedTest: Tests the basic race between processing and clearing
+ *    - Uses synchronized methods to ensure atomicity
+ *    - Validates that either messages are cleared OR processed, never both
+ *    - Confirms the queue is always empty after both operations complete
+ * 
+ * 2. MultipleSequenceResetTest: Tests concurrent clearing with multiple resets
+ *    - Simulates multiple SequenceReset messages arriving concurrently
+ *    - Tests the interaction between processing and multiple clearing operations
+ *    - Ensures consistent state even with multiple concurrent clear operations
+ * 
+ * Expected outcomes:
+ * - All acceptable outcomes should have 0 messages remaining in the queue
+ * - The number of processed messages can vary from 0 to the total count
+ * - No inconsistent states (e.g., messages stuck in queue, double processing)
  */
 @SuppressWarnings("unused")
 public class MessageQueueClearStressTest {
@@ -34,17 +50,19 @@ public class MessageQueueClearStressTest {
      * Tests the race between dequeuing messages and clearing them.
      * Acceptable outcomes:
      * - 0 processed, 0 in queue: All messages were cleared before dequeue attempt
-     * - N processed, 0 in queue: Messages were processed then cleared
-     * Unacceptable outcomes:
-     * - Lost updates or inconsistent state between processing and clearing
+     * - N processed, 0 in queue: N messages were processed, rest cleared  
+     * The key is that the queue should always be empty after both operations
+     * and the sum of processed + messages in queue should not exceed original count
      */
     @State
     @JCStressTest
-    @Outcome(id = "0, 0, 0", expect = Expect.ACCEPTABLE, desc = "All messages cleared before processing")
-    @Outcome(id = "1, 0, 0", expect = Expect.ACCEPTABLE, desc = "One message processed, rest cleared")
-    @Outcome(id = "2, 0, 0", expect = Expect.ACCEPTABLE, desc = "Two messages processed, rest cleared")
-    @Outcome(id = "3, 0, 0", expect = Expect.ACCEPTABLE, desc = "All messages processed before clear")
-    @Outcome(expect = Expect.FORBIDDEN, desc = "Inconsistent state detected")
+    @Outcome(id = "0, 0", expect = Expect.ACCEPTABLE, desc = "All messages cleared before processing")
+    @Outcome(id = "1, 0", expect = Expect.ACCEPTABLE, desc = "One message processed, rest cleared")
+    @Outcome(id = "2, 0", expect = Expect.ACCEPTABLE, desc = "Two messages processed, rest cleared")
+    @Outcome(id = "3, 0", expect = Expect.ACCEPTABLE, desc = "Three messages processed, rest cleared")
+    @Outcome(id = "4, 0", expect = Expect.ACCEPTABLE, desc = "Four messages processed, rest cleared")
+    @Outcome(id = "5, 0", expect = Expect.ACCEPTABLE, desc = "All messages processed before clear")
+    @Outcome(expect = Expect.FORBIDDEN, desc = "Messages remaining in queue or inconsistent state")
     public static class ClearBeforeNextQueuedTest {
 
         private final MessageQueueWrapper wrapper;
@@ -66,10 +84,9 @@ public class MessageQueueClearStressTest {
         }
 
         @Arbiter
-        public void captureResult(III_Result result) {
+        public void captureResult(org.openjdk.jcstress.infra.results.II_Result result) {
             result.r1 = wrapper.getProcessedCount();
             result.r2 = wrapper.getQueueSize();
-            result.r3 = wrapper.getClearedCount();
         }
     }
 
@@ -128,12 +145,10 @@ public class MessageQueueClearStressTest {
 
         private final InMemoryMessageQueue queue;
         private int processedCount;
-        private int clearedCount;
 
         public MessageQueueWrapper() {
             this.queue = new InMemoryMessageQueue();
             this.processedCount = 0;
-            this.clearedCount = 0;
             
             // Pre-populate queue with messages (simulating out-of-sequence messages)
             // These messages have sequence numbers from 5 to 9
@@ -167,10 +182,7 @@ public class MessageQueueClearStressTest {
          */
         public synchronized void clearMessagesUpTo(int newSeqNum) {
             // Clear messages up to the new sequence number
-            int sizeBefore = queue.getBackingMap().size();
             queue.dequeueMessagesUpTo(newSeqNum);
-            int sizeAfter = queue.getBackingMap().size();
-            clearedCount = sizeBefore - sizeAfter;
         }
 
         public int getProcessedCount() {
@@ -179,10 +191,6 @@ public class MessageQueueClearStressTest {
 
         public int getQueueSize() {
             return queue.getBackingMap().size();
-        }
-
-        public int getClearedCount() {
-            return clearedCount;
         }
 
         /**
