@@ -1,5 +1,7 @@
 package quickfix;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.openjdk.jcstress.annotations.Actor;
 import org.openjdk.jcstress.annotations.Arbiter;
 import org.openjdk.jcstress.annotations.Expect;
@@ -47,11 +49,18 @@ public class MessageQueueClearStressTest {
 
     /**
      * Tests the race between dequeuing messages and clearing them.
+     * This simulates the scenario where nextQueued() is attempting to process
+     * messages while a SequenceReset-GapFill operation clears them.
+     * 
+     * Since InMemoryMessageQueue is designed for single-threaded access,
+     * this test uses synchronization to ensure only one operation at a time,
+     * but the order of operations is non-deterministic (either process first or clear first).
+     * 
      * Acceptable outcomes:
-     * - 0 processed, 0 in queue: All messages were cleared before dequeue attempt
+     * - 0 processed, 0 in queue: All messages were cleared before processing attempt
      * - N processed, 0 in queue: N messages were processed, rest cleared  
      * The key is that the queue should always be empty after both operations
-     * and the sum of processed + messages in queue should not exceed original count
+     * and all messages are accounted for (either processed or cleared, never both)
      */
     @State
     @JCStressTest
@@ -143,11 +152,11 @@ public class MessageQueueClearStressTest {
     private static final class MessageQueueWrapper {
 
         private final InMemoryMessageQueue queue;
-        private int processedCount;
+        private final AtomicInteger processedCount;
 
         public MessageQueueWrapper() {
             this.queue = new InMemoryMessageQueue();
-            this.processedCount = 0;
+            this.processedCount = new AtomicInteger(0);
             
             // Pre-populate queue with messages (simulating out-of-sequence messages)
             // These messages have sequence numbers from 5 to 9
@@ -164,13 +173,14 @@ public class MessageQueueClearStressTest {
         /**
          * Simulates the nextQueued() method behavior - attempts to process
          * all queued messages in sequence order.
+         * Synchronized to simulate single-threaded Session behavior.
          */
         public synchronized void processNextQueued() {
             // Try to process messages starting from sequence 5
             for (int seqNum = 5; seqNum <= 9; seqNum++) {
                 Message msg = queue.dequeue(seqNum);
                 if (msg != null) {
-                    processedCount++;
+                    processedCount.incrementAndGet();
                 }
             }
         }
@@ -178,6 +188,7 @@ public class MessageQueueClearStressTest {
         /**
          * Simulates SequenceReset gap fill behavior - clears all messages
          * with sequence numbers less than the specified value.
+         * Synchronized to simulate single-threaded Session behavior.
          */
         public synchronized void clearMessagesUpTo(int newSeqNum) {
             // Clear messages up to the new sequence number
@@ -185,7 +196,7 @@ public class MessageQueueClearStressTest {
         }
 
         public int getProcessedCount() {
-            return processedCount;
+            return processedCount.get();
         }
 
         public int getQueueSize() {
