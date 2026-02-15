@@ -88,7 +88,7 @@ public class MessageQueueClearStressTest {
         // Actor 2: Thread trying to clear messages from queue (simulates SequenceReset gap fill)
         @Actor
         public void clearQueuedMessages() {
-            wrapper.clearMessagesUpTo(10);
+            wrapper.clearMessagesUpTo(MessageQueueWrapper.CLEAR_ALL_SEQ_NUM);
         }
 
         @Arbiter
@@ -129,13 +129,13 @@ public class MessageQueueClearStressTest {
         // Actor 2: First SequenceReset clearing messages
         @Actor
         public void firstSequenceReset() {
-            wrapper.clearMessagesUpTo(5);
+            wrapper.clearMessagesUpTo(MessageQueueWrapper.MIN_SEQ_NUM);
         }
 
         // Actor 3: Second SequenceReset clearing more messages
         @Actor
         public void secondSequenceReset() {
-            wrapper.clearMessagesUpTo(10);
+            wrapper.clearMessagesUpTo(MessageQueueWrapper.CLEAR_ALL_SEQ_NUM);
         }
 
         @Arbiter
@@ -151,8 +151,11 @@ public class MessageQueueClearStressTest {
      */
     private static final class MessageQueueWrapper {
 
-        private static final int MIN_SEQ_NUM = 5;
-        private static final int MAX_SEQ_NUM = 9;
+        // Sequence number range for pre-populated messages
+        static final int MIN_SEQ_NUM = 5;
+        static final int MAX_SEQ_NUM = 9;
+        // Sequence number to clear all messages (exclusive upper bound)
+        static final int CLEAR_ALL_SEQ_NUM = MAX_SEQ_NUM + 1;
 
         private final InMemoryMessageQueue queue;
         private final AtomicInteger processedCount;
