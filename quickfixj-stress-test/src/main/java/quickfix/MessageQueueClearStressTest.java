@@ -151,6 +151,9 @@ public class MessageQueueClearStressTest {
      */
     private static final class MessageQueueWrapper {
 
+        private static final int MIN_SEQ_NUM = 5;
+        private static final int MAX_SEQ_NUM = 9;
+
         private final InMemoryMessageQueue queue;
         private final AtomicInteger processedCount;
 
@@ -159,8 +162,7 @@ public class MessageQueueClearStressTest {
             this.processedCount = new AtomicInteger(0);
             
             // Pre-populate queue with messages (simulating out-of-sequence messages)
-            // These messages have sequence numbers from 5 to 9
-            for (int i = 5; i <= 9; i++) {
+            for (int i = MIN_SEQ_NUM; i <= MAX_SEQ_NUM; i++) {
                 try {
                     Message msg = createMessage(i);
                     queue.enqueue(i, msg);
@@ -176,8 +178,8 @@ public class MessageQueueClearStressTest {
          * Synchronized to simulate single-threaded Session behavior.
          */
         public synchronized void processNextQueued() {
-            // Try to process messages starting from sequence 5
-            for (int seqNum = 5; seqNum <= 9; seqNum++) {
+            // Try to process all messages in the queue
+            for (int seqNum = MIN_SEQ_NUM; seqNum <= MAX_SEQ_NUM; seqNum++) {
                 Message msg = queue.dequeue(seqNum);
                 if (msg != null) {
                     processedCount.incrementAndGet();
@@ -187,11 +189,11 @@ public class MessageQueueClearStressTest {
 
         /**
          * Simulates SequenceReset gap fill behavior - clears all messages
-         * with sequence numbers less than the specified value.
+         * with sequence numbers strictly less than the specified value (exclusive).
          * Synchronized to simulate single-threaded Session behavior.
          */
         public synchronized void clearMessagesUpTo(int newSeqNum) {
-            // Clear messages up to the new sequence number
+            // Clear messages with seqnum < newSeqNum (exclusive upper bound)
             queue.dequeueMessagesUpTo(newSeqNum);
         }
 
