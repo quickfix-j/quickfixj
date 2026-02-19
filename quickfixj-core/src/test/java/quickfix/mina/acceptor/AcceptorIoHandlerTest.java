@@ -20,6 +20,8 @@
 package quickfix.mina.acceptor;
 
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.DefaultWriteRequest;
+import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.junit.Test;
 import quickfix.FixVersions;
 import quickfix.Message;
@@ -401,6 +403,27 @@ public class AcceptorIoHandlerTest {
         } finally {
             eventHandlingStrategy.stopHandlingMessages(true);
         }
+    }
+
+    // QFJ-928
+    @Test
+    public void testWriteToClosedSessionExceptionIsHandledGracefully() throws Exception {
+        IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+
+        when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(null);
+
+        AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(new HashMap<>()),
+                settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+        WriteToClosedSessionException exception = new WriteToClosedSessionException(new DefaultWriteRequest("test"));
+        // Should not throw and should not call setAttribute for QFJ_RESET_IO_CONNECTOR
+        handler.exceptionCaught(mockIoSession, exception);
+
+        verify(mockIoSession).getAttribute("QF_SESSION");
+        verify(mockIoSession).getRemoteAddress();
+        verifyNoMoreInteractions(mockIoSession);
     }
 
     private class UnitTestResponder implements Responder {
