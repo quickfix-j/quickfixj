@@ -92,3 +92,103 @@ manipulate the order of code generation and/or the over-write behaviour of code 
 For example, generate FIX Latest first and overwrite the generated Field classes by subsequently running code generation for an earlier version.
 
 See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the build and recommendation for  **how to implement custom builds.**
+
+# Maven Project Setup Example
+
+### Minimal Project Structure
+```text
+.
+├── pom.xml
+└── src
+    └── main
+        └── resources
+            └── FIX44-custom.xml  <-- Your custom dictionary
+```
+
+### Maven Configuration (pom.xml)
+The setup requires two plugins:
+
+1. **`quickfixj-codegenerator`** - generate Java source code from your XML dictionary:
+2. **`build-helper-maven-plugin`**: The code generator outputs files to `target/generated-sources`. By default, Maven
+   does not know this directory contains source code to be compiled. This plugin adds it to the build path.
+
+```xml
+<properties>
+    <quickfixj.version>2.3.2</quickfixj.version> <!-- Pick a version -->
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>org.quickfixj</groupId>
+        <artifactId>quickfixj-core</artifactId>
+        <version>${quickfixj.version}</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-codegenerator</artifactId>
+            <version>${quickfixj.version}</version>
+            <executions>
+                <execution>
+                    <goals><goal>generate</goal></goals>
+                    <configuration>
+                        <dictFile>src/main/resources/FIX44-custom.xml</dictFile>
+                        <packaging>quickfix.fix44</packaging>
+                        <fieldPackage>quickfix.field</fieldPackage>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>
+                <execution>
+                    <goals><goal>add-source</goal></goals>
+                    <configuration>
+                        <sources>
+                            <source>target/generated-sources</source>
+                        </sources>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+### Customizing Messages - Example
+Add your custom fields to the `<fields>` section and reference them in the `<messages>` section of your `FIX44-custom.xml`:
+
+```xml
+<fields>
+    <field number="5000" name="MyCustomField" type="STRING"/>
+</fields>
+<messages>
+    <message name="NewOrderSingle" msgtype="D" msgcat="app">
+        <field name="MyCustomField" required="N"/>
+    </message>
+</messages>
+```
+
+### Building
+
+1. To generate sources only (no compile):
+
+```bash
+mvn generate-sources
+```
+
+The classes will be found in `target/generated-sources`.
+
+2. To compile and package sources:
+
+```bash
+mvn package
+```
+
+The sources will be packaged into the JAR file.
