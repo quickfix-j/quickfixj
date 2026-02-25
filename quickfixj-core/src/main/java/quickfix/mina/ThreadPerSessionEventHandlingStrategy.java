@@ -124,7 +124,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
         private final Executor executor;
         private final String name;
-        private final CountDownLatch doneLatch = new CountDownLatch(1);
+        private final CountDownLatch startedLatch = new CountDownLatch(1);
+        private volatile Thread runnerThread;
 
         public ThreadAdapter(String name, Executor executor) {
             this.name = name;
@@ -137,6 +138,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
         @Override
         public final void run() {
+            runnerThread = Thread.currentThread();
+            startedLatch.countDown();
             Thread currentThread = Thread.currentThread();
             String threadName = currentThread.getName();
             try {
@@ -146,12 +149,22 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 doRun();
             } finally {
                 currentThread.setName(threadName);
-                doneLatch.countDown();
             }
         }
 
+        /**
+         * Blocks until the dispatcher thread has fully terminated, or the timeout elapses.
+         * Uses {@link Thread#join} so that when this method returns the thread's
+         * {@code isAlive()} is guaranteed to be {@code false}.
+         */
         public void awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            doneLatch.await(timeout, unit);
+            long deadlineMs = System.currentTimeMillis() + unit.toMillis(timeout);
+            if (startedLatch.await(timeout, unit)) {
+                long remaining = deadlineMs - System.currentTimeMillis();
+                if (remaining > 0) {
+                    runnerThread.join(remaining);
+                }
+            }
         }
 
         abstract void doRun();
