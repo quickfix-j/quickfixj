@@ -23,11 +23,11 @@ package quickfix.mina;
 import quickfix.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -99,21 +99,20 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
     }
 
     public void stopDispatcherThreads() {
-        // dispatchersToShutdown is backed by the map itself so changes in one are reflected in the other
-        final Collection<MessageDispatchingThread> dispatchersToShutdown = dispatchers.values();
+        // Snapshot the dispatchers to avoid live-view surprises during concurrent modification
+        final List<MessageDispatchingThread> dispatchersToShutdown = new ArrayList<>(dispatchers.values());
         for (final MessageDispatchingThread dispatcher : dispatchersToShutdown) {
             dispatcher.stopDispatcher();
         }
 
-        // wait for threads to stop
-        while (!dispatchersToShutdown.isEmpty()) {
+        // Wait for each dispatcher thread to actually finish
+        for (final MessageDispatchingThread dispatcher : dispatchersToShutdown) {
             try {
-                Thread.sleep(100);
+                dispatcher.awaitTermination(5, TimeUnit.SECONDS);
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
+                return;
             }
-
-            dispatchersToShutdown.removeIf(MessageDispatchingThread::isStopped);
         }
     }
 
@@ -125,6 +124,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
         private final Executor executor;
         private final String name;
+        private final CountDownLatch doneLatch = new CountDownLatch(1);
 
         public ThreadAdapter(String name, Executor executor) {
             this.name = name;
@@ -146,7 +146,12 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 doRun();
             } finally {
                 currentThread.setName(threadName);
+                doneLatch.countDown();
             }
+        }
+
+        public void awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+            doneLatch.await(timeout, unit);
         }
 
         abstract void doRun();
@@ -254,7 +259,6 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         public void stopDispatcher() {
             enqueue(END_OF_STREAM);
             stopping = true;
-            stopped = true;
         }
 
         public boolean isStopped() {
