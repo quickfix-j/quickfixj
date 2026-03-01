@@ -177,7 +177,7 @@ Add your custom fields to the `<fields>` section and reference them in the `<mes
 
 ### Building
 
-1. To generate sources only (no compile):
+1. To generate sources only (no compilation):
 
 ```bash
 mvn generate-sources
@@ -189,6 +189,99 @@ The classes will be found in `target/generated-sources`.
 
 ```bash
 mvn package
+```
+
+The sources will be packaged into the JAR file.
+
+# Project Setup Guide | Gradle
+
+You can also use a Gradle project to build custom FIX dictionaries.
+
+### Minimal Project Structure
+
+```text
+.
+├── build.gradle
+├── settings.gradle
+└── src
+    └── main
+        └── resources
+            └── FIX44-custom.xml  <-- Your custom dictionary
+```
+
+### Gradle Configuration (build.gradle)
+
+The setup uses the `quickfixj-codegenerator` within the `buildscript` to generate Java source code from your XML
+dictionary.
+
+```groovy
+buildscript {
+   repositories {
+      mavenCentral()
+   }
+   dependencies {
+      classpath 'org.quickfixj:quickfixj-codegenerator:2.3.2'
+   }
+}
+
+plugins {
+   id 'java'
+}
+
+group = 'org.example'
+version = '1.0.0-SNAPSHOT'
+
+def quickfixjVersion = '2.3.2'
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   implementation "org.quickfixj:quickfixj-core:${quickfixjVersion}"
+}
+
+def generatedSourcesDir = layout.buildDirectory.dir("generated-sources")
+
+tasks.register("generateQuickfix") {
+   def dictFile = file("src/main/resources/FIX44-custom.xml")
+   inputs.file dictFile
+   outputs.dir generatedSourcesDir
+
+   doLast {
+      def outDir = generatedSourcesDir.get().asFile
+      outDir.mkdirs()
+      def generator = new org.quickfixj.codegenerator.MessageCodeGenerator()
+      def task = new org.quickfixj.codegenerator.MessageCodeGenerator.Task()
+      task.setName("FIX44-custom")
+      task.setSpecification(dictFile)
+      task.setMessagePackage("quickfix.fix44")
+      task.setFieldPackage("quickfix.field")
+      task.setOutputBaseDirectory(outDir)
+      generator.generate(task)
+   }
+}
+
+sourceSets.main.java.srcDir generatedSourcesDir
+tasks.named("compileJava").configure {
+   dependsOn "generateQuickfix"
+}
+```
+
+### Building
+
+1. To generate sources only (no compilation):
+
+```bash
+gradle generateQuickfix
+```
+
+The classes will be found in `build/generated-sources`.
+
+2. To compile and package sources:
+
+```bash
+gradle jar
 ```
 
 The sources will be packaged into the JAR file.
