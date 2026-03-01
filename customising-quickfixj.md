@@ -108,7 +108,7 @@ See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the bui
 ### Maven Configuration (pom.xml)
 The setup requires two plugins:
 
-1. **`quickfixj-codegenerator`** - generate Java source code from your XML dictionary:
+1. **`quickfixj-codegenerator`**: generate Java source code from your XML dictionary:
 2. **`build-helper-maven-plugin`**: The code generator outputs files to `target/generated-sources`. By default, Maven
    does not know this directory contains source code to be compiled. This plugin adds it to the build path.
 
@@ -177,7 +177,7 @@ Add your custom fields to the `<fields>` section and reference them in the `<mes
 
 ### Building
 
-1. To generate sources only (no compilation):
+1. To generate sources only:
 
 ```bash
 mvn generate-sources
@@ -212,7 +212,7 @@ You can also use a Gradle project to build custom FIX dictionaries.
 ### Gradle Configuration (build.gradle)
 
 The setup uses the `quickfixj-codegenerator` within the `buildscript` to generate Java source code from your XML
-dictionary.
+dictionary. It then registers a task that runs the code generator.
 
 ```groovy
 buildscript {
@@ -270,7 +270,7 @@ tasks.named("compileJava").configure {
 
 ### Building
 
-1. To generate sources only (no compilation):
+1. To generate sources only:
 
 ```bash
 gradle generateQuickfix
