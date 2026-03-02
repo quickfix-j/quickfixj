@@ -3239,4 +3239,148 @@ public class SessionTest {
             assertEquals("Only 2 messages should succeed", 2, responder.sentMessages.size());
         }
     }
+
+    // Test for issue #597: Session-level messages should not be resent when ForceResendWhenCorruptedStore is enabled
+    @Test
+    public void testResendDoesNotResendSessionLevelMessagesExceptReject() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        
+        // Create a session with ForceResendWhenCorruptedStore enabled
+        final Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setApplication(application)
+                .setIsInitiator(false)
+                .setPersistMessages(true)
+                .setForceResendWhenCorruptedStore(true)
+                .build();
+        
+        // Use a capturing responder to track all sent messages
+        final List<String> sentMessages = new ArrayList<>();
+        final Responder capturingResponder = new Responder() {
+            @Override
+            public boolean send(String data) {
+                sentMessages.add(data);
+                return true;
+            }
+            
+            @Override
+            public String getRemoteAddress() {
+                return null;
+            }
+            
+            @Override
+            public void disconnect() {
+            }
+        };
+        session.setResponder(capturingResponder);
+        
+        try {
+            // Logon to establish session
+            logonTo(session);
+            assertTrue(session.isLoggedOn());
+            
+            // Clear lists after logon
+            application.clear();
+            sentMessages.clear();
+            
+            // Get the message store
+            final MessageStore messageStore = session.getStore();
+            
+            // Store some messages in the message store:
+            // Seq 2: Heartbeat (session-level, should NOT be resent)
+            String heartbeatMsg = "8=FIX.4.4\0019=60\00135=0\00134=2\00149=SENDER\00156=TARGET\001" +
+                    "52=" + UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.MILLIS) + "\00110=000\001";
+            messageStore.set(2, heartbeatMsg);
+            
+            // Seq 3: Application message (should be resent)
+            String appMsg1 = "8=FIX.4.4\0019=100\00135=D\00134=3\00149=SENDER\00156=TARGET\001" +
+                    "52=" + UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.MILLIS) + 
+                    "\00155=EUR/USD\00154=1\00138=1000000\00140=1\00110=000\001";
+            messageStore.set(3, appMsg1);
+            
+            // Seq 4: Logout (session-level, should NOT be resent)
+            String logoutMsg = "8=FIX.4.4\0019=60\00135=5\00134=4\00149=SENDER\00156=TARGET\001" +
+                    "52=" + UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.MILLIS) + "\00110=000\001";
+            messageStore.set(4, logoutMsg);
+            
+            // Seq 5: Reject (session-level, SHOULD be resent)
+            String rejectMsg = "8=FIX.4.4\0019=80\00135=3\00134=5\00149=SENDER\00156=TARGET\001" +
+                    "52=" + UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.MILLIS) + 
+                    "\00145=100\00158=Invalid message\00110=000\001";
+            messageStore.set(5, rejectMsg);
+            
+            // Seq 6: Application message (should be resent)
+            String appMsg2 = "8=FIX.4.4\0019=100\00135=D\00134=6\00149=SENDER\00156=TARGET\001" +
+                    "52=" + UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.MILLIS) + 
+                    "\00155=GBP/USD\00154=2\00138=2000000\00140=1\00110=000\001";
+            messageStore.set(6, appMsg2);
+            
+            // Update the next sender sequence number to 7
+            messageStore.setNextSenderMsgSeqNum(7);
+            
+            // Receive a ResendRequest for messages 2-6
+            final ResendRequest resendRequest = new ResendRequest();
+            resendRequest.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            resendRequest.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            resendRequest.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            resendRequest.getHeader().setUtcTimeStamp(SendingTime.FIELD, LocalDateTime.now(ZoneOffset.UTC));
+            resendRequest.setInt(BeginSeqNo.FIELD, 2);
+            resendRequest.setInt(EndSeqNo.FIELD, 6);
+            resendRequest.toString(); // calculate length/checksum
+            
+            session.next(resendRequest);
+            
+            // Verify expectations:
+            // 1. toApp() should only be called for application messages (seq 3 and 6)
+            assertEquals("toApp should be called twice for app messages", 2, application.toAppMessages.size());
+            
+            // 2. Parse all sent messages and verify what was sent
+            boolean rejectWasResent = false;
+            boolean heartbeatWasResent = false;
+            boolean logoutWasResent = false;
+            int sequenceResetCount = 0;
+            int appMessageCount = 0;
+            
+            for (String sentMsg : sentMessages) {
+                try {
+                    Message msg = new Message(sentMsg);
+                    String msgType = msg.getHeader().getString(MsgType.FIELD);
+                    int seqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+                    
+                    if (msgType.equals(MsgType.SEQUENCE_RESET)) {
+                        sequenceResetCount++;
+                    } else if (msgType.equals(MsgType.REJECT) && seqNum == 5) {
+                        rejectWasResent = true;
+                        // Verify Reject has PossDupFlag
+                        assertTrue("Reject should have PossDupFlag set", 
+                                msg.getHeader().isSetField(PossDupFlag.FIELD) && 
+                                msg.getHeader().getBoolean(PossDupFlag.FIELD));
+                    } else if (msgType.equals(MsgType.HEARTBEAT) && seqNum == 2) {
+                        heartbeatWasResent = true;
+                    } else if (msgType.equals(MsgType.LOGOUT) && seqNum == 4) {
+                        logoutWasResent = true;
+                    } else if (msgType.equals("D")) { // NewOrderSingle
+                        appMessageCount++;
+                        // Verify app messages have PossDupFlag
+                        assertTrue("Application messages should have PossDupFlag set", 
+                                msg.getHeader().isSetField(PossDupFlag.FIELD) && 
+                                msg.getHeader().getBoolean(PossDupFlag.FIELD));
+                    }
+                } catch (Exception e) {
+                    // Skip unparseable messages
+                }
+            }
+            
+            // Verify results
+            assertTrue("Reject message should have been resent", rejectWasResent);
+            assertFalse("Heartbeat should NOT have been resent", heartbeatWasResent);
+            assertFalse("Logout should NOT have been resent", logoutWasResent);
+            assertEquals("Two application messages should have been resent", 2, appMessageCount);
+            assertTrue("At least one SequenceReset should be sent for skipped admin messages", sequenceResetCount >= 1);
+            
+        } finally {
+            session.close();
+        }
+    }
 }
