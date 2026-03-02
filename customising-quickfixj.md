@@ -209,7 +209,7 @@ You can also use a Gradle project to build custom FIX dictionaries.
             └── FIX44-custom.xml  <-- Your custom dictionary
 ```
 
-### Gradle Configuration (build.gradle)
+### Gradle Configuration (`build.gradle`)
 
 The setup uses the `quickfixj-codegenerator` within the `buildscript` to generate Java source code from your XML
 dictionary. It then registers a task that runs the code generator.
