@@ -21,7 +21,12 @@ package quickfix.mina;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 import org.apache.mina.core.service.IoAcceptor;
@@ -52,6 +57,8 @@ public class ProtocolFactory {
 
     public final static int SOCKET = 0;
     public final static int VM_PIPE = 1;
+    
+    public final static String PROXY_AUTHORIZATION_HEADER = "Proxy-Authorization";
 
     public static String getTypeString(int type) {
         switch (type) {
@@ -155,10 +162,24 @@ public class ProtocolFactory {
 
         HttpProxyRequest req = new HttpProxyRequest(address);
         req.setProperties(props);
+        
         if (proxyVersion != null && proxyVersion.equalsIgnoreCase("1.1")) {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_1);
         } else {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_0);
+        }
+
+        // Set Proxy-Authorization header for Basic authentication if credentials are provided
+        // Some proxy servers require this header to be set upfront rather than waiting for a 407 response
+        // Note: NTLM authentication requires a multi-step handshake and should not set headers upfront
+        if (proxyUser != null && !proxyUser.isEmpty() 
+                && proxyPassword != null && !proxyPassword.isEmpty()
+                && proxyDomain == null && proxyWorkstation == null) {
+            Map<String, List<String>> headers = new HashMap<>();
+            String credentials = proxyUser + ":" + proxyPassword;
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            headers.put(PROXY_AUTHORIZATION_HEADER, Collections.singletonList("Basic " + encodedCredentials));
+            req.setHeaders(headers);
         }
 
         return req;
