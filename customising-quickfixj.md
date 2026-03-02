@@ -105,7 +105,7 @@ See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the bui
             └── FIX44-custom.xml  <-- Your custom dictionary
 ```
 
-### Maven Configuration (pom.xml)
+### Maven Configuration (`pom.xml`)
 The setup requires two plugins:
 
 1. **`quickfixj-codegenerator`**: generate Java source code from your XML dictionary:
@@ -193,7 +193,7 @@ mvn package
 
 The sources will be packaged into the JAR file.
 
-# Project Setup Guide | Gradle
+# Gradle Project Setup Example
 
 You can also use a Gradle project to build custom FIX dictionaries.
 
