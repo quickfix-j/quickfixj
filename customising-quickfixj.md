@@ -92,3 +92,196 @@ manipulate the order of code generation and/or the over-write behaviour of code 
 For example, generate FIX Latest first and overwrite the generated Field classes by subsequently running code generation for an earlier version.
 
 See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the build and recommendation for  **how to implement custom builds.**
+
+# Maven Project Setup Example
+
+### Minimal Project Structure
+```text
+.
+├── pom.xml
+└── src
+    └── main
+        └── resources
+            └── FIX44-custom.xml  <-- Your custom dictionary
+```
+
+### Maven Configuration (`pom.xml`)
+The setup requires two plugins:
+
+1. **`quickfixj-codegenerator`**: generate Java source code from your XML dictionary:
+2. **`build-helper-maven-plugin`**: The code generator outputs files to `target/generated-sources`. By default, Maven
+   does not know this directory contains source code to be compiled. This plugin adds it to the build path.
+
+```xml
+<properties>
+    <quickfixj.version>2.3.2</quickfixj.version> <!-- Pick a version -->
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>org.quickfixj</groupId>
+        <artifactId>quickfixj-core</artifactId>
+        <version>${quickfixj.version}</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-codegenerator</artifactId>
+            <version>${quickfixj.version}</version>
+            <executions>
+                <execution>
+                    <goals><goal>generate</goal></goals>
+                    <configuration>
+                        <dictFile>src/main/resources/FIX44-custom.xml</dictFile>
+                        <packaging>quickfix.fix44</packaging>
+                        <fieldPackage>quickfix.field</fieldPackage>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>
+                <execution>
+                    <goals><goal>add-source</goal></goals>
+                    <configuration>
+                        <sources>
+                            <source>target/generated-sources</source>
+                        </sources>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+### Customizing Messages - Example
+Add your custom fields to the `<fields>` section and reference them in the `<messages>` section of your `FIX44-custom.xml`:
+
+```xml
+<fields>
+    <field number="5000" name="MyCustomField" type="STRING"/>
+</fields>
+<messages>
+    <message name="NewOrderSingle" msgtype="D" msgcat="app">
+        <field name="MyCustomField" required="N"/>
+    </message>
+</messages>
+```
+
+### Building
+
+1. To generate sources only:
+
+```bash
+mvn generate-sources
+```
+
+The classes will be found in `target/generated-sources`.
+
+2. To compile and package sources:
+
+```bash
+mvn package
+```
+
+The sources will be packaged into the JAR file.
+
+# Gradle Project Setup Example
+
+You can also use a Gradle project to build custom FIX dictionaries.
+
+### Minimal Project Structure
+
+```text
+.
+├── build.gradle
+├── settings.gradle
+└── src
+    └── main
+        └── resources
+            └── FIX44-custom.xml  <-- Your custom dictionary
+```
+
+### Gradle Configuration (`build.gradle`)
+
+The setup uses the `quickfixj-codegenerator` within the `buildscript` to generate Java source code from your XML
+dictionary. It then registers a task that runs the code generator.
+
+```groovy
+buildscript {
+   repositories {
+      mavenCentral()
+   }
+   dependencies {
+      classpath 'org.quickfixj:quickfixj-codegenerator:2.3.2'
+   }
+}
+
+plugins {
+   id 'java'
+}
+
+group = 'org.example'
+version = '1.0.0-SNAPSHOT'
+
+def quickfixjVersion = '2.3.2'
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   implementation "org.quickfixj:quickfixj-core:${quickfixjVersion}"
+}
+
+def generatedSourcesDir = layout.buildDirectory.dir("generated-sources")
+
+tasks.register("generateQuickfix") {
+   def dictFile = file("src/main/resources/FIX44-custom.xml")
+   inputs.file dictFile
+   outputs.dir generatedSourcesDir
+
+   doLast {
+      def outDir = generatedSourcesDir.get().asFile
+      outDir.mkdirs()
+      def generator = new org.quickfixj.codegenerator.MessageCodeGenerator()
+      def task = new org.quickfixj.codegenerator.MessageCodeGenerator.Task()
+      task.setName("FIX44-custom")
+      task.setSpecification(dictFile)
+      task.setMessagePackage("quickfix.fix44")
+      task.setFieldPackage("quickfix.field")
+      task.setOutputBaseDirectory(outDir)
+      generator.generate(task)
+   }
+}
+
+sourceSets.main.java.srcDir generatedSourcesDir
+tasks.named("compileJava").configure {
+   dependsOn "generateQuickfix"
+}
+```
+
+### Building
+
+1. To generate sources only:
+
+```bash
+gradle generateQuickfix
+```
+
+The classes will be found in `build/generated-sources`.
+
+2. To compile and package sources:
+
+```bash
+gradle jar
+```
+
+The sources will be packaged into the JAR file.
