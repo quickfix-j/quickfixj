@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Performs end to end tests against SOCKS proxy server.
+ * Performs end-to-end tests against SOCKS proxy server.
  */
 public class SocksProxyTest {
 
@@ -43,7 +43,9 @@ public class SocksProxyTest {
 
     @After
     public void tearDown() {
-        proxyServer.stop();
+        if (proxyServer != null) {
+            proxyServer.stop();
+        }
     }
 
     @Test
@@ -173,5 +175,4 @@ public class SocksProxyTest {
 
         return sessionSettings;
     }
-
 }

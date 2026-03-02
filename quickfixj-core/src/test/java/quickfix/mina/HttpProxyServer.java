@@ -20,7 +20,6 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -36,7 +35,6 @@ import io.netty.util.CharsetUtil;
 import io.netty.util.NetUtil;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.SocketUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +47,13 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
- * Http proxy server implementation with basic authentication support. The implementation is an adapted copy of Netty's
- * HttpProxyServer samples.
+ * Http proxy server implementation with basic authentication support. The implementation is modified implementation of
+ * Netty's HttpProxyServer samples.
+ *
+ * <pre>
+ * - only HTTP 1.1 is supported
+ * - invalid requests are not challenged with a 407 Proxy Authentication Required response
+ * </pre>
  *
  * <pre>
  * io.netty.handler.proxy.ProxyServer
@@ -63,17 +66,15 @@ public class HttpProxyServer {
 
     private final ServerSocketChannel ch;
     private final Deque<Throwable> recordedExceptions = new LinkedBlockingDeque<>();
-    private final TestMode testMode;
     private final String username;
     private final String password;
     private final InetSocketAddress destination;
 
-    HttpProxyServer(TestMode testMode, int port, InetSocketAddress destination) {
-        this(null, testMode, port, destination, null, null);
+    public HttpProxyServer(int port, InetSocketAddress destination, String username, String password) {
+        this(null, port, destination, username, password);
     }
 
-    HttpProxyServer(SslContext sslContext, TestMode testMode, int port, InetSocketAddress destination, String username, String password) {
-        this.testMode = testMode;
+    public HttpProxyServer(SslContext sslContext, int port, InetSocketAddress destination, String username, String password) {
         this.destination = destination;
         this.username = username;
         this.password = password;
@@ -97,33 +98,30 @@ public class HttpProxyServer {
         ch = (ServerSocketChannel) b.bind(NetUtil.LOCALHOST, port).syncUninterruptibly().channel();
     }
 
+    public int getPort() {
+        return ch.localAddress().getPort();
+    }
+
+    public InetSocketAddress getDestination() {
+        return destination;
+    }
+
+    public Deque<Throwable> getRecordedExceptions() {
+        return recordedExceptions;
+    }
+
     protected void configure(SocketChannel ch) {
         ChannelPipeline p = ch.pipeline();
-        switch (testMode) {
-            case INTERMEDIARY:
-                p.addLast(new HttpServerCodec());
-                p.addLast(new HttpObjectAggregator(1));
-                p.addLast(new HttpIntermediaryHandler());
-                break;
-            case TERMINAL:
-                p.addLast(new HttpServerCodec());
-                p.addLast(new HttpObjectAggregator(1));
-                p.addLast(new HttpTerminalHandler());
-                break;
-            case UNRESPONSIVE:
-                p.addLast(new UnresponsiveHandler());
-                break;
-        }
+
+        p.addLast(new HttpServerCodec());
+        p.addLast(new HttpObjectAggregator(1));
+        p.addLast(new HttpIntermediaryHandler());
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean authenticate(ChannelHandlerContext ctx, FullHttpRequest req) {
         if (!req.method().equals(HttpMethod.CONNECT)) {
             throw new IllegalArgumentException("Only HTTP CONNECT method is supported");
-        }
-
-        if (testMode != TestMode.INTERMEDIARY) {
-            ctx.pipeline().addBefore(ctx.name(), "lineDecoder", new LineBasedFrameDecoder(64, false, true));
         }
 
         ctx.pipeline().remove(HttpObjectAggregator.class);
@@ -154,14 +152,6 @@ public class HttpProxyServer {
     private void recordException(Throwable t) {
         LOGGER.warn("Unexpected exception from proxy server", t);
         recordedExceptions.add(t);
-    }
-
-    public final void checkExceptions() {
-        Throwable last = recordedExceptions.pollLast();
-
-        if (last != null) {
-            PlatformDependent.throwException(last);
-        }
     }
 
     public void stop() {
@@ -278,44 +268,6 @@ public class HttpProxyServer {
         }
     }
 
-    protected abstract class TerminalHandler extends SimpleChannelInboundHandler<Object> {
-
-        private boolean finished;
-
-        @Override
-        protected final void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (finished) {
-                String str = ((ByteBuf) msg).toString(CharsetUtil.US_ASCII);
-                if ("A\n".equals(str)) {
-                    ctx.write(Unpooled.copiedBuffer("1\n", CharsetUtil.US_ASCII));
-                } else if ("B\n".equals(str)) {
-                    ctx.write(Unpooled.copiedBuffer("2\n", CharsetUtil.US_ASCII));
-                } else if ("C\n".equals(str)) {
-                    ctx.write(Unpooled.copiedBuffer("3\n", CharsetUtil.US_ASCII))
-                            .addListener(ChannelFutureListener.CLOSE);
-                } else {
-                    throw new IllegalStateException("unexpected message: " + str);
-                }
-                return;
-            }
-
-            this.finished = handleProxyProtocol(ctx, msg);
-        }
-
-        protected abstract boolean handleProxyProtocol(ChannelHandlerContext ctx, Object msg) throws Exception;
-
-        @Override
-        public final void channelReadComplete(ChannelHandlerContext ctx) {
-            ctx.flush();
-        }
-
-        @Override
-        public final void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            recordException(cause);
-            ctx.close();
-        }
-    }
-
     private final class HttpIntermediaryHandler extends IntermediaryHandler {
 
         private SocketAddress intermediaryDestination;
@@ -340,6 +292,8 @@ public class HttpProxyServer {
                         uri.substring(0, lastColonPos), Integer.parseInt(uri.substring(lastColonPos + 1)));
             }
 
+            System.out.println("Responding to proxy request with: " + res);
+
             ctx.write(res);
             ctx.pipeline().get(HttpServerCodec.class).removeOutboundHandler();
             return true;
@@ -349,50 +303,5 @@ public class HttpProxyServer {
         protected SocketAddress intermediaryDestination() {
             return intermediaryDestination;
         }
-    }
-
-    private final class HttpTerminalHandler extends TerminalHandler {
-
-        @Override
-        protected boolean handleProxyProtocol(ChannelHandlerContext ctx, Object msg) {
-            FullHttpRequest req = (FullHttpRequest) msg;
-            FullHttpResponse res;
-            boolean sendGreeting = false;
-
-            if (!authenticate(ctx, req)) {
-                res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
-            } else if (!req.uri().equals(destination.getHostString() + ':' + destination.getPort())) {
-                res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN);
-                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
-            } else {
-                res = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-                sendGreeting = true;
-            }
-
-            ctx.write(res);
-            ctx.pipeline().get(HttpServerCodec.class).removeOutboundHandler();
-
-            if (sendGreeting) {
-                ctx.write(Unpooled.copiedBuffer("0\n", CharsetUtil.US_ASCII));
-            }
-
-            return true;
-        }
-    }
-
-    private static final class UnresponsiveHandler extends SimpleChannelInboundHandler<Object> {
-
-        @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
-            // ignore
-        }
-    }
-
-    public enum TestMode {
-
-        INTERMEDIARY,
-        TERMINAL,
-        UNRESPONSIVE
     }
 }
