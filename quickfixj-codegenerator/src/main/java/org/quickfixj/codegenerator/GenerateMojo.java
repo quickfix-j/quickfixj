@@ -118,7 +118,7 @@ public class GenerateMojo extends AbstractMojo {
         try {
             generator = new MavenMessageCodeGenerator();
             if (getLog().isInfoEnabled()) {
-                getLog().info("Successfully created an instance of the QuickFIX source generator");
+                getLog().info("Successfully created an instance of the QuickFIX/J source generator");
             }
             generator.setLog(getLog());
 
@@ -146,7 +146,7 @@ public class GenerateMojo extends AbstractMojo {
             task.setDecimalGenerated(decimal);
             generator.generate(task);
         } catch (Throwable t) {
-            throw new MojoExecutionException("QuickFIX code generator execution failed", t);
+            throw new MojoExecutionException("QuickFIX/J code generator execution failed", t);
         }
 
         if (project != null) {
