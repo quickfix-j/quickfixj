@@ -3,7 +3,7 @@
 
 	<groupId>org.quickfixj</groupId>
 	<artifactId>quickfixj-parent</artifactId>
-	<version>3.0.0</version>
+	<version>3.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>QuickFIX/J Parent</name>
@@ -69,7 +69,7 @@
 		<junit.jupiter.version>5.14.3</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
-		<mainClass/>
+		<mainClass />
         <maven.version>3.9.12</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
 		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
@@ -516,7 +516,7 @@
 						<artifactId>maven-bundle-plugin</artifactId>
 						<executions>
 							<execution>
-								<phase/>
+								<phase />
 							</execution>
 						</executions>
 					</plugin>
