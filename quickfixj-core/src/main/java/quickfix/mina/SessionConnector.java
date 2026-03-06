@@ -148,7 +148,7 @@ public abstract class SessionConnector implements Connector {
      *
      * @return a map of sessions keys by session ID
      */
-    protected Map<SessionID, Session> getSessionMap() {
+    public Map<SessionID, Session> getSessionMap() {
         return Collections.unmodifiableMap(sessions);
     }
 
