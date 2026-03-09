@@ -157,7 +157,7 @@ public class Message extends FieldMap {
         private final StringBuilder stringBuilder = new StringBuilder(1024);
     }
 
-    private static final ThreadLocal<Context> stringContexts = ThreadLocal.withInitial(Context::new);
+    private static final ThreadLocal<Context> STRING_CONTEXTS = ThreadLocal.withInitial(Context::new);
 
     /**
      * Do not call this method concurrently while modifying the contents of the message.
@@ -170,7 +170,7 @@ public class Message extends FieldMap {
      */
     @Override
     public String toString() {
-        Context context = stringContexts.get();
+        Context context = STRING_CONTEXTS.get();
         if (CharsetSupport.isStringEquivalent()) { // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
             trailer.setField(context.checkSum);
@@ -1021,6 +1021,6 @@ public class Message extends FieldMap {
     }
 
     StringBuilder getStringBuilder() {
-        return stringContexts.get().stringBuilder;
+        return STRING_CONTEXTS.get().stringBuilder;
     }
 }
