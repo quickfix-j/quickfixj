@@ -2209,7 +2209,12 @@ public class Session implements Closeable {
         if (state.isResetReceived()) {
             getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
             if (!state.isResetSent()) {
-                resetState();
+                state.lockSenderMsgSeqNum();
+                try {
+                    resetState();
+                } finally {
+                    state.unlockSenderMsgSeqNum();
+                }
             }
         }
 
