@@ -1089,7 +1089,7 @@ public class SSLCertificateTest {
         }
 
         public void assertSNIHostName(SessionID sessionID, String expectedSniHostName) {
-            Session session = connector.getSessionMap().get(sessionID);
+            Session session = SessionUtil.findSession(connector, sessionID);
             SSLSession sslSession = SSLUtil.findSSLSession(session);
 
             if (sslSession == null) {
@@ -1106,7 +1106,7 @@ public class SSLCertificateTest {
         }
 
         public void assertNoSNIHostName(SessionID sessionID) {
-            Session session = connector.getSessionMap().get(sessionID);
+            Session session = SessionUtil.findSession(connector, sessionID);
             SSLSession sslSession = SSLUtil.findSSLSession(session);
 
             if (sslSession == null) {
@@ -1139,7 +1139,7 @@ public class SSLCertificateTest {
             LOGGER.info("All session IDs: {}", sessionsIDs);
 
             for (SessionID sessionID : sessionsIDs) {
-                Session session = connector.getSessionMap().get(sessionID);
+                Session session = SessionUtil.findSession(connector, sessionID);
 
                 if (session == null) {
                     LOGGER.info("No session found for ID: {}", sessionID);

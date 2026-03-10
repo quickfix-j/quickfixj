@@ -4,6 +4,7 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.mina.SessionConnector;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -17,6 +18,25 @@ public final class SessionUtil {
     }
 
     /**
+     * Finds a FIX session by its session identifier.
+     *
+     * @param connector the session connector that manages sessions
+     * @param sessionID the target session identifier
+     * @return the matching {@link Session}, or {@code null} if no managed session matches
+     */
+    public static Session findSession(SessionConnector connector, SessionID sessionID) {
+        List<Session> managedSessions = connector.getManagedSessions();
+
+        for (Session session : managedSessions) {
+            if (session.getSessionID().equals(sessionID)) {
+                return session;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Checks if a session is currently logged on.
      *
      * @param connector the session connector
@@ -24,7 +44,7 @@ public final class SessionUtil {
      * @return true if the session is logged on, false otherwise
      */
     public static boolean isLoggedOn(SessionConnector connector, SessionID sessionID) {
-        Session session = connector.getSessionMap().get(sessionID);
+        Session session = findSession(connector, sessionID);
 
         if (session == null) {
             return false;

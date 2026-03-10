@@ -217,7 +217,7 @@ public final class SSLUtil {
      * {@code false} otherwise
      */
     public static boolean isAuthenticated(SessionConnector connector, SessionID sessionID, BigInteger certificateSerialNumber) {
-        Session session = connector.getSessionMap().get(sessionID);
+        Session session = SessionUtil.findSession(connector, sessionID);
         SSLSession sslSession = SSLUtil.findSSLSession(session);
 
         if (sslSession == null) {
@@ -338,7 +338,7 @@ public final class SSLUtil {
     public static void assertNotAuthenticated(
             SessionConnector connector, SessionID sessionID, boolean authOn,
             long timeout, TimeUnit unit) {
-        Session session = connector.getSessionMap().get(sessionID);
+        Session session = SessionUtil.findSession(connector, sessionID);
         SSLSession sslSession = findSSLSession(session);
 
         if (sslSession == null) {
