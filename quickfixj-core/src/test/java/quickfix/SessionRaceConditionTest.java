@@ -87,7 +87,7 @@ public class SessionRaceConditionTest {
             Thread sendThread = new Thread(() -> {
                 try {
                     // Wait a bit to ensure logonThread has reached the delay in reset()
-                    System.out.println("[DEBUG_LOG] Attempting to send heartbeats during logon reset delay");
+                    log.info("Attempting to send heartbeats during logon reset delay");
                     while (!logonFinished.get()) {
                         Message heartbeat = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.HEARTBEAT);
                         // session.send() calls sendRaw, which locks state.lockSenderMsgSeqNum()
@@ -112,7 +112,7 @@ public class SessionRaceConditionTest {
                     log.error("Exception in Login thread", e);
                 } finally {
                     logonFinished.set(true);
-                    log.debug("login thread finished");
+                    log.info("login thread finished");
                 }
             }, "LogonThread");
 
@@ -184,10 +184,10 @@ public class SessionRaceConditionTest {
         public void reset() throws IOException {
             if (delayReset) {
                 try {
-                    log.debug("Delaying reset()");
+                    log.info("Delaying reset()");
                     // Delaying here simulates the race condition window
                     TimeUnit.MILLISECONDS.sleep(1000);
-                    log.debug("Resuming reset()");
+                    log.info("Resuming reset()");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
