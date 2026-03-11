@@ -31,8 +31,7 @@ import static org.junit.Assert.*;
  * even if other messages are being written to the Session concurrently during the reset process.
  * Please note that in the absence of the fix for QFJ-902, this test reliably fails (as expected) when run in IntelliJ IDE
  * on a multi-core machine, but on the same hardware does NOT fail when run in console in Ubuntu WSL with Mvn 3.9.13, Open JDK 21.0.2.
- * The test is not good enough to prevent regressions, but it does demonstrate the race condition.
- *
+ * The test does provoke the race condition in the goithub actions build.
  * The test results below show the race condition in action.
  * <20260311-10:50:29, FIX.4.4:SENDER->TARGET, event> (Received logon)
  * Mar 11, 2026 10:50:29 AM quickfix.UnitTestApplication toAdmin
@@ -44,43 +43,46 @@ import static org.junit.Assert.*;
  * Ref: QFJ-902
  */
 public class SessionRaceConditionTest {
-    private static Logger log = LoggerFactory.getLogger(SessionRaceConditionTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SessionRaceConditionTest.class);
+    private static final SessionID SESSION_ID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
     @Test
-    public void testLogonResetRaceCondition() throws Exception {
+    public void testLogonResetRaceConditionWithDelayingMessageStore() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
         // Use a custom MessageStore that delays during reset to allow race condition
-        DelayingMessageStore store = new DelayingMessageStore(sessionID);
+        DelayingMessageStore store = new DelayingMessageStore(SESSION_ID);
+        store.setDelayReset(true);
         MessageStoreFactory storeFactory = sessionID1 -> store;
 
+        logonReceivedWhileMessagesBeingWrittenToSession(application, storeFactory);
+    }
+
+    private static void logonReceivedWhileMessagesBeingWrittenToSession(Application application, MessageStoreFactory storeFactory) throws IOException, InterruptedException, FieldNotFound {
         try (Session session = new SessionFactoryTestSupport.Builder()
-                .setSessionId(sessionID)
+                .setSessionId(SESSION_ID)
                 .setApplication(application)
                 .setMessageStoreFactory(storeFactory)
                 .setPersistMessages(true)
                 .build()) {
-            
+
             final RaceConditionResponder responder = new RaceConditionResponder();
             session.setResponder(responder);
 
             // Prepare a Logon with ResetSeqNumFlag=Y
-            Message logon = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
+            Message logon = new DefaultMessageFactory().create(SESSION_ID.getBeginString(), MsgType.LOGON);
             logon.setField(new EncryptMethod(EncryptMethod.NONE_OTHER));
             logon.setField(new HeartBtInt(30));
             logon.setField(new ResetSeqNumFlag(true));
             logon.getHeader().setField(new MsgSeqNum(1));
-            logon.getHeader().setField(new BeginString(sessionID.getBeginString()));
-            logon.getHeader().setField(new SenderCompID(sessionID.getTargetCompID()));
-            logon.getHeader().setField(new TargetCompID(sessionID.getSenderCompID()));
+            logon.getHeader().setField(new BeginString(SESSION_ID.getBeginString()));
+            logon.getHeader().setField(new SenderCompID(SESSION_ID.getTargetCompID()));
+            logon.getHeader().setField(new TargetCompID(SESSION_ID.getSenderCompID()));
             logon.getHeader().setField(new SendingTime(SystemTime.getLocalDateTime()));
 
             // 2. Process the logon in a separate thread
             CountDownLatch logonStarted = new CountDownLatch(1);
             AtomicBoolean logonFinished = new AtomicBoolean(false);
-
-            store.setDelayReset(true);
 
             // While logon is processing (and delayed in store.reset()), try to send other messages
             // We'll keep sending messages until the logon thread finishes.
@@ -89,7 +91,7 @@ public class SessionRaceConditionTest {
                     // Wait a bit to ensure logonThread has reached the delay in reset()
                     log.info("Attempting to send heartbeats during logon reset delay");
                     while (!logonFinished.get()) {
-                        Message heartbeat = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.HEARTBEAT);
+                        Message heartbeat = new DefaultMessageFactory().create(SESSION_ID.getBeginString(), MsgType.HEARTBEAT);
                         // session.send() calls sendRaw, which locks state.lockSenderMsgSeqNum()
                         // BUT Session.nextLogon does NOT hold any lock between resetState() and generateLogon()
                         session.send(heartbeat);
@@ -122,11 +124,11 @@ public class SessionRaceConditionTest {
             logonThread.join(5000);
             sendThread.join(5000);
 
-            // 5. Check the sent messages. 
+            // 5. Check the sent messages.
             // The Logon response should be the FIRST message sent after reset, and its sequence number MUST be 1.
             List<Message> sentMessages = responder.getSentMessages();
             assertFalse("Should have sent at least one message", sentMessages.isEmpty());
-            
+
             Message logonResponse = null;
             for (Message msg : sentMessages) {
                 if (MsgType.LOGON.equals(msg.getHeader().getString(MsgType.FIELD))) {
@@ -134,11 +136,41 @@ public class SessionRaceConditionTest {
                     break;
                 }
             }
-            
+
             assertNotNull("Should have sent a Logon response", logonResponse);
             int logonSeqNum = logonResponse.getHeader().getInt(MsgSeqNum.FIELD);
-            
+
             assertEquals("Outbound Logon should have sequence number 1 when ResetSeqNumFlag=Y", 1, logonSeqNum);
+        }
+    }
+
+    @Test
+    public void testLogonResetRaceConditionWithDelayingApplication  () throws Exception {
+        final UnitTestApplication application = new DelayingApplication();
+        MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
+        logonReceivedWhileMessagesBeingWrittenToSession(application, messageStoreFactory);
+    }
+
+    private static class DelayingApplication extends UnitTestApplication {
+
+        @Override
+        public void toAdmin(Message message, SessionID sessionId) {
+            super.toAdmin(message, sessionId);
+            try {
+                if (MsgType.LOGON.equals(message.getHeader().getString(MsgType.FIELD))) {
+                    log.info("Delaying toAdmin for Logon response");
+                    try {
+                        log.info("Delaying Logon response");
+                        // Delaying here simulates the race condition window
+                        TimeUnit.MILLISECONDS.sleep(1000);
+                        log.info("Resuming Logon response");
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Exception in DelayingApplication toAdmin", e);
+            }
         }
     }
 
