@@ -81,6 +81,8 @@ Examples from QuickFIX/J Spring Boot Starter: https://github.com/esanchezros/qui
 
 AssertJ assertions for QuickFIX/J: https://github.com/esanchezros/assertj-quickfixj
 
+FixMock, a WireMock-inspired mocking library for FIX: https://github.com/esanchezros/fix-mock
+
 If you would like to be added to this list, please open a PR with the changes.
 
 
