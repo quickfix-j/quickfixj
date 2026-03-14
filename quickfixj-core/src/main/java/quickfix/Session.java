@@ -2186,151 +2186,149 @@ public class Session implements Closeable {
                 }
             }
         }
+        state.lockSenderMsgSeqNum();
+        try {
+            // QFJ-926 - reset session before accepting Logon
+            resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
 
-        // QFJ-926 - reset session before accepting Logon
-        resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
-
-        if (refreshOnLogon) {
-            refreshState();
-        }
-
-        if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
-            state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
-        } else if (state.isResetSent() && logon.getHeader().getInt(MsgSeqNum.FIELD) == 1) { // QFJ-383
-            getLog().onEvent(
-                    "Inferring ResetSeqNumFlag as sequence number is 1 in response to reset request");
-            state.setResetReceived(true);
-        }
-
-        if (!verify(logon, false, validateSequenceNumbers)) {
-            return;
-        }
-
-        if (state.isResetReceived()) {
-            getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
-            if (!state.isResetSent()) {
-                resetState();
+            if (refreshOnLogon) {
+                refreshState();
             }
-        }
 
-        if (state.isLogonSendNeeded() && !state.isResetReceived()) {
-            disconnect("Received logon response before sending request", true);
-            return;
-        }
-
-        if (!state.isInitiator() && resetOnLogon) {
-            resetState();
-        }
-
-
-        // reset logout messages
-        state.setLogoutReceived(false);
-        state.setLogoutSent(false);
-        state.setLogonReceived(true);
-
-        // remember the expected sender sequence number of any logon response for future use
-        final int nextSenderMsgNumAtLogonReceived = state.getMessageStore().getNextSenderMsgSeqNum();
-        final int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
-
-        /*
-         * We test here that it's not too high (which would result in a resend) and that we are not
-         * resetting on logon 34=1
-         */
-        final boolean isLogonInNormalSequence = !(isTargetTooHigh(sequence) && !resetOnLogon);
-        // if we have a tag 789 sent to us...
-        if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
-
-            final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
-            state.lockSenderMsgSeqNum();
-            final int actualNextNum;
-            try {
-                actualNextNum = state.getNextSenderMsgSeqNum();
-            } finally {
-                state.unlockSenderMsgSeqNum();
+            if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
+                state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
+            } else if (state.isResetSent() && logon.getHeader().getInt(MsgSeqNum.FIELD) == 1) { // QFJ-383
+                getLog().onEvent(
+                        "Inferring ResetSeqNumFlag as sequence number is 1 in response to reset request");
+                state.setResetReceived(true);
             }
-            // Is the 789 we received too high ??
-            if (targetWantsNextSeqNumToBe > actualNextNum) {
-                // barf! we can't resend what we never sent! something unrecoverable has happened.
-                final String err = "Tag " + NextExpectedMsgSeqNum.FIELD
-                        + " (NextExpectedMsgSeqNum) is higher than expected. Expected "
-                        + actualNextNum + ", Received " + targetWantsNextSeqNumToBe;
-                generateLogout(err);
-                disconnect(err, true);
+
+            if (!verify(logon, false, validateSequenceNumbers)) {
                 return;
             }
-        }
-        getLog().onEvent("Received logon");
-        if (!state.isInitiator()) {
-            /*
-             * If we got one too high they need messages resent use the first message they missed (as we gap fill with that).
-             * If we reset on logon, the current value will be 1 and we always send 2 (we haven't inc'd for current message yet +1)
-             * If happy path (we haven't inc'd for current message yet so its current +1)
-             */
-            int nextExpectedTargetNum = state.getMessageStore().getNextTargetMsgSeqNum();
-            // we increment for the logon later (after Logon response sent) in this method if and only if in sequence
-            if (isLogonInNormalSequence) {
-                // logon was fine take account of it in 789
-                nextExpectedTargetNum++;
-            }
-            generateLogon(logon, nextExpectedTargetNum);
-        }
 
-        // Check for proper sequence reset response
-        if (state.isResetSent() && !state.isResetReceived()) {
-            disconnect("Expected Logon response to have reset sequence numbers in response to ResetSeqNumFlag", true);
-            return;
-        }
-
-        state.setResetSent(false);
-        state.setResetReceived(false);
-
-        // Looking at the sequence number of the incoming Logon, is it too high indicating possible missed messages ? ..
-        if (!isLogonInNormalSequence) {
-            // if 789 was sent then we effectively have already sent a resend request
-            if (state.isExpectedLogonNextSeqNumSent()) {
-                // Mark state as if we have already sent a resend request from the logon's 789 (we sent) to infinity.
-                // This will supress the resend request in doTargetTooHigh ...
-                state.setResetRangeFromLastExpectedLogonNextSeqNumLogon();
-                getLog().onEvent("Required resend will be suppressed as we are setting tag 789");
-            }
-            if (validateSequenceNumbers) {
-                doTargetTooHigh(logon);
-            }
-        } else {
-            state.incrNextTargetMsgSeqNum();
-            nextQueued();
-        }
-
-        // Do we have a 789
-        if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
-            final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
-
-            // is the 789 lower (we checked for higher previously) than our next message after receiving the logon
-            if (targetWantsNextSeqNumToBe != nextSenderMsgNumAtLogonReceived) {
-                int endSeqNo = nextSenderMsgNumAtLogonReceived;
-
-                // Just do a gap fill when messages aren't persisted
-                if (!persistMessages) {
-                    endSeqNo += 1;
-                    final int next = state.getNextSenderMsgSeqNum();
-                    if (endSeqNo > next) {
-                        endSeqNo = next;
-                    }
-                    getLog().onEvent(
-                            "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
-                                    + " will be reset");
-                    generateSequenceReset(logon, targetWantsNextSeqNumToBe, // 34=
-                            endSeqNo); // (NewSeqNo 36=)
-                } else {
-                    // resend missed messages
-                    getLog().onEvent(
-                            "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
-                                    + " will be resent");
-                    resendMessages(logon, targetWantsNextSeqNumToBe, endSeqNo);
+            if (state.isResetReceived()) {
+                getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
+                if (!state.isResetSent()) {
+                    resetState();
                 }
             }
+
+            if (state.isLogonSendNeeded() && !state.isResetReceived()) {
+                disconnect("Received logon response before sending request", true);
+                return;
+            }
+
+            if (!state.isInitiator() && resetOnLogon) {
+                resetState();
+            }
+
+
+            // reset logout messages
+            state.setLogoutReceived(false);
+            state.setLogoutSent(false);
+            state.setLogonReceived(true);
+
+            // remember the expected sender sequence number of any logon response for future use
+            final int nextSenderMsgNumAtLogonReceived = state.getMessageStore().getNextSenderMsgSeqNum();
+            final int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
+
+            /*
+             * We test here that it's not too high (which would result in a resend) and that we are not
+             * resetting on logon 34=1
+             */
+            final boolean isLogonInNormalSequence = !(isTargetTooHigh(sequence) && !resetOnLogon);
+            // if we have a tag 789 sent to us...
+            if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
+
+                final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
+                final int actualNextNum = state.getNextSenderMsgSeqNum();
+                // Is the 789 we received too high ??
+                if (targetWantsNextSeqNumToBe > actualNextNum) {
+                    // barf! we can't resend what we never sent! something unrecoverable has happened.
+                    final String err = "Tag " + NextExpectedMsgSeqNum.FIELD
+                            + " (NextExpectedMsgSeqNum) is higher than expected. Expected "
+                            + actualNextNum + ", Received " + targetWantsNextSeqNumToBe;
+                    generateLogout(err);
+                    disconnect(err, true);
+                    return;
+                }
+            }
+            getLog().onEvent("Received logon");
+            if (!state.isInitiator()) {
+                /*
+                 * If we got one too high they need messages resent use the first message they missed (as we gap fill with that).
+                 * If we reset on logon, the current value will be 1 and we always send 2 (we haven't inc'd for current message yet +1)
+                 * If happy path (we haven't inc'd for current message yet so its current +1)
+                 */
+                int nextExpectedTargetNum = state.getMessageStore().getNextTargetMsgSeqNum();
+                // we increment for the logon later (after Logon response sent) in this method if and only if in sequence
+                if (isLogonInNormalSequence) {
+                    // logon was fine take account of it in 789
+                    nextExpectedTargetNum++;
+                }
+                generateLogon(logon, nextExpectedTargetNum);
+            }
+
+            // Check for proper sequence reset response
+            if (state.isResetSent() && !state.isResetReceived()) {
+                disconnect("Expected Logon response to have reset sequence numbers in response to ResetSeqNumFlag", true);
+                return;
+            }
+
+            state.setResetSent(false);
+            state.setResetReceived(false);
+
+            // Looking at the sequence number of the incoming Logon, is it too high indicating possible missed messages ? ..
+            if (!isLogonInNormalSequence) {
+                // if 789 was sent then we effectively have already sent a resend request
+                if (state.isExpectedLogonNextSeqNumSent()) {
+                    // Mark state as if we have already sent a resend request from the logon's 789 (we sent) to infinity.
+                    // This will supress the resend request in doTargetTooHigh ...
+                    state.setResetRangeFromLastExpectedLogonNextSeqNumLogon();
+                    getLog().onEvent("Required resend will be suppressed as we are setting tag 789");
+                }
+                if (validateSequenceNumbers) {
+                    doTargetTooHigh(logon);
+                }
+            } else {
+                state.incrNextTargetMsgSeqNum();
+                nextQueued();
+            }
+
+            // Do we have a 789
+            if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
+                final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
+
+                // is the 789 lower (we checked for higher previously) than our next message after receiving the logon
+                if (targetWantsNextSeqNumToBe != nextSenderMsgNumAtLogonReceived) {
+                    int endSeqNo = nextSenderMsgNumAtLogonReceived;
+
+                    // Just do a gap fill when messages aren't persisted
+                    if (!persistMessages) {
+                        endSeqNo += 1;
+                        final int next = state.getNextSenderMsgSeqNum();
+                        if (endSeqNo > next) {
+                            endSeqNo = next;
+                        }
+                        getLog().onEvent(
+                                "Received implicit ResendRequest via Logon FROM: "
+                                        + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
+                                        + " will be reset");
+                        generateSequenceReset(logon, targetWantsNextSeqNumToBe, // 34=
+                                endSeqNo); // (NewSeqNo 36=)
+                    } else {
+                        // resend missed messages
+                        getLog().onEvent(
+                                "Received implicit ResendRequest via Logon FROM: "
+                                        + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
+                                        + " will be resent");
+                        resendMessages(logon, targetWantsNextSeqNumToBe, endSeqNo);
+                    }
+                }
+            }
+        } finally {
+            state.unlockSenderMsgSeqNum();
         }
         if (isLoggedOn()) {
             try {
