@@ -16,4 +16,3 @@ nb-configuration.xml
 *.bak
 # ignore vim swap files
 *.swp
-.sdkmanrc
