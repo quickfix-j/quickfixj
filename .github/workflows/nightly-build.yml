@@ -26,7 +26,7 @@ jobs:
 
       - name: Delete old packages
         continue-on-error: true
-        uses: SmartsquareGmbH/delete-old-packages@v0.8.1
+        uses: SmartsquareGmbH/delete-old-packages@v1.0.0
         with:
           organization: quickfix-j
           type: maven
