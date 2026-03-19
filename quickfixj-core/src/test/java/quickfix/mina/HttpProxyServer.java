@@ -292,8 +292,6 @@ public class HttpProxyServer {
                         uri.substring(0, lastColonPos), Integer.parseInt(uri.substring(lastColonPos + 1)));
             }
 
-            System.out.println("Responding to proxy request with: " + res);
-
             ctx.write(res);
             ctx.pipeline().get(HttpServerCodec.class).removeOutboundHandler();
             return true;
