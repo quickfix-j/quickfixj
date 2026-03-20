@@ -66,7 +66,7 @@ with QuickFIX, followed by an example.
 | `TargetCompID` | Counterparty's compID as associated with this FIX session | case-sensitive alpha-numeric string | |
 | `TargetSubID` | (Optional) Counterparty's subID as associated with this FIX session | case-sensitive alpha-numeric string | |
 | `TargetLocationID` | (Optional) Counterparty's locationID as associated with this FIX session | case-sensitive alpha-numeric string | |
-| `SessionQualifier` | Additional qualifier to disambiguate otherwise identical sessions. This can only be used with initiator sessions. **Note:** See [Special notes for Oracle](../installation.html#oracle). | case-sensitive alpha-numeric string | |
+| `SessionQualifier` | Additional qualifier to disambiguate otherwise identical sessions. This can only be used with initiator sessions. | case-sensitive alpha-numeric string | |
 | `DefaultApplVerID` | Required only for FIXT 1.1 (and newer). Ignored for earlier transport versions. Specifies the default application version ID for the session. This can either be the `ApplVerID` enum (see the `ApplVerID` field) or the `beginString` for the default version. | String. Examples: `DefaultApplVerID=7` (FIX 5.0 via enum), `DefaultApplVerID=FIX.5.0` (FIX 5.0 via BeginString), `DefaultApplVerID=FIX.4.2` (FIX 4.2 via BeginString) | No default. Required for FIXT 1.1 |
 | `ConnectionType` | Defines if session will act as an acceptor or an initiator | `initiator`<br/>`acceptor` | |
 | `TimeZone` | Time zone for this session; if specified, the session start and end will be converted from this zone to UTC. | Time zone ID (e.g. `America/New_York`, `Asia/Tokyo`, `Europe/London`) | |
@@ -137,7 +137,7 @@ with QuickFIX, followed by an example.
 | `SocketAcceptAddress` | Local IP address for binding accept port. | A hostname or IP address parsable by `java.net.InetAddress`. | Accept connections on any network interface. |
 | `SocketAcceptProtocol` | Specifies the acceptor communication protocol. The `SocketAcceptAddress` is not used with the `VM_PIPE` protocol, but the `SocketAcceptPort` is significant and must match the initiator configuration. | `TCP`<br/>`VM_PIPE` | `TCP` |
 | `AllowedRemoteAddresses` | List of remote IP addresses which are allowed to connect to this acceptor. | Comma-separated list of hostnames or IP addresses parseable by `java.net.InetAddress`. | empty, i.e. all remote addresses are allowed |
-| `AcceptorTemplate` | Designates a template Acceptor session. See [Dynamic Acceptor Sessions](acceptor_dynamic.html). | `Y`<br/>`N` | `N` |
+| `AcceptorTemplate` | Designates a template Acceptor session. See [Dynamic Acceptor Sessions](https://quickfixj.org/docs/acceptor-dynamic). | `Y`<br/>`N` | `N` |
 
 ---
 
