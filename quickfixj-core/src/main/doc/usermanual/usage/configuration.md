@@ -94,7 +94,7 @@ with QuickFIX, followed by an example.
 | `ValidateUserDefinedFields` | If set to `N`, user defined fields (field with tag >= 5000) will not be rejected if they are not defined in the data dictionary, or are present in messages they do not belong to. | `Y`<br>`N` | `Y` |
 | `ValidateUnorderedGroupFields` | Session validation setting for enabling whether field ordering is validated. | `Y`<br>`N` | `Y` |
 | `FirstFieldInGroupIsDelimiter` | Session validation setting for enabling whether the first found field in a repeating group will be used as delimiter. `ValidateUnorderedGroupFields` should be set to `N`. | `Y`<br>`N` | `N` |
-| `ValidateIncomingMessage` | Allow to bypass the message validation (against the dictionary). | `Y`<br>`N` | `Y` |
+| `ValidateIncomingMessage` | Allows bypassing the message validation (against the dictionary). | `Y`<br>`N` | `Y` |
 | `ValidateSequenceNumbers` | Check the next expected target `SeqNum` against the received `SeqNum`. If enabled and a mismatch is detected: if lower than expected, logout; if higher, send a resend request. If not enabled and a mismatch is detected, nothing is done. Must be enabled for `EnableNextExpectedMsgSeqNum` to work. | `Y`<br>`N` | `Y` |
 | `ValidateChecksum` | If set to `N`, checksum validation will not be executed on messages. This setting cannot be set to `N` together with `RejectGarbledMessage` set to `Y`; in that case a `ConfigError` will be thrown. | `Y`<br>`N` | `Y` |
 | `AllowUnknownMsgFields` | If set to `Y`, non user defined fields (field with tag < 5000) will not be rejected if they are not defined in the data dictionary, or are present in messages they do not belong to. | `Y`<br>`N` | `N` |
@@ -209,7 +209,7 @@ Acceptor and Initiator socket options can be set in either defaults or per-sessi
 | `FileStoreMaxCachedMsgs` | Maximum number of message index entries to cache in memory. | Integer. A zero will not cache any entries. | `10000` |
 | `FileStoreSync` | Whether the `FileStore` syncs to the hard drive on every write. It's safer to sync, but it's also much slower. | `Y`<br>`N` | `N` |
 | `JdbcDataSourceName` | JNDI name for the JDBC data source. This technique for finding the data source can be used as an alternative to specifying the driver details. It allows better integration with application servers and servlet containers that are already configured with JDBC data sources. | JNDI name of the data source. Configuration of the initial context must be done by an application server, through a property file or through system properties. See JNDI documentation for more information. | |
-| `JdbcDriver` | JDBC driver for JDBC logger. Also used for JDBC log. | Class name for the JDBC driver. Specify driver properties directly will cause the creation of a HikariCP data source that supports connection pooling. If you are using a database with its own pooling data source (e.g., Oracle) then use the `setDataSource()` method on the Jdbc-related factories to set the data source directly. | |
+| `JdbcDriver` | JDBC driver for JDBC logger. Also used for JDBC log. | Class name for the JDBC driver. Specifying driver properties directly will cause the creation of a HikariCP data source that supports connection pooling. If you are using a database with its own pooling data source (e.g., Oracle) then use the `setDataSource()` method on the Jdbc-related factories to set the data source directly. | |
 | `JdbcURL` | JDBC database URL. Also used for JDBC log. | Depends on the JDBC database driver. | |
 | `JdbcUser` | JDBC user. Also used for JDBC log. | | |
 | `JdbcPassword` | JDBC password. Also used for JDBC log. | | |
@@ -243,7 +243,7 @@ Acceptor and Initiator socket options can be set in either defaults or per-sessi
 | `SLF4JLogOutgoingMessageCategory` | Log category for outgoing messages. | Depends on log engine. See `SLF4JLogEventCategory`. | `quickfixj.msg.outgoing` |
 | `SLF4JLogPrependSessionID` | Controls whether session ID is prepended to log message. | `Y`<br>`N` | `Y` |
 | `SLF4JLogHeartbeats` | Controls whether heartbeats are logged. | `Y`<br>`N` | `N` |
-| `JdbcDriver` | JDBC driver for JDBC logger. Also used for JDBC message store. | Classname for the JDBC driver. | |
+| `JdbcDriver` | JDBC driver for JDBC logger. Also used for JDBC message store. | Class name for the JDBC driver. | |
 | `JdbcURL` | JDBC database URL. Also used for JDBC message store. | Depends on the JDBC database driver. | |
 | `JdbcUser` | JDBC user. Also used for JDBC message store. | | |
 | `JdbcPassword` | JDBC password. Also used for JDBC message store. | | |
@@ -326,7 +326,7 @@ What constitutes a garbled message (taken from the FIX protocol specification):
 > - `MsgType` (tag #35) is not the third tag in a message.
 > - `Checksum` (tag #10) is not the last tag or contains an incorrect value.
 >
-> If the `MsgSeqNum` (tag #34) is missing a logout message should be sent terminating the FIX
+> If the `MsgSeqNum` (tag #34) is missing, a logout message should be sent terminating the FIX
 > Connection, as this indicates a serious application error that is likely only circumvented by
 > software modification.
 
