@@ -69,6 +69,10 @@ $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,mi
 
 https://quickfix-j.github.io/quickfixj/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
+## threading model
+
+[docs/threading-model.md](./docs/threading-model.md)
+
 ## basics
 
 ### related projects
