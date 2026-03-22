@@ -38,7 +38,7 @@ setting is missing or improperly formatted.
 These are the settings you can associate with a session based on the default components provided
 with QuickFIX, followed by an example.
 
-## QuickFIX Settings
+## QuickFIX/J Settings
 
 - [Session](#session)
 - [Validation](#validation)
