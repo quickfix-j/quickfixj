@@ -2025,7 +2025,13 @@ public class Session implements Closeable {
             } else {
                 getLog().onWarnEvent("Heartbeat failure detected but deactivated");
             }
-        } else {
+        } else if (isLoggedOn()) {
+            // QFJ-902: Only generate heartbeats/test requests when the session is
+            // fully established (Logon sent AND received). Generating a heartbeat
+            // in the window between setLogonReceived(true) and the acceptor's own
+            // outgoing Logon being sent would silently consume a sequence number
+            // via persist() without transmitting the message, causing the Logon
+            // response to carry the wrong MsgSeqNum.
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
