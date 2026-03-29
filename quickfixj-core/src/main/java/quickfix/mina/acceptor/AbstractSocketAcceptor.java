@@ -45,6 +45,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.AcceptorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
@@ -134,7 +135,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         log.info("Installing SSL filter for {}", descriptor.getAddress());
         SSLConfig sslConfig = descriptor.getSslConfig();
         SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-        SslFilter sslFilter = new SslFilter(sslContext);
+         SslFilter sslFilter = new AcceptorSslFilter(sslContext);
         sslFilter.setNeedClientAuth(sslConfig.isNeedClientAuth());
         sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                 : SSLSupport.getDefaultCipherSuites(sslContext));
