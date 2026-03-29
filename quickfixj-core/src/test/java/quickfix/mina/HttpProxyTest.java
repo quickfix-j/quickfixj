@@ -104,6 +104,33 @@ public class HttpProxyTest {
     }
 
     @Test
+    public void shouldLoginBasicAuthWithSslAndReconnect() throws ConfigError {
+        int port = proxyServer.getDestination().getPort();
+        SessionConnector acceptor = createAcceptor(port, true, "single-session/server.keystore");
+
+        try {
+            acceptor.start();
+
+            SessionConnector initiator = createInitiator(proxyServer.getPort(), port, PROXY_USERNAME, PROXY_PASSWORD, true, "single-session/client.truststore");
+
+            for (int i = 0; i < 2; i++) {
+                try {
+                    initiator.start();
+                    SessionUtil.assertLoggedOn(acceptor, new SessionID(FixVersions.BEGINSTRING_FIX44, "ALICE", "BOB"));
+                    SessionUtil.assertLoggedOn(initiator, new SessionID(FixVersions.BEGINSTRING_FIX44, "BOB", "ALICE"));
+                    SSLUtil.assertNotAuthenticated(acceptor, new SessionID(FixVersions.BEGINSTRING_FIX44, "ALICE", "BOB"), false);
+                    SSLUtil.assertAuthenticated(initiator, new SessionID(FixVersions.BEGINSTRING_FIX44, "BOB", "ALICE"), new BigInteger("1448538842"));
+                    assertTrue(proxyServer.getRecordedExceptions().isEmpty());
+                } finally {
+                    initiator.stop();
+                }
+            }
+        } finally {
+            acceptor.stop();
+        }
+    }
+
+    @Test
     public void shouldFailLoginBasicAuthWhenServerIsUntrusted() throws ConfigError {
         int port = proxyServer.getDestination().getPort();
         SessionConnector acceptor = createAcceptor(port, true, "single-session/server.keystore");
