@@ -128,8 +128,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             if (quickFixSession != null) {
                 eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM);
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
         }
