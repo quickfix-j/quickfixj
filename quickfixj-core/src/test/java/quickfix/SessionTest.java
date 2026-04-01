@@ -1788,7 +1788,7 @@ public class SessionTest {
                     throws FieldNotFound, IncorrectDataFormat,
                     IncorrectTagValue, UnsupportedMessageType {
                 super.fromApp(message, sessionId);
-                throw new Error("TEST");
+                throw new Error("TESTApp");
             }
         };
 
@@ -1805,6 +1805,8 @@ public class SessionTest {
                         .getHeader().getString(MsgType.FIELD));
                 assertEquals(MsgType.BUSINESS_MESSAGE_REJECT, application
                         .lastToAppMessage().getHeader().getString(MsgType.FIELD));
+                assertEquals("TESTApp", application.lastToAppMessage()
+                        .getString(Text.FIELD));
                 
                 session.next(createHeartbeatMessage(3));
                 assertEquals(4, session.getExpectedTargetNum());
@@ -1813,6 +1815,8 @@ public class SessionTest {
                         .getHeader().getString(MsgType.FIELD));
                 assertEquals(MsgType.REJECT, application.lastToAdminMessage()
                         .getHeader().getString(MsgType.FIELD));
+                assertEquals("TESTAdmin", application.lastToAdminMessage()
+                        .getString(Text.FIELD));
                 
                 session.next(createAdminMessage(4));
                 assertEquals(5, session.getExpectedTargetNum());
@@ -1822,6 +1826,8 @@ public class SessionTest {
                         .getString(MsgType.FIELD));
                 assertEquals(MsgType.HEARTBEAT, application.lastToAdminMessage()
                         .getHeader().getString(MsgType.FIELD));
+                assertFalse(application.lastToAdminMessage()
+                        .isSetField(Text.FIELD));
             } catch (final Throwable t) {
                 fail("Error was thrown: " + t.getMessage());
             }
