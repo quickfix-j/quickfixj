@@ -69,6 +69,10 @@ $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,mi
 
 https://quickfix-j.github.io/quickfixj/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
+## threading model
+
+For a detailed description of the QuickFIX/J threading model — including the single-threaded vs. thread-per-session strategies, the timer thread, heartbeat management, queue back-pressure, and thread-safety implications for application developers — see [docs/threading-model.md](docs/threading-model.md).
+
 ## basics
 
 ### related projects
