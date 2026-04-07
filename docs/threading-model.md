@@ -193,17 +193,6 @@ The `Session.next(Message message)` overload is what `MessageDispatchingThread` 
 
 ---
 
-## Choosing a Strategy
-
-| | `SocketAcceptor` / `SocketInitiator` | `ThreadedSocketAcceptor` / `ThreadedSocketInitiator` |
-|---|---|---|
-| Message processing | Single shared thread | One thread per session |
-| Application thread-safety required | No | Yes |
-| Session isolation | No | Yes |
-| Typical use case | Few sessions, simple apps | Many sessions, independent processing |
-
----
-
 ## 7. Queue Capacity and Back-Pressure
 
 Both strategies support configurable queue capacity:
@@ -235,38 +224,3 @@ The `longLivedExecutor` is provided by `SessionConnector` and can be customised.
 - In both models, the `QFJ Timer` thread runs concurrently with message-processing threads and calls `Session.next()` (no-arg), which may send heartbeats or disconnect. `Session` internally synchronizes on `this` to protect shared state.
 
 ---
-
-## Example: Starting an Acceptor
-
-```java
-import quickfix.*;
-import java.io.FileInputStream;
-
-public class MyApp {
-
-    public static void main(String[] args) throws Exception {
-        Application application = new MyApplication();
-        SessionSettings settings = new SessionSettings(new FileInputStream(args[0]));
-        MessageStoreFactory storeFactory = new FileStoreFactory(settings);
-        LogFactory logFactory = new FileLogFactory(settings);
-        MessageFactory messageFactory = new DefaultMessageFactory();
-
-        // Single-threaded: all sessions share one message-processing thread
-        Acceptor acceptor = new SocketAcceptor(
-            application, storeFactory, settings, logFactory, messageFactory);
-
-        // OR thread-per-session: each session has its own message-processing thread
-        // (application must be thread-safe)
-        // Acceptor acceptor = new ThreadedSocketAcceptor(
-        //     application, storeFactory, settings, logFactory, messageFactory);
-
-        acceptor.start();
-        // ... run your application ...
-        acceptor.stop();
-    }
-}
-```
-
----
-
-*See also: [`quickfixj-core/src/main/doc/usermanual/usage/threading.html`](../quickfixj-core/src/main/doc/usermanual/usage/threading.html) for the HTML version of this document.*
