@@ -1313,7 +1313,7 @@ public class Session implements Closeable {
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (!verify(reject, false, validateSequenceNumbers)) {
+        if (!validateAndDispatchMsg(reject, false, validateSequenceNumbers)) {
             return;
         }
         if (getExpectedTargetNum() == reject.getHeader().getInt(MsgSeqNum.FIELD)) {
@@ -1332,7 +1332,7 @@ public class Session implements Closeable {
         // ResendRequest to be satisfied in order to process the queued ResendRequest of the counterparty.
         // Instead, send out the requested messages and afterwards enqueue the ResendRequest in order to
         // later increase the target seqnum in method nextQueued(int).
-        if (!verify(resendRequest, false, validateSequenceNumbers)) {
+        if (!validateAndDispatchMsg(resendRequest, false, validateSequenceNumbers)) {
             return;
         }
         final int msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
@@ -1456,7 +1456,7 @@ public class Session implements Closeable {
 
     private void nextLogout(Message logout) throws IOException, RejectLogon, FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        if (!verify(logout, false, false)) {
+        if (!validateAndDispatchMsg(logout, false, false)) {
             return;
         }
 
@@ -1543,7 +1543,7 @@ public class Session implements Closeable {
             isGapFill = sequenceReset.getBoolean(GapFillFlag.FIELD) && validateSequenceNumbers;
         }
 
-        if (!verify(sequenceReset, isGapFill, isGapFill)) {
+        if (!validateAndDispatchMsg(sequenceReset, isGapFill, isGapFill)) {
             return;
         }
 
@@ -1797,6 +1797,21 @@ public class Session implements Closeable {
         nextQueued();
     }
 
+    private boolean validateAndDispatchMsg(Message msg, boolean checkTooHigh, boolean checkTooLow)
+            throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
+            UnsupportedMessageType, IOException {
+        if (!verify(msg, checkTooHigh, checkTooLow)) {
+                return false;
+        }
+
+        final Message.Header header = msg.getHeader();
+        final String msgType = header.getString(MsgType.FIELD);
+
+        fromCallback(msgType, msg, sessionID);
+
+        return true;
+    }
+
     private boolean verify(Message msg, boolean checkTooHigh, boolean checkTooLow)
             throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
             UnsupportedMessageType, IOException {
@@ -1869,7 +1884,6 @@ public class Session implements Closeable {
             return false;
         }
 
-        fromCallback(msgType, msg, sessionID);
         return true;
     }
 
@@ -1940,7 +1954,7 @@ public class Session implements Closeable {
 
     private boolean verify(Message message) throws RejectLogon, FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException {
-        return verify(message, validateSequenceNumbers, validateSequenceNumbers);
+        return validateAndDispatchMsg(message, validateSequenceNumbers, validateSequenceNumbers);
     }
 
     /**
@@ -2202,7 +2216,7 @@ public class Session implements Closeable {
             state.setResetReceived(true);
         }
 
-        if (!verify(logon, false, validateSequenceNumbers)) {
+        if (!validateAndDispatchMsg(logon, false, validateSequenceNumbers)) {
             return;
         }
 
