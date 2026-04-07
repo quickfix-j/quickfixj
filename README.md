@@ -111,6 +111,9 @@ Here are explanations of what these functions provide for you.
 
 The sample code below shows how you might start up a FIX acceptor which listens on a socket. If you wanted an initiator, you would simply replace the acceptor in this code fragment with a `SocketInitiator`. `ThreadedSocketInitiator` and `ThreadedSocketAcceptor` classes are also available. These will supply a thread to each session that is created. If you use these you must make sure your application is thread safe.
 
+For a detailed description of the QuickFIX/J threading model — including the single-threaded vs. thread-per-session strategies, the timer thread, heartbeat management, queue back-pressure, and thread-safety implications for application developers — see [docs/threading-model.md](docs/threading-model.md) and [docs/threading-developer-guide.md‎](docs/threading-developer-guide.md).
+
+
 ```Java
 import quickfix.*;
 import java.io.FileInputStream;
