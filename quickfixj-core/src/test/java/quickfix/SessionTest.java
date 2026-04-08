@@ -3193,6 +3193,63 @@ public class SessionTest {
     }
 
     /**
+     * https://github.com/quickfix-j/quickfixj/issues/965
+     * Verify that a disabled session is still reset per its SessionSchedule to avoid
+     * message loss when sequence numbers have advanced (e.g. messages queued via
+     * sendToTarget while the session was disconnected).
+     */
+    @Test
+    public void testDisabledSessionIsResetBySchedule() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // session window is in the future so we are currently outside session time
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(7200000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+
+        final SessionSchedule sessionSchedule = new DefaultSessionSchedule(settings, sessionID);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setApplication(application)
+                .setSessionSchedule(sessionSchedule)
+                .setIsInitiator(false)
+                .build()) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+
+            // simulate messages queued via sendToTarget while the session was disabled
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+            assertTrue(state.isResetNeeded());
+
+            // disable the session (e.g. as a result of calling logout())
+            session.logout();
+            assertFalse(session.isEnabled());
+            assertFalse(session.isLoggedOn());
+
+            // next() should trigger a reset per the session schedule even though
+            // the session is disabled, to avoid message loss (QFJ-965)
+            session.next();
+
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(1, application.sessionResets);
+        }
+    }
+
+    /**
      * https://github.com/quickfix-j/quickfixj/issues/646
      * Verify that resend operations abort when send() returns false.
      * When a responder disconnects mid-resend, the resend operation should stop
