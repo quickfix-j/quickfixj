@@ -60,12 +60,12 @@ jobs:
             org.quickfixj.quickfixj-stress-test
 
       - name: Deploy SNAPSHOT
-      run: |
-        for i in 1 2 3; do
-          ./mvnw deploy -pl '!quickfixj-distribution' -B -V \
-          -Dmaven.install.skip=true -DskipTests \
-          -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" \
-          --no-transfer-progress && break || sleep 30
-        done
+        run: |
+          for i in 1 2 3; do
+            ./mvnw deploy -pl '!quickfixj-distribution' -B -V \
+            -Dmaven.install.skip=true -DskipTests \
+            -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" \
+            --no-transfer-progress && break || sleep 30
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
