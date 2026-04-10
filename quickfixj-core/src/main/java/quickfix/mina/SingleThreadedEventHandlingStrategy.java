@@ -93,7 +93,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                         final List<SessionMessageEvent> tempList = new ArrayList<>(eventQueue.size());
                         queueTracker.drainTo(tempList);
                         for (SessionMessageEvent event : tempList) {
-                            event.processMessage();
+                            event.run();
                         }
                     }
                     if (stopTime == 0) {
@@ -110,7 +110,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             try {
                 SessionMessageEvent event = getMessage();
                 if (event != null) {
-                    event.processMessage();
+                    event.run();
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -149,7 +149,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         messageProcessingThread.start();
     }
 
-    private static class SessionMessageEvent {
+    private static class SessionMessageEvent implements Runnable {
         private final Session quickfixSession;
         private final Message message;
 
@@ -158,7 +158,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             quickfixSession = session;
         }
 
-        public void processMessage() {
+        @Override
+        public void run() {
             try {
                 quickfixSession.next(message);
             } catch (Throwable e) {
