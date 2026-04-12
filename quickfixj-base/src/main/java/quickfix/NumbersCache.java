@@ -51,6 +51,21 @@ public final class NumbersCache {
     }
 
 
+    /**
+     * Get the String representing the given unsigned long.
+     * Uses the cache for values in [0, 99999]; otherwise delegates to
+     * {@link Long#toUnsignedString(long)}.
+     *
+     * @param l the unsigned long to convert
+     * @return the String representing the unsigned long
+     */
+    public static String get(long l) {
+        if (l >= 0 && l < LITTLE_NUMBERS_LENGTH) {
+            return LITTLE_NUMBERS.get((int) l);
+        }
+        return Long.toUnsignedString(l);
+    }
+
      /**
       * Get the string representing the given double if it's an integer
       *
