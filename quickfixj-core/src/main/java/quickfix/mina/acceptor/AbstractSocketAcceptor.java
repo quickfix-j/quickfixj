@@ -123,7 +123,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 if (continueInitOnError) {
                     log.warn("error during session initialization for session(s) {}, continuing...", socketDescriptor.getAcceptedSessions().keySet(), e);
                 } else {
-                    log.error("Cannot start acceptor session for {}, error: ", address, e);
+                    log.error("Cannot start acceptor session for {}", address, e);
                     throw new RuntimeError(e);
                 }
             }
