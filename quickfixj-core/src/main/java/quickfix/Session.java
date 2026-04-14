@@ -1957,8 +1957,6 @@ public class Session implements Closeable {
                     getLog().onEvent("Initiated logout request");
                     generateLogout(state.getLogoutReason());
                 }
-            } else {
-                return;
             }
         }
 
@@ -1980,6 +1978,12 @@ public class Session implements Closeable {
                     resetIfSessionNotCurrent(sessionID, now);
                 }
             }
+        }
+
+        // QFJ-965: allow the session schedule block above to run even when disabled,
+        // so that sequence numbers are reset as scheduled and message loss is avoided.
+        if (!isEnabled() && !isLoggedOn()) {
+            return;
         }
 
         // Return if we are not connected
