@@ -21,24 +21,28 @@ package quickfix;
 
 import java.util.Locale;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class DictionaryTest extends TestCase {
+public class DictionaryTest {
     private Dictionary dictionary;
     private Locale defaultLocale;
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         dictionary = new Dictionary();
         defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
     }
 
-    protected void tearDown() throws Exception {
-        super.tearDown();
+    @After
+    public void tearDown() throws Exception {
         Locale.setDefault(defaultLocale);
     }
 
+    @Test
     public void testDay() throws Exception {
         assertFalse(dictionary.has("DAY"));
         dictionary.setString("DAY", "monday");
@@ -52,6 +56,7 @@ public class DictionaryTest extends TestCase {
         assertEquals(4, dictionary.getDay("DAY"));
     }
 
+    @Test
     public void testDayTooShort() throws Exception {
         dictionary.setString("DAY", "t");
         try {
@@ -61,6 +66,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testDayTooUnknown() throws Exception {
         dictionary.setString("DAY", "xyz");
         try {
@@ -70,6 +76,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testBoolean() throws Exception {
         dictionary.setBool("B", true);
         assertTrue(dictionary.getBool("B"));
@@ -78,6 +85,7 @@ public class DictionaryTest extends TestCase {
         assertFalse(dictionary.getBool("B"));
     }
 
+    @Test
     public void testBooleanError() throws Exception {
         dictionary.setString("B", "XYZ");
         try {
@@ -87,6 +95,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testBooleanMissing() throws Exception {
         try {
             dictionary.getBool("B");
@@ -95,11 +104,13 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testString() throws Exception {
         dictionary.setString("B", "X");
         assertEquals("X", dictionary.getString("B"));
     }
 
+    @Test
     public void testStringMissing() throws Exception {
         try {
             dictionary.getString("X");
@@ -108,11 +119,13 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testDouble() throws Exception {
         dictionary.setDouble("B", 1.1);
         assertEquals(1.1, dictionary.getDouble("B"), 0);
     }
 
+    @Test
     public void testDoubleError() throws Exception {
         dictionary.setString("B", "XYZ");
         try {
@@ -122,6 +135,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testDoubleMissing() throws Exception {
         try {
             dictionary.getDouble("B");
@@ -130,11 +144,13 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testLong() throws Exception {
         dictionary.setLong("B", 1);
         assertEquals(1, dictionary.getLong("B"));
     }
 
+    @Test
     public void testLongError() throws Exception {
         dictionary.setString("B", "XYZ");
         try {
@@ -144,6 +160,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testLongMissing() throws Exception {
         try {
             dictionary.getLong("B");
@@ -152,6 +169,7 @@ public class DictionaryTest extends TestCase {
         }
     }
 
+    @Test
     public void testMerge() throws Exception {
         Dictionary d2 = new Dictionary("ABC");
         d2.setString("XYZ", "123");
@@ -166,6 +184,7 @@ public class DictionaryTest extends TestCase {
         assertEquals(1, d2.toMap().size());
     }
 
+    @Test
     public void testName() throws Exception {
         assertNull(dictionary.getName());
 
@@ -173,6 +192,7 @@ public class DictionaryTest extends TestCase {
         assertEquals("NAME", d.getName());
     }
 
+    @Test
     public void testConstructors() throws Exception {
         Dictionary dw = new Dictionary();
         assertNull(dw.getName());
@@ -194,6 +214,7 @@ public class DictionaryTest extends TestCase {
     }
 
     // From C++ tests
+    @Test
     public void testGetDay() throws Exception {
         Dictionary object = new Dictionary();
 

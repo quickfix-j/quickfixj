@@ -21,9 +21,11 @@ package quickfix.mina.ssl;
 
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.util.AvailablePortFinder;
 import org.burningwave.tools.net.DefaultHostResolver;
 import org.burningwave.tools.net.HostResolutionRequestInterceptor;
 import org.burningwave.tools.net.MappedHostResolver;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +51,9 @@ import quickfix.ThreadedSocketAcceptor;
 import quickfix.ThreadedSocketInitiator;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
+import quickfix.mina.SocksProxyServer;
+import quickfix.test.util.SSLUtil;
+import quickfix.test.util.SessionUtil;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -57,7 +62,6 @@ import javax.net.ssl.SSLSession;
 import java.math.BigInteger;
 import java.security.Principal;
 import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,10 +70,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.apache.mina.util.AvailablePortFinder;
-import org.junit.After;
-import quickfix.mina.SocksProxyServer;
-import quickfix.test.util.SSLUtil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -91,15 +91,13 @@ public class SSLCertificateTest {
             "TLS_RSA_WITH_AES_256_GCM_SHA384",
             "TLS_RSA_WITH_AES_128_CBC_SHA256",
             "TLS_RSA_WITH_AES_256_CBC_SHA256",
-            "TLS_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_RSA_WITH_AES_256_CBC_SHA",
             "TLS_AES_128_GCM_SHA256",
             "TLS_AES_256_GCM_SHA384"
     );
 
     @Parameters
     public static List<Object[]> parameters() {
-        return Arrays.asList(new String[][]{{"TLS_RSA_WITH_AES_128_CBC_SHA", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
+        return Arrays.asList(new String[][]{{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLSv1.2"}, {"TLS_AES_256_GCM_SHA384", "TLSv1.3"}});
     }
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
@@ -1038,121 +1036,24 @@ public class SSLCertificateTest {
 
         public abstract SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError;
 
-        private Session findSession(SessionID sessionID) {
-            for (Session session : connector.getManagedSessions()) {
-                if (session.getSessionID().equals(sessionID))
-                    return session;
-            }
-
-            return null;
-        }
-
         public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) {
-            Session session = findSession(sessionID);
-            SSLSession sslSession = SSLUtil.findSSLSession(session);
-
-            if (sslSession == null) {
-                throw new AssertionError("No SSL session found: " + sessionID);
-            }
-
-            Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
-
-            if (peerCertificates == null || peerCertificates.length == 0) {
-                throw new AssertionError("Session was not authenticated: " + sslSession);
-            }
-
-            for (Certificate peerCertificate : peerCertificates) {
-                if (!(peerCertificate instanceof X509Certificate)) {
-                    continue;
-                }
-
-                if (((X509Certificate)peerCertificate).getSerialNumber().compareTo(serialNumber) == 0) {
-                    return;
-                }
-            }
-
-            throw new AssertionError("Certificate with serial number " + serialNumber + " was not authenticated");
+            SSLUtil.assertAuthenticated(connector, sessionID, serialNumber);
         }
 
         public void assertNotAuthenticated(SessionID sessionID) {
             assertNotAuthenticated(sessionID, true);
         }
 
-        /**
-         * Asserts that the session associated with the given {@code sessionID} is not authenticated.
-         * The behavior of this method depends on the {@code authOn} parameter:
-         *
-         * <ul>
-         *   <li>If {@code authOn} is {@code true}, the method checks if the SSL session associated
-         *       with the given session ID is still alive. If the SSL session persists beyond the
-         *       specified timeout period, an {@link AssertionError} is thrown.</li>
-         *   <li>If {@code authOn} is {@code false}, the method checks if there are any peer certificates
-         *       associated with the SSL session. If peer certificates are found, an {@link AssertionError}
-         *       is thrown, indicating that the session was authenticated.</li>
-         * </ul>
-         *
-         * @param sessionID the session ID to check for authentication status
-         * @param authOn a flag indicating whether authentication is currently enabled
-         * @throws AssertionError if the session is still authenticated after the timeout period
-         *                       (when {@code authOn} is {@code true}) or if peer certificates are found
-         *                       (when {@code authOn} is {@code false})
-         */
         public void assertNotAuthenticated(SessionID sessionID, boolean authOn) {
-            Session session = findSession(sessionID);
-            SSLSession sslSession = SSLUtil.findSSLSession(session);
-
-            if (sslSession == null) {
-                return;
-            }
-
-            if (authOn) {
-                // when authentication is on, the SSL session maybe still be alive (invalid) for some time
-                long startTime = System.nanoTime();
-
-                while (SSLUtil.findSSLSession(session) != null) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException("Thread was interrupted", e);
-                    }
-
-                    if (TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - startTime) >= TIMEOUT_SECONDS) {
-                        throw new AssertionError("SSL session still exists for session: " + sessionID);
-                    }
-                }
-            } else {
-                // when authentication is off, there must be no peer certificates
-                Certificate[] peerCertificates = SSLUtil.getPeerCertificates(sslSession);
-
-                if (peerCertificates != null && peerCertificates.length > 0) {
-                    throw new AssertionError("Certificate was authenticated");
-                }
-            }
+            SSLUtil.assertNotAuthenticated(connector, sessionID, authOn);
         }
 
         public void assertLoggedOn(SessionID sessionID) {
-            Session session = findSession(sessionID);
-
-            if (session == null) {
-                throw new AssertionError("No session found: " + sessionID);
-            }
-
-            if (!session.isLoggedOn()) {
-                throw new AssertionError("Session is not logged on: " + session);
-            }
+            SessionUtil.assertLoggedOn(connector, sessionID);
         }
 
         public void assertNotLoggedOn(SessionID sessionID) {
-            Session session = findSession(sessionID);
-
-            if (session == null) {
-                throw new AssertionError("No session found: " + sessionID);
-            }
-
-            if (session.isLoggedOn()) {
-                throw new AssertionError("Session is logged on: " + session);
-            }
+            SessionUtil.assertNotLoggedOn(connector, sessionID);
         }
 
         public void assertSslExceptionThrown() throws Exception {
@@ -1188,7 +1089,7 @@ public class SSLCertificateTest {
         }
 
         public void assertSNIHostName(SessionID sessionID, String expectedSniHostName) {
-            Session session = findSession(sessionID);
+            Session session = SessionUtil.findSession(connector, sessionID);
             SSLSession sslSession = SSLUtil.findSSLSession(session);
 
             if (sslSession == null) {
@@ -1205,7 +1106,7 @@ public class SSLCertificateTest {
         }
 
         public void assertNoSNIHostName(SessionID sessionID) {
-            Session session = findSession(sessionID);
+            Session session = SessionUtil.findSession(connector, sessionID);
             SSLSession sslSession = SSLUtil.findSSLSession(session);
 
             if (sslSession == null) {
@@ -1238,7 +1139,7 @@ public class SSLCertificateTest {
             LOGGER.info("All session IDs: {}", sessionsIDs);
 
             for (SessionID sessionID : sessionsIDs) {
-                Session session = findSession(sessionID);
+                Session session = SessionUtil.findSession(connector, sessionID);
 
                 if (session == null) {
                     LOGGER.info("No session found for ID: {}", sessionID);

@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-example</artifactId>
-			<version>4.2.9.Final</version>
+			<version>4.2.12.Final</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>

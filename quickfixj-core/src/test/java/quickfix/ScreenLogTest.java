@@ -19,35 +19,36 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
 import quickfix.field.converter.UtcTimestampConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Date;
 
-public class ScreenLogTest extends TestCase {
+public class ScreenLogTest {
     private long systemTime;
 
-    public ScreenLogTest(String name) {
-        super(name);
-    }
-
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         systemTime = SystemTime.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
-        super.tearDown();
     }
 
+    @Test
     public void testScreenLog() {
         doScreenLogTest(true);
     }
 
+    @Test
     public void testScreenLogWithoutHeartBeats() {
         doScreenLogTest(false);
     }

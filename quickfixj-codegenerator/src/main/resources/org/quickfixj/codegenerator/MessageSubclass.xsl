@@ -197,7 +197,7 @@ import quickfix.Group;</xsl:if>
     </xsl:if>
 </xsl:template>
 
-<xsl:template mode="group-delimeter" match="group//component">
+<xsl:template mode="group-delimeter" match="component">
 	<xsl:if test="position() = 1">
 		<xsl:variable name="name" select="@name"/>
 		<xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"

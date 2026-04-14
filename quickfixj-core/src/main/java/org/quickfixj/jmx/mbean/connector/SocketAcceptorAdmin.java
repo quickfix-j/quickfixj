@@ -20,7 +20,6 @@ package org.quickfixj.jmx.mbean.connector;
 import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
-import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 import quickfix.SessionID;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
