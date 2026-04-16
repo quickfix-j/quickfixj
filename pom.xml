@@ -47,7 +47,6 @@
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-class-pruner-maven-plugin</module>
 		<module>quickfixj-orchestration</module>
 		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
@@ -103,9 +102,10 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.0</jaxen.version>
-        <jmh.version>1.37</jmh.version>
+		<jmh.version>1.37</jmh.version>
         <jcstress.version>0.16</jcstress.version>
         <hsqldb.version>1.8.0.10</hsqldb.version>
+		<class-pruner-plugin.version>3.0.1-SNAPSHOT</class-pruner-plugin.version>
 	</properties>
 
    <dependencyManagement>
@@ -447,6 +447,11 @@
 					<groupId>org.quickfixj.orchestra</groupId>
 					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
 					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj</groupId>
+					<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
+					<version>${class-pruner-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>

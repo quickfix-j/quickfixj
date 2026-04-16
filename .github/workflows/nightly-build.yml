@@ -34,7 +34,6 @@ jobs:
           names: |
             org.quickfixj.quickfixj-all
             org.quickfixj.quickfixj-base
-            org.quickfixj.quickfixj-class-pruner-maven-plugin
             org.quickfixj.quickfixj-codegenerator
             org.quickfixj.quickfixj-core
             org.quickfixj.quickfixj-dictgenerator
