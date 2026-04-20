@@ -2,7 +2,7 @@ name: Update Maven Wrapper
 
 on:
   schedule:
-    - cron: '0 3 * * 1'  # Every Monday at 03:00 UTC
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -44,10 +44,10 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: "chore: update Maven Wrapper to ${{ steps.maven-version.outputs.version }}"
-          title: "chore: update Maven Wrapper to ${{ steps.maven-version.outputs.version }}"
+          commit-message: "chore: update Maven to ${{ steps.maven-version.outputs.version }} and/or wrapper"
+          title: "chore: update Maven to ${{ steps.maven-version.outputs.version }} and/or wrapper"
           body: |
-            Automated update of the Maven Wrapper.
+            Automated update of Maven and/or Wrapper.
 
             | Artifact | Updated to |
             |---|---|
