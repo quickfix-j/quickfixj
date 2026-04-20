@@ -28,7 +28,10 @@ jobs:
         id: maven-version
         run: |
           LATEST=$(curl -sf "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml" \
-            | grep -oP '(?<=<release>)[^<]+')
+            | grep -oP '(?<=<version>)[^<]+' \
+            | grep -P '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            | sort -V \
+            | tail -1)
           if [[ ! "$LATEST" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "ERROR: could not determine latest Maven version (got: '$LATEST')"
             exit 1
