@@ -1,0 +1,50 @@
+name: Update Maven Wrapper
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Every Monday at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-wrapper:
+    if: github.repository == 'quickfix-j/quickfixj'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Get latest Maven release version
+        id: maven-version
+        run: |
+          LATEST=$(curl -sf "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml" \
+            | grep -oP '(?<=<release>)[^<]+')
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Update Maven Wrapper
+        run: ./mvnw -N wrapper:wrapper -Dmaven=${{ steps.maven-version.outputs.version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: update Maven Wrapper to ${{ steps.maven-version.outputs.version }}"
+          title: "chore: update Maven Wrapper to ${{ steps.maven-version.outputs.version }}"
+          body: |
+            Automated update of the Maven Wrapper.
+
+            | Artifact | Updated to |
+            |---|---|
+            | Maven distribution | `${{ steps.maven-version.outputs.version }}` |
+            | maven-wrapper jar | latest stable |
+          branch: chore/update-maven-wrapper
+          delete-branch: true
