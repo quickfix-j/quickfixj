@@ -39,7 +39,6 @@ import quickfix.mina.ProtocolFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -355,6 +354,8 @@ public class ResendMessagesBugDirectConnectionTest {
      */
     private static class AcceptorApplication extends ApplicationAdapter {
 
+        private final Logger log = LoggerFactory.getLogger(AcceptorApplication.class);
+
         private final CountDownLatch logonLatch = new CountDownLatch(1);
         private final CountDownLatch trailingSeqResetLatch = new CountDownLatch(1);
         private final AtomicReference<Message> trailingGapSeqReset = new AtomicReference<>();
@@ -366,6 +367,7 @@ public class ResendMessagesBugDirectConnectionTest {
 
         @Override
         public void toAdmin(Message message, SessionID sessionId) {
+            log.info("toAdmin: [{}] {}", sessionId, message);
             try {
                 if (!MsgType.SEQUENCE_RESET.equals(message.getHeader().getString(MsgType.FIELD))) {
                     return;
@@ -382,6 +384,23 @@ public class ResendMessagesBugDirectConnectionTest {
             } catch (FieldNotFound e) {
                 // ignore
             }
+        }
+
+        @Override
+        public void fromAdmin(Message message, SessionID sessionId)
+                throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+            log.info("fromAdmin: [{}] {}", sessionId, message);
+        }
+
+        @Override
+        public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+            log.info("toApp: [{}] {}", sessionId, message);
+        }
+
+        @Override
+        public void fromApp(Message message, SessionID sessionId)
+                throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+            log.info("fromApp: [{}] {}", sessionId, message);
         }
 
         void waitForLogon() {
@@ -408,11 +427,35 @@ public class ResendMessagesBugDirectConnectionTest {
     /** Plain application adapter used for the initiator side. */
     private static class TestConnectorApplication extends ApplicationAdapter {
 
+        private final Logger log = LoggerFactory.getLogger(TestConnectorApplication.class);
+
         private final CountDownLatch logonLatch = new CountDownLatch(1);
 
         @Override
         public void onLogon(SessionID sessionId) {
             logonLatch.countDown();
+        }
+
+        @Override
+        public void toAdmin(Message message, SessionID sessionId) {
+            log.info("toAdmin: [{}] {}", sessionId, message);
+        }
+
+        @Override
+        public void fromAdmin(Message message, SessionID sessionId)
+                throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+            log.info("fromAdmin: [{}] {}", sessionId, message);
+        }
+
+        @Override
+        public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+            log.info("toApp: [{}] {}", sessionId, message);
+        }
+
+        @Override
+        public void fromApp(Message message, SessionID sessionId)
+                throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+            log.info("fromApp: [{}] {}", sessionId, message);
         }
 
         void waitForLogon() {
