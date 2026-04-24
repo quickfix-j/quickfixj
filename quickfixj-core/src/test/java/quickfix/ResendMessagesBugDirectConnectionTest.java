@@ -185,7 +185,7 @@ public class ResendMessagesBugDirectConnectionTest {
         settings.set(defaults);
 
         MessageStoreFactory storeFactory = new BugScenarioStoreFactory(acceptorSessionID);
-        LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        LogFactory logFactory = new ScreenLogFactory(settings);
         return new SocketAcceptor(app, storeFactory, settings, logFactory,
                 new DefaultMessageFactory());
     }
@@ -209,7 +209,7 @@ public class ResendMessagesBugDirectConnectionTest {
         settings.set(defaults);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        LogFactory logFactory = new ScreenLogFactory(settings);
         return new SocketInitiator(app, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }
