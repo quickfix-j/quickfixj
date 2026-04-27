@@ -32,19 +32,24 @@ import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NewSeqNo;
+import quickfix.field.PossDupFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
+import quickfix.field.Text;
 import quickfix.mina.ProtocolFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -154,12 +159,31 @@ public class ResendMessagesBugDirectConnectionTest {
                             + "causing the SequenceReset to be silently dropped.",
                     6, actualMsgSeqNum);
 
+            // Wait for a fresh (not resent) heartbeat to confirm the session is fully
+            // synchronised after the resend.  With HeartBtInt=5 this should arrive
+            // within 15 seconds once the bug is fixed.
+            assertTrue("Timed out waiting for heartbeat - session may be stuck due to bug #344",
+                    initiatorApp.waitForHeartbeat(15, TimeUnit.SECONDS));
+
         } finally {
             if (initiator != null) {
                 try { initiator.stop(); } catch (RuntimeException e) { log.error(e.getMessage(), e); }
             }
             if (acceptor != null) {
                 try { acceptor.stop(); } catch (RuntimeException e) { log.error(e.getMessage(), e); }
+            }
+        }
+
+        // After the graceful shutdown the only logout messages should be the normal
+        // session-close ones.  A "too low" logout would indicate the bug caused the
+        // initiator to reject the trailing SequenceReset.
+        for (Message logout : initiatorApp.getLogoutMessages()) {
+            if (logout.isSetField(Text.FIELD)) {
+                final String text = logout.getString(Text.FIELD);
+                assertFalse(
+                        "Logout should not contain a 'too low' sequence-number message, but got: "
+                                + text,
+                        text.contains("too low"));
             }
         }
     }
@@ -174,6 +198,7 @@ public class ResendMessagesBugDirectConnectionTest {
         defaults.put("ConnectionType", "acceptor");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
+        defaults.put("HeartBtInt", "5");
         defaults.put("BeginString", FixVersions.BEGINSTRING_FIX42);
         defaults.put("NonStopSession", "Y");
         // Disable data-dictionary validation so the pre-built stored messages
@@ -196,7 +221,7 @@ public class ResendMessagesBugDirectConnectionTest {
         defaults.put("ConnectionType", "initiator");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
-        defaults.put("HeartBtInt", "30");
+        defaults.put("HeartBtInt", "5");
         defaults.put("ReconnectInterval", "2");
         defaults.put("NonStopSession", "Y");
         // Disable data-dictionary so the minimally-populated ExecutionReports
@@ -430,6 +455,8 @@ public class ResendMessagesBugDirectConnectionTest {
         private final Logger log = LoggerFactory.getLogger(TestConnectorApplication.class);
 
         private final CountDownLatch logonLatch = new CountDownLatch(1);
+        private final CountDownLatch heartbeatLatch = new CountDownLatch(1);
+        private final List<Message> logoutMessages = new CopyOnWriteArrayList<>();
 
         @Override
         public void onLogon(SessionID sessionId) {
@@ -439,12 +466,31 @@ public class ResendMessagesBugDirectConnectionTest {
         @Override
         public void toAdmin(Message message, SessionID sessionId) {
             log.info("toAdmin: [{}] {}", sessionId, message);
+            try {
+                if (MsgType.LOGOUT.equals(message.getHeader().getString(MsgType.FIELD))) {
+                    logoutMessages.add(message);
+                }
+            } catch (FieldNotFound e) {
+                // ignore
+            }
         }
 
         @Override
         public void fromAdmin(Message message, SessionID sessionId)
                 throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             log.info("fromAdmin: [{}] {}", sessionId, message);
+            try {
+                if (MsgType.HEARTBEAT.equals(message.getHeader().getString(MsgType.FIELD))) {
+                    // Only count down for a fresh heartbeat, not a resent one (PossDupFlag=Y)
+                    final boolean isPossDup = message.getHeader().isSetField(PossDupFlag.FIELD)
+                            && message.getHeader().getBoolean(PossDupFlag.FIELD);
+                    if (!isPossDup) {
+                        heartbeatLatch.countDown();
+                    }
+                }
+            } catch (FieldNotFound e) {
+                // ignore
+            }
         }
 
         @Override
@@ -464,6 +510,18 @@ public class ResendMessagesBugDirectConnectionTest {
             } catch (InterruptedException e) {
                 fail("Interrupted while waiting for initiator logon");
             }
+        }
+
+        boolean waitForHeartbeat(long timeout, TimeUnit unit) {
+            try {
+                return heartbeatLatch.await(timeout, unit);
+            } catch (InterruptedException e) {
+                return false;
+            }
+        }
+
+        List<Message> getLogoutMessages() {
+            return logoutMessages;
         }
     }
 }
