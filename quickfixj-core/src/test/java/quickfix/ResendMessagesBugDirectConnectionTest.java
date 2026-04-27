@@ -144,6 +144,12 @@ public class ResendMessagesBugDirectConnectionTest {
             assertTrue("Trailing SequenceReset should advance past the gap (NewSeqNo > 10), got "
                     + newSeqNo, newSeqNo > 10);
 
+            // Wait for a fresh (not resent) heartbeat to confirm the session is fully
+            // synchronised after the resend.  With HeartBtInt=5 this should arrive
+            // within 15 seconds once the bug is fixed.
+            assertTrue("Timed out waiting for heartbeat - session may be stuck due to bug #344",
+                    initiatorApp.waitForHeartbeat(15, TimeUnit.SECONDS));
+
             // THE KEY ASSERTION:
             // MsgSeqNum must equal 6 (the first seqno of the trailing admin block,
             // i.e. msgSeqNum of last app message + 1 = 4 + 1 = 5, then next is 6
@@ -158,12 +164,6 @@ public class ResendMessagesBugDirectConnectionTest {
                             + "MsgSeqNum=1 is 'too low' for the initiator (already at seqno 6) "
                             + "causing the SequenceReset to be silently dropped.",
                     6, actualMsgSeqNum);
-
-            // Wait for a fresh (not resent) heartbeat to confirm the session is fully
-            // synchronised after the resend.  With HeartBtInt=5 this should arrive
-            // within 15 seconds once the bug is fixed.
-            assertTrue("Timed out waiting for heartbeat - session may be stuck due to bug #344",
-                    initiatorApp.waitForHeartbeat(15, TimeUnit.SECONDS));
 
         } finally {
             if (initiator != null) {
