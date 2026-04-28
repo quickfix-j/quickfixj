@@ -2420,7 +2420,7 @@ public class Session implements Closeable {
         }
 
         int newBegin = beginSeqNo;
-        if (appMessageJustSent || begin != 0) {
+        if (appMessageJustSent) {
             newBegin = msgSeqNum + 1;
         }
         if (enableNextExpectedMsgSeqNum) {
