@@ -106,6 +106,7 @@
         <jmh.version>1.37</jmh.version>
         <jcstress.version>0.16</jcstress.version>
         <hsqldb.version>1.8.0.10</hsqldb.version>
+        <netty.version>4.2.12.Final</netty.version>
 	</properties>
 
    <dependencyManagement>
