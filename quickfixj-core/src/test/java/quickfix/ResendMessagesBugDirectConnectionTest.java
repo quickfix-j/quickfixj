@@ -61,7 +61,7 @@ import static org.junit.Assert.fail;
  * the {@code newBegin} variable is not updated before
  * {@code generateSequenceResetIfNeeded} is called. As a result the method emits a
  * SequenceReset-GapFill whose {@code MsgSeqNum} equals {@code beginSeqNo} (= 1) instead
- * of the correct value (= first seqno of the trailing admin block = 6). The counterparty
+ * of the correct value (= seqno of the Logon = 7). The counterparty
  * therefore receives a SequenceReset with a "too low" {@code MsgSeqNum} and silently drops
  * it, leaving the session in a stuck state.
  *
@@ -71,21 +71,22 @@ import static org.junit.Assert.fail;
  *   seqno 2  – ResendRequest (admin)
  *   seqno 3  – ExecutionReport (app)   ← triggers SequenceReset(1→3) gap-fill
  *   seqno 4  – ExecutionReport (app)   ← resent
- *   seqno 5  – Heartbeat    (admin)    ← last retrieved = admin → triggers the bug
- *   NextSenderMsgSeqNum = 6
+ *   seqno 5  – Heartbeat    (admin)
+ *   seqno 6  – Heartbeat    (admin)    ← last retrieved = admin → triggers the bug
+ *   NextSenderMsgSeqNum = 7
  * </pre>
  *
  * <p>When the initiator (fresh store, NextTargetSeqNum = 1) connects:
  * <ol>
- *   <li>Acceptor sends Logon(6).</li>
+ *   <li>Acceptor sends Logon(7).</li>
  *   <li>Initiator detects "too high" and sends ResendRequest(1, 0).</li>
- *   <li>Acceptor calls {@code resendMessages(1, 6)}:
+ *   <li>Acceptor calls {@code resendMessages(1, 7)}:
  *       sends SequenceReset(1→3), ExecutionReport(3), ExecutionReport(4),
- *       SequenceReset(5→6), and — due to the bug — SequenceReset(<b>MsgSeqNum=1</b>, NewSeqNo=7).</li>
- *   <li>The correct trailing SequenceReset should have <b>MsgSeqNum=6</b>.</li>
+ *       SequenceReset(5→7), and — due to the bug — SequenceReset(<b>MsgSeqNum=1</b>, NewSeqNo=8).</li>
+ *   <li>The correct trailing SequenceReset should have <b>MsgSeqNum=7</b>.</li>
  * </ol>
  *
- * <p>The test assertion {@code assertEquals(6, actualMsgSeqNum)} <b>fails on current code</b>
+ * <p>The test assertion {@code assertEquals(7, actualMsgSeqNum)} <b>fails on current code</b>
  * (gets 1) and passes once the bug is fixed.
  */
 public class ResendMessagesBugDirectConnectionTest {
@@ -139,9 +140,9 @@ public class ResendMessagesBugDirectConnectionTest {
 
             log.info("Trailing SequenceReset: MsgSeqNum={}, NewSeqNo={}", actualMsgSeqNum, newSeqNo);
 
-            // Sanity-check: this IS the trailing-gap SequenceReset (NewSeqNo > 6)
-            assertTrue("Trailing SequenceReset should advance past the gap (NewSeqNo > 6), got "
-                    + newSeqNo, newSeqNo > 6);
+            // Sanity-check: this IS the trailing-gap SequenceReset (NewSeqNo > 7)
+            assertTrue("Trailing SequenceReset should advance past the gap (NewSeqNo > 7), got "
+                    + newSeqNo, newSeqNo > 7);
 
             // Wait for a fresh (not resent) heartbeat to confirm the session is fully
             // synchronised after the resend.  With HeartBtInt=5 this should arrive
@@ -150,19 +151,18 @@ public class ResendMessagesBugDirectConnectionTest {
                     initiatorApp.waitForHeartbeat(15, TimeUnit.SECONDS));
 
             // THE KEY ASSERTION:
-            // MsgSeqNum must equal 6 (the first seqno of the trailing admin block,
-            // i.e. msgSeqNum of last app message + 1 = 4 + 1 = 5, then next is 6
-            // because seqno 5 is the Heartbeat gap-filled by the previous reset).
+            // MsgSeqNum must equal 7 (the seqno of the Logon sent at startup, which is
+            // the trailing admin message that should be gap-filled).
             //
             // Due to bug #344 the actual value is 1 (beginSeqNo), which is "too low"
-            // for the initiator (it has already advanced to seqno 6).
+            // for the initiator (it has already advanced to seqno 7+).
             // This assertion FAILS on the current code and PASSES once the bug is fixed.
             assertEquals(
                     "Bug #344: trailing SequenceReset has MsgSeqNum=" + actualMsgSeqNum
-                            + " but should be 6 (first seqno after the last resent app message). "
-                            + "MsgSeqNum=1 is 'too low' for the initiator (already at seqno 6) "
+                            + " but should be 7 (seqno of the Logon sent at startup). "
+                            + "MsgSeqNum=1 is 'too low' for the initiator "
                             + "causing the SequenceReset to be silently dropped.",
-                    6, actualMsgSeqNum);
+                    7, actualMsgSeqNum);
 
         } finally {
             if (initiator != null) {
@@ -275,16 +275,17 @@ public class ResendMessagesBugDirectConnectionTest {
      *   <li>seqno 2 – ResendRequest (admin)</li>
      *   <li>seqno 3 – ExecutionReport (app)</li>
      *   <li>seqno 4 – ExecutionReport (app)</li>
-     *   <li>seqno 5 – Heartbeat (admin) ← last retrieved = admin → triggers bug</li>
-     *   <li>NextSenderMsgSeqNum = 6</li>
+     *   <li>seqno 5 – Heartbeat (admin)</li>
+     *   <li>seqno 6 – Heartbeat (admin) ← last retrieved = admin → triggers bug</li>
+     *   <li>NextSenderMsgSeqNum = 7</li>
      * </ul>
      *
-     * <p>Writes for sequence numbers greater than 5 are silently discarded so that
+     * <p>Writes for sequence numbers greater than 6 are silently discarded so that
      * the Logon sent during session start-up does not overwrite the scenario.
      */
     private static class BugScenarioStore extends MemoryStore {
 
-        private static final int LAST_PREPOPULATED_SEQNO = 5;
+        private static final int LAST_PREPOPULATED_SEQNO = 6;
 
         BugScenarioStore() throws IOException {
             super();
@@ -324,16 +325,21 @@ public class ResendMessagesBugDirectConnectionTest {
                 super.set(seqno, execReport.toString());
             }
 
-            // seqno 5: Heartbeat (admin) — the last stored message is admin:
-            // this is what triggers the bug when resendMessages processes the list.
-            Message heartbeat = factory.create(beginString, MsgType.HEARTBEAT);
-            setHeader(heartbeat, beginString, sender, target, 5, ts);
-            super.set(5, heartbeat.toString());
+            // seqno 5: Heartbeat (admin)
+            Message heartbeat5 = factory.create(beginString, MsgType.HEARTBEAT);
+            setHeader(heartbeat5, beginString, sender, target, 5, ts);
+            super.set(5, heartbeat5.toString());
 
-            // NextSenderMsgSeqNum = 6: the Logon sent at session start-up will use
-            // seqno 6, creating the gap that resendMessages must cover with a trailing
+            // seqno 6: Heartbeat (admin) — the last stored message is admin:
+            // this is what triggers the bug when resendMessages processes the list.
+            Message heartbeat6 = factory.create(beginString, MsgType.HEARTBEAT);
+            setHeader(heartbeat6, beginString, sender, target, 6, ts);
+            super.set(6, heartbeat6.toString());
+
+            // NextSenderMsgSeqNum = 7: the Logon sent at session start-up will use
+            // seqno 7, creating the gap that resendMessages must cover with a trailing
             // SequenceReset.
-            setNextSenderMsgSeqNum(6);
+            setNextSenderMsgSeqNum(7);
             setNextTargetMsgSeqNum(1);
         }
 
@@ -348,7 +354,7 @@ public class ResendMessagesBugDirectConnectionTest {
 
         /**
          * Discard any write for sequence numbers beyond the pre-populated range.
-         * This prevents the Logon sent at start-up (seqno 6) from appearing in
+         * This prevents the Logon sent at start-up (seqno 7) from appearing in
          * the store and thereby hiding the gap that triggers the bug.
          */
         @Override
@@ -396,9 +402,9 @@ public class ResendMessagesBugDirectConnectionTest {
                 if (!message.isSetField(GapFillFlag.FIELD) || !message.getBoolean(GapFillFlag.FIELD)) {
                     return;
                 }
-                // The trailing-gap SequenceReset advances past the Logon gap;
-                // its NewSeqNo will be 7 in this scenario.
-                if (message.isSetField(NewSeqNo.FIELD) && message.getInt(NewSeqNo.FIELD) > 6) {
+                // The trailing-gap SequenceReset covers the Logon at seqno 7;
+                // its NewSeqNo will be 8 in this scenario.
+                if (message.isSetField(NewSeqNo.FIELD) && message.getInt(NewSeqNo.FIELD) > 7) {
                     trailingGapSeqReset.set(message);
                     trailingSeqResetLatch.countDown();
                 }
