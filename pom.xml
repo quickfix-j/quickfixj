@@ -105,7 +105,7 @@
         <jmh.version>1.37</jmh.version>
         <jcstress.version>0.16</jcstress.version>
         <hsqldb.version>1.8.0.10</hsqldb.version>
-		<class-pruner-plugin.version>3.0.1-SNAPSHOT</class-pruner-plugin.version>
+		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
 	</properties>
 
    <dependencyManagement>
