@@ -400,6 +400,14 @@
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>xml-maven-plugin</artifactId>
 					<version>${xml-maven-plugin-version}</version>
+					<dependencies>
+						<!-- Use Saxon to process XSLT 2.0 stylesheets correctly and avoid JDK's XPath operation count limit -->
+						<dependency>
+							<groupId>net.sf.saxon</groupId>
+							<artifactId>Saxon-HE</artifactId>
+							<version>12.9</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>

@@ -15,122 +15,23 @@
     </xsl:template>
 
     <!-- filter out fields that are not used in QFJ tests -->
-	<!-- Field 1492 ComplexEventStartDate is included to prove successful compilation of a field extending UTCDateOnly -->
+    <!-- Field 1492 ComplexEventStartDate is included to prove successful compilation of a field extending UTCDateOnly -->
     <xsl:template
-        match="fixr:fields/fixr:field[not(
-									      @id = '6' or
-									      @id = '8' or
-									      @id = '9' or
-									      @id = '10' or
-									      @id = '11' or
-									      @id = '19' or
-									      @id = '21' or
-									      @id = '22' or
-									      @id = '33' or
-									      @id = '34' or
-									      @id = '35' or
-									      @id = '38' or
-									      @id = '40' or
-									      @id = '43' or
-									      @id = '44' or
-									      @id = '45' or
-									      @id = '48' or
-									      @id = '49' or
-									      @id = '50' or
-									      @id = '52' or
-									      @id = '54' or
-									      @id = '55' or
-									      @id = '56' or
-									      @id = '57' or
-									      @id = '58' or
-									      @id = '59' or
-									      @id = '60' or
-			                              @id = '89' or
-			                              @id = '90' or
-			                              @id = '91' or
-			                              @id = '93' or
-			                              @id = '95' or
-			                              @id = '96' or
-			                              @id = '97' or
-									      @id = '110' or
-									      @id = '115' or
-									      @id = '116' or
-									      @id = '122' or
-									      @id = '128' or
-									      @id = '129' or
-									      @id = '131' or
-									      @id = '134' or
-									      @id = '135' or
-									      @id = '142' or
-									      @id = '143' or
-									      @id = '144' or
-									      @id = '145' or
-									      @id = '146' or
-									      @id = '149' or
-									      @id = '152' or
-									      @id = '155' or
-									      @id = '167' or
-									      @id = '193' or
-									      @id = '212' or
-									      @id = '213' or
-									      @id = '268' or
-									      @id = '269' or
-										  @id = '270' or
-									      @id = '271' or
-									      @id = '277' or
-									      @id = '278' or
-									      @id = '279' or
-			                              @id = '320' or
-			                              @id = '322' or
-			                              @id = '323' or
-			                              @id = '336' or
-			                              @id = '347' or
-			                              @id = '369' or
-			                              @id = '372' or
-			                              @id = '380' or
-			                              @id = '393' or
-			                              @id = '447' or
-			                              @id = '448' or
-			                              @id = '452' or
-			                              @id = '453' or
-			                              @id = '460' or
-			                              @id = '548' or
-			                              @id = '549' or
-			                              @id = '550' or
-			                              @id = '552' or
-			                              @id = '553' or
-			                              @id = '554' or
-			                              @id = '555' or
-			                              @id = '560' or
-			                              @id = '600' or
-			                              @id = '627' or
-		                                  @id = '628' or
-		                                  @id = '629' or
-		                                  @id = '630' or
-		                                  @id = '918' or
-		                                  @id = '923' or
-		                                  @id = '924' or
-		                                  @id = '925' or
-		                                  @id = '1128' or
-								          @id = '1129' or
-								          @id = '1262' or
-								          @id = '1268' or
-								          @id = '1269' or
-								          @id = '1270' or
-								          @id = '1271' or
-								          @id = '1272' or
-								          @id = '1156' or
-		                                  @id = '1400' or
-		                                  @id = '1401' or
-		                                  @id = '1402' or
-		                                  @id = '1403' or
-		                                  @id = '1404' or
-		                                  @id = '1483' or
-		                                  @id = '1484' or
-		                                  @id = '1491' or
-		                                  @id = '1492' or
-		                                  @id = '1779' or
-		                                  @id = '321007')]"/>
+        match="fixr:fields/fixr:field[not(@id = (
+                                          '6', '8', '9', '10', '11', '19', '21', '22', '33',
+                                          '34', '35', '38', '40', '43', '44', '45', '48', '49',
+                                          '50', '52', '54', '55', '56', '57', '58', '59', '60',
+                                          '89', '90', '91', '93', '95', '96', '97', '110', '115',
+                                          '116', '122', '128', '129', '131', '134', '135', '142',
+                                          '143', '144', '145', '146', '149', '152', '155', '167',
+                                          '193', '212', '213', '268', '269', '270', '271', '277',
+                                          '278', '279', '320', '322', '323', '336', '347', '369',
+                                          '372', '380', '393', '447', '448', '452', '453', '460',
+                                          '548', '549', '550', '552', '553', '554', '555', '560',
+                                          '600', '627', '628', '629', '630', '918', '923', '924',
+                                          '925', '1128', '1129', '1262', '1268', '1269', '1270',
+                                          '1271', '1272', '1156', '1400', '1401', '1402', '1403',
+                                          '1404', '1483', '1484', '1491', '1492', '1779', '321007'))]"/>
 
     <!-- filter out components that are not used in QFJ tests -->
     <xsl:template

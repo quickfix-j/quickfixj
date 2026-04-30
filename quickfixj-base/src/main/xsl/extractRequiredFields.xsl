@@ -15,59 +15,14 @@
 	</xsl:template>
 
 	<!-- remove all the fields that are not required by core -->
-	<xsl:template match="fixr:fields/fixr:field[not(
-											   @id='1156'
-											or @id='1128'
-											or @id='7'
-											or @id='8'
-											or @id='9'
-											or @id='380'
-											or @id='10'
-											or @id='1129'
-											or @id='1137'
-											or @id='128'
-											or @id='145'
-											or @id='129'
-											or @id='98'
-											or @id='16'
-											or @id='123'
-											or @id='108'
-											or @id='369'
-											or @id='347'
-											or @id='34'
-											or @id='35'
-											or @id='36'
-											or @id='789'
-											or @id='627'
-											or @id='115'
-											or @id='144'
-											or @id='370'
-											or @id='116'
-											or @id='122'
-											or @id='43'
-											or @id='97'
-											or @id='372'
-											or @id='45'
-											or @id='371'
-											or @id='141'
-											or @id='90'
-											or @id='91'
-											or @id='49'
-											or @id='142'
-											or @id='50'
-											or @id='52'
-											or @id='373'
-											or @id='1409'
-											or @id='89'
-											or @id='93'
-											or @id='56'
-											or @id='143'
-											or @id='57'
-											or @id='112'
-											or @id='58'
-											or @id='213'
-											or @id='212'
-											)]">
+	<xsl:template match="fixr:fields/fixr:field[not(@id = (
+							'1156', '1128', '7', '8', '9', '380', '10', '1129', '1137',
+							'128', '145', '129', '98', '16', '123', '108', '369', '347',
+							'34', '35', '36', '789', '627', '115', '144', '370', '116',
+							'122', '43', '97', '372', '45', '371', '141', '90', '91',
+							'49', '142', '50', '52', '373', '1409', '89', '93', '56',
+							'143', '57', '112', '58', '213', '212'
+							))]">
 	</xsl:template>
 
 	<!-- ApplExtID -->
