@@ -103,6 +103,7 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.1</jaxen.version>
+		<saxon.version>12.9</saxon.version>
         <jmh.version>1.37</jmh.version>
         <jcstress.version>0.16</jcstress.version>
         <hsqldb.version>1.8.0.10</hsqldb.version>
@@ -405,7 +406,7 @@
 						<dependency>
 							<groupId>net.sf.saxon</groupId>
 							<artifactId>Saxon-HE</artifactId>
-							<version>12.9</version>
+							<version>${saxon.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
