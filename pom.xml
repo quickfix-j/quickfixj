@@ -45,7 +45,6 @@
 	</issueManagement>
 
 	<modules>
-		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
 		<module>quickfixj-class-pruner-maven-plugin</module>
 		<module>quickfixj-orchestration</module>
@@ -106,6 +105,7 @@
         <jmh.version>1.37</jmh.version>
         <jcstress.version>0.16</jcstress.version>
         <hsqldb.version>1.8.0.10</hsqldb.version>
+		<codegenerator-plugin.version>3.0.1-SNAPSHOT</codegenerator-plugin.version>
 	</properties>
 
    <dependencyManagement>
@@ -437,6 +437,11 @@
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>
 					<version>3.5.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj</groupId>
+					<artifactId>quickfixj-codegenerator</artifactId>
+					<version>${codegenerator-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.quickfixj.orchestra</groupId>

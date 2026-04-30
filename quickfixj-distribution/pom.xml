@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-codegenerator</artifactId>
-			<version>${project.version}</version>
+			<version>${codegenerator-plugin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
