@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -50,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.XMLConstants;
 
@@ -220,18 +222,39 @@ public class MessageCodeGenerator {
         }
     }
 
+    private final TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl();
+
+    private final Map<String, Templates> templatesCache = new ConcurrentHashMap<>();
+
     private Transformer createTransformer(Task task, String xsltFile)
             throws TransformerFactoryConfigurationError, TransformerConfigurationException {
-        StreamSource styleSource;
+        final String cacheKey;
+        final StreamSource styleSource;
         File xslt = new File(task.getTransformDirectory() + "/" + xsltFile);
         if (xslt.exists()) {
+            cacheKey = xslt.getAbsolutePath();
             styleSource = new StreamSource(xslt);
         } else {
             logInfo("Loading predefined xslt file:" + xsltFile);
+            cacheKey = "classpath:" + xsltFile;
             styleSource = new StreamSource(this.getClass().getResourceAsStream(xsltFile));
         }
-        TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl();
-        return transformerFactory.newTransformer(styleSource);
+
+        try {
+            Templates templates = templatesCache.computeIfAbsent(cacheKey, k -> {
+                try {
+                    return transformerFactory.newTemplates(styleSource);
+                } catch (TransformerConfigurationException e) {
+                    throw new CodeGenerationException(e);
+                }
+            });
+            return templates.newTransformer();
+        } catch (CodeGenerationException e) {
+            if (e.getCause() instanceof TransformerConfigurationException) {
+                throw (TransformerConfigurationException) e.getCause();
+            }
+            throw e;
+        }
     }
 
     private final Map<String, Document> specificationCache = new HashMap<>();
