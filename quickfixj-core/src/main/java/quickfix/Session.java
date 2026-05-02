@@ -1980,7 +1980,8 @@ public class Session implements Closeable {
             }
         }
 
-        // QFJ-965: allow the session schedule block above to run even when disabled,
+        // https://github.com/quickfix-j/quickfixj/issues/965
+        // allow the session schedule block above to run even when disabled,
         // so that sequence numbers are reset as scheduled and message loss is avoided.
         if (!isEnabled() && !isLoggedOn()) {
             return;
