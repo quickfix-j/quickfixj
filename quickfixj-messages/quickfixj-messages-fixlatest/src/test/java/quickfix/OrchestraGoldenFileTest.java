@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,13 +46,6 @@ public class OrchestraGoldenFileTest {
 
     @Before
     public void setup() throws Exception {
-        // The orchestra code generator (CodeGeneratorJ) depends on classes compiled for
-        // Java 11+. Skip this test gracefully when running under JDK 8 (java.version
-        // starts with "1." for JDK 8 and earlier, e.g. "1.8.0_xxx").
-        Assume.assumeFalse(
-                "Orchestra code generator requires Java 11+; skipping on JDK 8.",
-                System.getProperty("java.version").startsWith("1."));
-
         goldenDir = new File(
                 OrchestraGoldenFileTest.class.getResource("/golden/fixlatest").toURI());
     }
