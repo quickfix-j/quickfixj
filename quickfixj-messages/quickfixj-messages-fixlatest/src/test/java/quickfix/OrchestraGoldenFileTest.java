@@ -34,8 +34,8 @@ import org.quickfixj.orchestra.CodeGeneratorJ;
  * <p>If the generator output must intentionally change, regenerate the golden files by
  * running the orchestra code generator directly against the same XML fixture and committing
  * the updated golden files together with the generator changes. See
- * {@code quickfixj-codegenerator/src/test/resources/golden/README.md} for the general
- * golden-file workflow; the same approach applies here.
+ * {@code quickfixj-messages/quickfixj-messages-fixlatest/src/test/resources/golden/README.md}
+ * for the golden-file workflow.
  */
 public class OrchestraGoldenFileTest {
 

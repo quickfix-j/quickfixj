@@ -25,6 +25,26 @@
 			<scope>runtime</scope>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj.orchestra</groupId>
+			<artifactId>quickfixj-from-fix-orchestra-generator</artifactId>
+			<version>${org.quickfixj.orchestra.tools.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- The orchestra generator was compiled against javax.xml.bind (JAXB 2.x).
+		     The parent POM manages jaxb-impl at 4.x (jakarta.xml.bind namespace), so we
+		     pin the 2.3.3 variant here to satisfy the generator's SPI look-up at test time. -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>
