@@ -81,7 +81,7 @@ public class MessageCodeGenerator {
     }
 
     protected void logDebug(String msg) {
-        System.out.println(msg);
+        // no-op by default; override (e.g. MavenMessageCodeGenerator) to enable debug output
     }
 
     protected void logError(String msg, Throwable e) {
