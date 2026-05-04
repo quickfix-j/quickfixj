@@ -94,6 +94,13 @@ public class GenerateMojo extends AbstractMojo {
     private boolean overwrite = true;
 
     /**
+     * Skip the code generation if true.
+     * Useful for incremental builds when source files haven't changed.
+     */
+    @Parameter(property = "codegen.skip", defaultValue = "false")
+    private boolean skip = false;
+
+    /**
      * The Maven project to act upon.
      */
     @Parameter(defaultValue = "${project}", required = true)
@@ -110,6 +117,11 @@ public class GenerateMojo extends AbstractMojo {
      * @see org.apache.maven.plugin.AbstractMojo#execute()
      */
     public void execute() throws MojoExecutionException {
+
+        if (skip) {
+            getLog().info("Skipping code generation (codegen.skip = true)");
+            return;
+        }
 
         if (!outputDirectory.exists()) {
             FileUtils.mkdir(outputDirectory.getAbsolutePath());

@@ -87,6 +87,7 @@
 		<maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
+		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
