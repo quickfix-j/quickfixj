@@ -34,11 +34,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
-			<version>${class-pruner-plugin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>

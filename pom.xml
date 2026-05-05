@@ -70,7 +70,6 @@
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass />
         <maven.version>3.9.12</maven.version>
-		<maven-libs-version>${maven.version}</maven-libs-version>
 		<maven-plugin-api-version>3.9.15</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.15.0</maven-compiler-plugin-version>
@@ -86,10 +85,7 @@
 		<maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
-		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
-		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
-		<maven-plugin-testing-harness.version>3.5.1</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.2.1</xml-maven-plugin-version>
@@ -178,56 +174,15 @@
 				<version>${maven-plugin-api-version}</version>
 			</dependency>
 			<dependency>
-			  <groupId>org.apache.maven.shared</groupId>
-			  <artifactId>maven-shared-utils</artifactId>
-			  <version>${maven-shared-utils.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven.shared</groupId>
-				<artifactId>file-management</artifactId>
-				<version>${file-management.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-core</artifactId>
-				<version>${maven-libs-version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-artifact</artifactId>
-				<version>${maven-libs-version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-compat</artifactId>
-				<version>${maven-libs-version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.maven.plugin-tools</groupId>
 				<artifactId>maven-plugin-annotations</artifactId>
 				<version>${maven-plugin-annotations.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven.plugin-testing</groupId>
-				<artifactId>maven-plugin-testing-harness</artifactId>
-				<version>${maven-plugin-testing-harness.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-project</artifactId>
 				<scope>provided</scope>
 				<version>2.2.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-utils</artifactId>
-				<version>4.0.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-xml</artifactId>
-				<version>4.0.4</version>
 			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
@@ -422,10 +377,6 @@
 							<artifactId>plantuml</artifactId>
 						</dependency>
 					</dependencies>
-				</plugin>
-				<plugin>
-					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.10.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
