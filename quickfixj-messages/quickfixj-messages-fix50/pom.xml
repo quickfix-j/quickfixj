@@ -87,7 +87,7 @@
 				<!-- prune classes that are not in the FIX Dictionaries specified below -->
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
-				<version>${project.version}</version>
+				<version>${class-pruner-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>prune</id>
