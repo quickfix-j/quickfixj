@@ -995,7 +995,9 @@ public class SSLCertificateTest {
         List<AssertionError> errors = Collections.synchronizedList(new ArrayList<>());
         List<Thread> threads = new ArrayList<>();
 
-        for (TestConnector connector : connectors) {
+        for (int i = 0; i < connectors.length; i++) {
+            final TestConnector connector = connectors[i];
+            final String threadName = "ssl-check-" + connector.getClass().getSimpleName() + "-" + i;
             Thread t = new Thread(() -> {
                 try {
                     connector.assertNoSslExceptionThrown();
@@ -1004,7 +1006,7 @@ public class SSLCertificateTest {
                 } catch (Exception e) {
                     errors.add(new AssertionError("Unexpected exception in assertNoSslExceptionThrown", e));
                 }
-            });
+            }, threadName);
             threads.add(t);
             t.start();
         }
@@ -1014,9 +1016,13 @@ public class SSLCertificateTest {
         }
 
         if (!errors.isEmpty()) {
-            AssertionError first = errors.get(0);
-            errors.stream().skip(1).forEach(first::addSuppressed);
-            throw first;
+            String summary = errors.stream()
+                    .map(Throwable::getMessage)
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("SSL exceptions thrown");
+            AssertionError combined = new AssertionError(summary);
+            errors.forEach(combined::addSuppressed);
+            throw combined;
         }
     }
 
