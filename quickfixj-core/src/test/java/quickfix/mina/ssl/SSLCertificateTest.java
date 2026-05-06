@@ -1236,7 +1236,7 @@ public class SSLCertificateTest {
      * Creates acceptor settings that contains two sessions. One with SSL support, one without.
      */
     private SessionSettings createMixedSessionAcceptorSettings(int sslPort, int nonSslPort, String keyStoreName) {
-        HashMap<Object, Object> defaults = createCommonDefaults();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
 
         SessionSettings sessionSettings = new SessionSettings();
@@ -1265,7 +1265,7 @@ public class SSLCertificateTest {
 
     private SessionSettings createMultiSessionAcceptorSettings(String keyStoreName, boolean needClientAuth,
             String[] trustStoreNames, String cipherSuites, String protocols) {
-        HashMap<Object, Object> defaults = createCommonDefaults();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
@@ -1299,7 +1299,7 @@ public class SSLCertificateTest {
 
     private SessionSettings createAcceptorSettings(String keyStoreName, boolean needClientAuth, String trustStoreName,
             String cipherSuites, String protocols, String keyStoreType, String trustStoreType, int port) {
-        HashMap<Object, Object> defaults = createCommonDefaults();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
@@ -1359,7 +1359,7 @@ public class SSLCertificateTest {
                                                     String proxyHost, int proxyPort,
                                                     boolean useSni, String sniHostName) {
 
-        HashMap<Object, Object> defaults = createCommonDefaults();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
@@ -1438,7 +1438,7 @@ public class SSLCertificateTest {
     }
 
     private static HashMap<Object, Object> createDefaults(int port) {
-        HashMap<Object, Object> defaults = createCommonDefaults();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
@@ -1447,7 +1447,7 @@ public class SSLCertificateTest {
         return defaults;
     }
 
-    private static HashMap<Object, Object> createCommonDefaults() {
+    private static HashMap<Object, Object> createDefaults() {
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put(Session.SETTING_START_TIME, "00:00:00");
         defaults.put(Session.SETTING_END_TIME, "00:00:00");
