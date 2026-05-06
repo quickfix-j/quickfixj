@@ -1033,6 +1033,7 @@ public class SSLCertificateTest {
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
         private final AtomicReference<Throwable> exception;
+        private volatile boolean exceptionExpected = false;
 
         public TestConnector(SessionSettings sessionSettings) throws ConfigError {
             this.connector = prepareConnector(sessionSettings);
@@ -1045,7 +1046,11 @@ public class SSLCertificateTest {
             sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) {
-                    LOGGER.info("exceptionCaught: {}", cause.getMessage());
+                    if (exceptionExpected) {
+                        LOGGER.info("exceptionCaught: {}", cause.getMessage());
+                    } else {
+                        LOGGER.info("exceptionCaught", cause);
+                    }
                     exception.set(cause);
                     exceptionThrownLatch.countDown();
                     nextFilter.exceptionCaught(session, cause);
@@ -1082,6 +1087,7 @@ public class SSLCertificateTest {
         }
 
         public void assertSslExceptionThrown(String expectedErrorMessage, Class<?> expectedErrorType) throws Exception {
+            exceptionExpected = true;
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
