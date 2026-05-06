@@ -1438,12 +1438,17 @@ public class SSLCertificateTest {
     }
 
     private static HashMap<Object, Object> createDefaults(int port) {
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
         defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
+        return defaults;
+    }
+
+    private static HashMap<Object, Object> createDefaults() {
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put(Session.SETTING_START_TIME, "00:00:00");
         defaults.put(Session.SETTING_END_TIME, "00:00:00");
         defaults.put(Session.SETTING_HEARTBTINT, "5");
