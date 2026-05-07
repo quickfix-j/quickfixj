@@ -85,6 +85,8 @@ public class AcceptanceTestSuite {
             TestConnection connection = null;
             String failureString = "test " + filename + " failed with message: ";
 
+            log.info("Running test {}, filename : {}", this.testname, this.filename);
+
             java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
             Handler[] existingHandlers = rootLogger.getHandlers();
             Level[] originalLevels = new Level[existingHandlers.length];
@@ -97,7 +99,6 @@ public class AcceptanceTestSuite {
 
             boolean testFailed = false;
             try {
-                log.info("Running test {}, filename : {}", this.testname, this.filename);
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
                 for (TestStep testStep : testSteps) {
