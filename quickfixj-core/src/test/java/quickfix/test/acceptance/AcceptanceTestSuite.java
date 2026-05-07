@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Handler;
@@ -239,10 +238,10 @@ public class AcceptanceTestSuite {
     }
 
     private static final class CapturingLogHandler extends Handler {
-        private final List<LogRecord> records = new CopyOnWriteArrayList<>();
+        private final List<LogRecord> records = new ArrayList<>();
 
         @Override
-        public void publish(LogRecord record) {
+        public synchronized void publish(LogRecord record) {
             records.add(record);
         }
 
@@ -254,7 +253,7 @@ public class AcceptanceTestSuite {
         public void close() throws SecurityException {
         }
 
-        public List<LogRecord> drainRecords() {
+        public synchronized List<LogRecord> drainRecords() {
             List<LogRecord> drained = new ArrayList<>(records);
             records.clear();
             return drained;
