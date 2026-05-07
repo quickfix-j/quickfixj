@@ -309,6 +309,7 @@ public class SSLCertificateTest {
 
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
                 "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+        acceptor.expectException();
 
         try {
             acceptor.start();
@@ -316,6 +317,7 @@ public class SSLCertificateTest {
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
                         enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -799,12 +801,14 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/empty.keystore", false,
                 "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort));
+        acceptor.expectException();
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/empty.keystore",
                     "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -836,6 +840,7 @@ public class SSLCertificateTest {
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
                         enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -860,6 +865,7 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
                 "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+        acceptor.expectException();
 
         try {
             acceptor.start();
@@ -867,6 +873,7 @@ public class SSLCertificateTest {
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
                         enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -891,6 +898,7 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
                 "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+        acceptor.expectException();
 
         try {
             acceptor.start();
@@ -898,6 +906,7 @@ public class SSLCertificateTest {
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/server.keystore", "single-session/client.truststore",
                         enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -922,6 +931,7 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/client.keystore", false,
                 "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+        acceptor.expectException();
 
         try {
             acceptor.start();
@@ -929,6 +939,7 @@ public class SSLCertificateTest {
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
                         enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+            initiator.expectException();
 
             try {
                 initiator.start();
@@ -1071,8 +1082,11 @@ public class SSLCertificateTest {
         }
 
         public void assertNotAuthenticated(SessionID sessionID, boolean authOn) {
-            exceptionExpected = true;
             SSLUtil.assertNotAuthenticated(connector, sessionID, authOn);
+        }
+
+        public void expectException() {
+            exceptionExpected = true;
         }
 
         public void assertLoggedOn(SessionID sessionID) {
