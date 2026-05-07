@@ -1071,6 +1071,7 @@ public class SSLCertificateTest {
         }
 
         public void assertNotAuthenticated(SessionID sessionID, boolean authOn) {
+            exceptionExpected = true;
             SSLUtil.assertNotAuthenticated(connector, sessionID, authOn);
         }
 
