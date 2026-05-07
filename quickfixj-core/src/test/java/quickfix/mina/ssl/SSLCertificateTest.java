@@ -27,7 +27,9 @@ import org.burningwave.tools.net.HostResolutionRequestInterceptor;
 import org.burningwave.tools.net.MappedHostResolver;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -80,6 +82,11 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Parameterized.class)
 public class SSLCertificateTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLCertificateTest.class);
+
+    @Rule
+    public final TestName testName = new TestName();
+
     private static final String LOCALHOST_ALIAS = "localhost-quickfixj";
 
     // Cipher suites that require certificates (excludes anonymous suites)
@@ -116,6 +123,7 @@ public class SSLCertificateTest {
 
     @Before
     public void setUp() {
+        LOGGER.info(">>> Running test: {}", testName.getMethodName());
         Map<String, String> hostAliases = new HashMap<>();
         hostAliases.put(LOCALHOST_ALIAS, "127.0.0.1");
 
