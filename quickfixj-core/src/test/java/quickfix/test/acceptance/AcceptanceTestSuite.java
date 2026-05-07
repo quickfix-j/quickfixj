@@ -25,8 +25,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 /**
  * Acceptance test suite that programmatically discovers and runs FIX protocol tests.
@@ -81,6 +85,18 @@ public class AcceptanceTestSuite {
             result.startTest(this);
             TestConnection connection = null;
             String failureString = "test " + filename + " failed with message: ";
+
+            java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
+            Handler[] existingHandlers = rootLogger.getHandlers();
+            Level[] originalLevels = new Level[existingHandlers.length];
+            for (int i = 0; i < existingHandlers.length; i++) {
+                originalLevels[i] = existingHandlers[i].getLevel();
+                existingHandlers[i].setLevel(Level.OFF);
+            }
+            CapturingLogHandler capturingHandler = new CapturingLogHandler();
+            rootLogger.addHandler(capturingHandler);
+
+            boolean testFailed = false;
             try {
                 log.info("Running test {}, filename : {}", this.testname, this.filename);
                 connection = new TestConnection();
@@ -89,12 +105,25 @@ public class AcceptanceTestSuite {
                     testStep.run(result, connection);
                 }
             } catch (AssertionFailedError e) {
+                testFailed = true;
                 result.addFailure(this, e);
                 log.error(failureString + e.getMessage());
             } catch (Throwable t) {
+                testFailed = true;
                 result.addError(this, t);
                 log.error(failureString + t.getMessage());
             } finally {
+                rootLogger.removeHandler(capturingHandler);
+                for (int i = 0; i < existingHandlers.length; i++) {
+                    existingHandlers[i].setLevel(originalLevels[i]);
+                }
+                if (testFailed) {
+                    for (LogRecord record : capturingHandler.drainRecords()) {
+                        for (Handler handler : existingHandlers) {
+                            handler.publish(record);
+                        }
+                    }
+                }
                 if (connection != null) {
                     connection.tearDown();
                 }
@@ -207,6 +236,29 @@ public class AcceptanceTestSuite {
         return skipSlowTests &&
                 (file.getName().contains("NoDataSentDuringHeartBtInt")
                         || file.getName().contains("SendTestRequest"));
+    }
+
+    private static final class CapturingLogHandler extends Handler {
+        private final List<LogRecord> records = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void publish(LogRecord record) {
+            records.add(record);
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() throws SecurityException {
+        }
+
+        public List<LogRecord> drainRecords() {
+            List<LogRecord> drained = new ArrayList<>(records);
+            records.clear();
+            return drained;
+        }
     }
 
     private static final class AcceptanceTestServerSetUp extends TestSetup {
