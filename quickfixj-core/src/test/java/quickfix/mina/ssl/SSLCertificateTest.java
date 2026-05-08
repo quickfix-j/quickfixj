@@ -1413,7 +1413,6 @@ public class SSLCertificateTest {
 
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, port);
-        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -1466,7 +1465,6 @@ public class SSLCertificateTest {
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
-        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
         return defaults;
     }
 
