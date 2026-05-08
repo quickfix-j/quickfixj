@@ -62,6 +62,8 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
@@ -1065,10 +1067,13 @@ public class SSLCertificateTest {
             sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) {
+                    String connectionType = getConnectionType(session);
+                    String portLabel = getPortLabel(session);
+                    int port = getPort(session);
                     if (exceptionExpected) {
-                        LOGGER.info("exceptionCaught: {}", cause.getMessage());
+                        LOGGER.info("{} {}={} exceptionCaught: {}", connectionType, portLabel, port, cause.getMessage());
                     } else {
-                        LOGGER.info("exceptionCaught", cause);
+                        LOGGER.info("{} {}={} exceptionCaught", connectionType, portLabel, port, cause);
                     }
                     exception.set(cause);
                     exceptionThrownLatch.countDown();
@@ -1080,6 +1085,19 @@ public class SSLCertificateTest {
         }
 
         public abstract SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError;
+
+        private static String getConnectionType(IoSession session) {
+            return session.isServer() ? "acceptor" : "initiator";
+        }
+
+        private static String getPortLabel(IoSession session) {
+            return session.isServer() ? "acceptPort" : "connectPort";
+        }
+
+        private static int getPort(IoSession session) {
+            SocketAddress address = session.isServer() ? session.getLocalAddress() : session.getRemoteAddress();
+            return address instanceof InetSocketAddress ? ((InetSocketAddress) address).getPort() : -1;
+        }
 
         public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) {
             SSLUtil.assertAuthenticated(connector, sessionID, serialNumber);
