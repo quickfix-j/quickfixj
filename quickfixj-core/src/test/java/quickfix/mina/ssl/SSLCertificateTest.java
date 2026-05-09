@@ -81,6 +81,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -829,8 +830,8 @@ public class SSLCertificateTest {
                 try {
                     initiator.assertSslExceptionThrown();
                 } catch (AssertionError e) {
-                    assertTrue("Initiator must not send Logon when SSL exception is not thrown",
-                            !initiator.isLogonSent());
+                    assertFalse("Initiator must not send Logon when SSL exception is not thrown",
+                            initiator.isLogonSent());
                 }
                 initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
