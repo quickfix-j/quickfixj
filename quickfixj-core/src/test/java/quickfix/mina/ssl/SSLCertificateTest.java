@@ -829,7 +829,7 @@ public class SSLCertificateTest {
                 try {
                     initiator.assertSslExceptionThrown();
                 } catch (AssertionError e) {
-                    assertTrue("Initiator did not receive SSL exception and still sent Logon before disconnect",
+                    assertTrue("Initiator must not send Logon when SSL exception is not thrown",
                             !initiator.isLogonSent());
                 }
                 initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
