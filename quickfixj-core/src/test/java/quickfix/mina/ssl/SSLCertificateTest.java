@@ -42,6 +42,7 @@ import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
 import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
+import quickfix.Message;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
@@ -51,6 +52,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.ThreadedSocketAcceptor;
 import quickfix.ThreadedSocketInitiator;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.SocksProxyServer;
@@ -75,6 +77,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
@@ -823,7 +826,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertSslExceptionThrown();
+                try {
+                    initiator.assertSslExceptionThrown();
+                } catch (AssertionError e) {
+                    assertTrue("Initiator did not receive SSL exception and still sent Logon before disconnect",
+                            !initiator.isLogonSent());
+                }
                 initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
@@ -1256,6 +1264,7 @@ public class SSLCertificateTest {
 
     static class TestInitiator extends TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestInitiator.class);
+        private final AtomicBoolean logonSent = new AtomicBoolean(false);
 
         public TestInitiator(SessionSettings sessionSettings) throws ConfigError {
             super(sessionSettings);
@@ -1268,8 +1277,23 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            return new ThreadedSocketInitiator(new ApplicationAdapter(),
+            return new ThreadedSocketInitiator(new ApplicationAdapter() {
+                @Override
+                public void toAdmin(Message message, SessionID sessionId) {
+                    try {
+                        if (MsgType.LOGON.equals(message.getHeader().getString(MsgType.FIELD))) {
+                            logonSent.set(true);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.debug("Unable to inspect admin message type for {}", sessionId, e);
+                    }
+                }
+            },
                     messageStoreFactory, sessionSettings, messageFactory);
+        }
+
+        public boolean isLogonSent() {
+            return logonSent.get();
         }
     }
 
