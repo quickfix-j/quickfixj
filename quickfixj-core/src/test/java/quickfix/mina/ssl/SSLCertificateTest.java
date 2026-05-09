@@ -40,6 +40,7 @@ import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
+import quickfix.FieldNotFound;
 import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
 import quickfix.Message;
@@ -1285,7 +1286,7 @@ public class SSLCertificateTest {
                         if (MsgType.LOGON.equals(message.getHeader().getString(MsgType.FIELD))) {
                             logonSent.set(true);
                         }
-                    } catch (Exception e) {
+                    } catch (FieldNotFound e) {
                         LOGGER.debug("Unable to inspect admin message type for {}", sessionId, e);
                     }
                 }
