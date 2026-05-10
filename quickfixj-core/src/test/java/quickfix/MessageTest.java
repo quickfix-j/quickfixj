@@ -143,6 +143,11 @@ import quickfix.fixt11.TestRequest;
  * message classes that are generated later in the compile process.
  */
 public class MessageTest {
+    private static final String DEFAULT_CONNECT_TIMEOUT_PROPERTY = "sun.net.client.defaultConnectTimeout";
+    private static final String DEFAULT_READ_TIMEOUT_PROPERTY = "sun.net.client.defaultReadTimeout";
+    private static final int EXTERNAL_DTD_TIMEOUT_MILLIS = 5000;
+    private static final int EXTERNAL_DTD_LOAD_RETRIES = 3;
+    private static final int EXTERNAL_DTD_RETRY_DELAY_MILLIS = 250;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -1265,7 +1270,7 @@ public class MessageTest {
 
     @Test
     public void shouldConvertToXmlWhenDataDictionaryLoadedWithExternalDTD() throws ConfigError {
-        DataDictionary dataDictionary = new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+        DataDictionary dataDictionary = loadDataDictionaryWithExternalDtdRetry();
         Message message = new Message();
         message.setString(Account.FIELD, "test-account");
 
@@ -1273,6 +1278,47 @@ public class MessageTest {
         xml = xml.replace("\r", "").replace("\n", "").replaceAll(">\\s+<", "><");
         assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field name=\"Account\" tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", xml);
     }
+
+    private DataDictionary loadDataDictionaryWithExternalDtdRetry() throws ConfigError {
+        final String previousConnectTimeout = System.getProperty(DEFAULT_CONNECT_TIMEOUT_PROPERTY);
+        final String previousReadTimeout = System.getProperty(DEFAULT_READ_TIMEOUT_PROPERTY);
+        try {
+            final String timeout = String.valueOf(EXTERNAL_DTD_TIMEOUT_MILLIS);
+            System.setProperty(DEFAULT_CONNECT_TIMEOUT_PROPERTY, timeout);
+            System.setProperty(DEFAULT_READ_TIMEOUT_PROPERTY, timeout);
+
+            ConfigError lastError = new ConfigError("Could not parse data dictionary file");
+            for (int attempt = 1; attempt <= EXTERNAL_DTD_LOAD_RETRIES; attempt++) {
+                try {
+                    return new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+                } catch (ConfigError e) {
+                    lastError = e;
+                    if (attempt < EXTERNAL_DTD_LOAD_RETRIES) {
+                        try {
+                            Thread.sleep((1L << (attempt - 1)) * EXTERNAL_DTD_RETRY_DELAY_MILLIS);
+                        } catch (InterruptedException interruptedException) {
+                            Thread.currentThread().interrupt();
+                            throw new ConfigError("Interrupted while retrying FIX_External_DTD.xml load", interruptedException);
+                        }
+                    }
+                }
+            }
+            throw new ConfigError("Failed to load FIX_External_DTD.xml after "
+                    + EXTERNAL_DTD_LOAD_RETRIES + " attempts", lastError);
+        } finally {
+            restoreSystemProperty(DEFAULT_CONNECT_TIMEOUT_PROPERTY, previousConnectTimeout);
+            restoreSystemProperty(DEFAULT_READ_TIMEOUT_PROPERTY, previousReadTimeout);
+        }
+    }
+
+    private static void restoreSystemProperty(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+        } else {
+            System.setProperty(key, value);
+        }
+    }
+
     @Test
     public void shouldConvertToXMLWithoutIndent() {
         Message message = new Message();
