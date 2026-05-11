@@ -828,6 +828,7 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
+                // Depending on JSSE/provider timing, initiator may fail before surfacing an SSL exception.
                 try {
                     initiator.assertSslExceptionThrown();
                 } catch (AssertionError e) {
