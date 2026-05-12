@@ -3,7 +3,7 @@
 
 	<groupId>org.quickfixj</groupId>
 	<artifactId>quickfixj-parent</artifactId>
-	<version>3.0.1-SNAPSHOT</version>
+	<version>3.0.1</version>
 	<packaging>pom</packaging>
 
 	<name>QuickFIX/J Parent</name>
@@ -98,9 +98,10 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.1</jaxen.version>
-        <jmh.version>1.37</jmh.version>
-        <jcstress.version>0.16</jcstress.version>
-        <hsqldb.version>1.8.0.10</hsqldb.version>
+    	<jmh.version>1.37</jmh.version>
+    	<jcstress.version>0.16</jcstress.version>
+    	<hsqldb.version>1.8.0.10</hsqldb.version>
+		<netty.version>4.2.13.Final</netty.version>
 		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
 	</properties>
 

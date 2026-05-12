@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>3.0.1-SNAPSHOT</version>
+		<version>3.0.1</version>
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
@@ -120,8 +120,14 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-example</artifactId>
-			<version>4.2.12.Final</version>
+			<version>${netty.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-tcnative</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
         <dependency>
             <groupId>org.burningwave</groupId>
@@ -231,14 +237,6 @@
 			</plugin>
 		</plugins>
 
-	  <extensions>
-		  <!-- required by Netty cross-platform build -->
-		  <extension>
-			  <groupId>kr.motd.maven</groupId>
-			  <artifactId>os-maven-plugin</artifactId>
-			  <version>1.7.1</version>
-		  </extension>
-	  </extensions>
 	</build>
 
 	<reporting>
