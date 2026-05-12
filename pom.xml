@@ -98,10 +98,9 @@
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
 		<jaxen.version>2.0.1</jaxen.version>
-    	<jmh.version>1.37</jmh.version>
-    	<jcstress.version>0.16</jcstress.version>
-    	<hsqldb.version>1.8.0.10</hsqldb.version>
-		<netty.version>4.2.13.Final</netty.version>
+        <jmh.version>1.37</jmh.version>
+        <jcstress.version>0.16</jcstress.version>
+        <hsqldb.version>1.8.0.10</hsqldb.version>
 		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
 	</properties>
 
