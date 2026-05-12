@@ -45,6 +45,7 @@ public class AcceptanceTestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
     private static final String ATEST_TRANSPORT_KEY = "atest.transport";
     private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
+    private static final String ATEST_VERBOSE_KEY = "atest.verbose";
     private static final Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
@@ -53,6 +54,7 @@ public class AcceptanceTestSuite {
     private static int port = AvailablePortFinder.getNextAvailable();
 
     private final boolean skipSlowTests;
+    private final boolean verboseLogging;
     private final boolean multithreaded;
 
     private final Map<Object, Object> overridenProperties;
@@ -90,12 +92,15 @@ public class AcceptanceTestSuite {
             java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
             Handler[] existingHandlers = rootLogger.getHandlers();
             Level[] originalLevels = new Level[existingHandlers.length];
-            for (int i = 0; i < existingHandlers.length; i++) {
-                originalLevels[i] = existingHandlers[i].getLevel();
-                existingHandlers[i].setLevel(Level.OFF);
+            CapturingLogHandler capturingHandler = null;
+            if (!verboseLogging) {
+                for (int i = 0; i < existingHandlers.length; i++) {
+                    originalLevels[i] = existingHandlers[i].getLevel();
+                    existingHandlers[i].setLevel(Level.OFF);
+                }
+                capturingHandler = new CapturingLogHandler();
+                rootLogger.addHandler(capturingHandler);
             }
-            CapturingLogHandler capturingHandler = new CapturingLogHandler();
-            rootLogger.addHandler(capturingHandler);
 
             boolean testFailed = false;
             try {
@@ -113,14 +118,16 @@ public class AcceptanceTestSuite {
                 result.addError(this, t);
                 log.error(failureString + t.getMessage());
             } finally {
-                rootLogger.removeHandler(capturingHandler);
-                for (int i = 0; i < existingHandlers.length; i++) {
-                    existingHandlers[i].setLevel(originalLevels[i]);
-                }
-                if (testFailed) {
-                    for (LogRecord record : capturingHandler.drainRecords()) {
-                        for (Handler handler : existingHandlers) {
-                            handler.publish(record);
+                if (!verboseLogging) {
+                    rootLogger.removeHandler(capturingHandler);
+                    for (int i = 0; i < existingHandlers.length; i++) {
+                        existingHandlers[i].setLevel(originalLevels[i]);
+                    }
+                    if (testFailed) {
+                        for (LogRecord record : capturingHandler.drainRecords()) {
+                            for (Handler handler : existingHandlers) {
+                                handler.publish(record);
+                            }
                         }
                     }
                 }
@@ -179,6 +186,7 @@ public class AcceptanceTestSuite {
         }
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
+        this.verboseLogging = Boolean.getBoolean(ATEST_VERBOSE_KEY);
 
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix40"));
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix41"));
