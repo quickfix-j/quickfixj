@@ -757,17 +757,17 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-            enabledCipherSuites, enabledProtocols));
+            enabledCipherSuites, enabledProtocols), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"), true);
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"), true);
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
                         enabledCipherSuites, enabledProtocols, "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
@@ -1079,7 +1079,7 @@ public class SSLCertificateTest {
                     String portLabel = getPortLabel(session);
                     int port = getPort(session);
                     if (exceptionExpected) {
-                        LOGGER.info("exceptionCaught {} {}={}: {}", connectionType, portLabel, port, cause.getMessage());
+                        LOGGER.info("exceptionCaught (expected) {} {}={}: {}", connectionType, portLabel, port, cause.getMessage());
                     } else {
                         LOGGER.info("exceptionCaught {} {}={}", connectionType, portLabel, port, cause);
                     }
@@ -1132,6 +1132,10 @@ public class SSLCertificateTest {
         }
 
         public void assertSslExceptionThrown(String expectedErrorMessage, Class<?> expectedErrorType) throws Exception {
+            if (!exceptionExpected) {
+                throw new AssertionError("Connector is not configured to expect SSL exceptions");
+            }
+
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
