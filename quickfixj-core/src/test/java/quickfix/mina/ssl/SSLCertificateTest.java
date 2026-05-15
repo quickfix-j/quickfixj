@@ -323,16 +323,14 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
 
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
-        acceptor.expectException();
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
-            initiator.expectException();
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"), true);
 
             try {
                 initiator.start();
@@ -815,26 +813,18 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerKeyStore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/empty.keystore", false,
-                "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort));
-        acceptor.expectException();
+                "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/empty.keystore",
-                    "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-            initiator.expectException();
+                    "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
 
-                // Depending on JSSE/provider timing, initiator may fail before surfacing an SSL exception.
-                try {
-                    initiator.assertSslExceptionThrown();
-                } catch (AssertionError e) {
-                    assertFalse("Initiator must not send Logon when SSL exception is not thrown",
-                            initiator.isLogonSent());
-                }
+                assertSslExceptionThrownOrLogonNotSent(initiator);
                 initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
@@ -860,8 +850,7 @@ public class SSLCertificateTest {
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-            initiator.expectException();
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -885,16 +874,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerTrustore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
-        acceptor.expectException();
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-            initiator.expectException();
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -918,16 +905,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadClientCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
-        acceptor.expectException();
+                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/server.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-            initiator.expectException();
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -951,16 +936,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/client.keystore", false,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
-        acceptor.expectException();
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-            initiator.expectException();
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -1058,6 +1041,15 @@ public class SSLCertificateTest {
         }
     }
 
+    private static void assertSslExceptionThrownOrLogonNotSent(TestInitiator initiator) throws Exception {
+        // Depending on JSSE/provider timing, initiator may fail before surfacing an SSL exception.
+        try {
+            initiator.assertSslExceptionThrown();
+        } catch (AssertionError e) {
+            assertFalse("Initiator must not send Logon when SSL exception is not thrown", initiator.isLogonSent());
+        }
+    }
+
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
         private static final int TIMEOUT_SECONDS = 7;
@@ -1065,12 +1057,17 @@ public class SSLCertificateTest {
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
         private final AtomicReference<Throwable> exception;
-        private volatile boolean exceptionExpected = false;
+        private final boolean exceptionExpected;
 
         public TestConnector(SessionSettings sessionSettings) throws ConfigError {
+            this(sessionSettings, false);
+        }
+
+        public TestConnector(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
             this.connector = prepareConnector(sessionSettings);
             this.exceptionThrownLatch = new CountDownLatch(1);
             this.exception = new AtomicReference<>();
+            this.exceptionExpected = exceptionExpected;
         }
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
@@ -1082,9 +1079,9 @@ public class SSLCertificateTest {
                     String portLabel = getPortLabel(session);
                     int port = getPort(session);
                     if (exceptionExpected) {
-                        LOGGER.info("{} {}={} exceptionCaught: {}", connectionType, portLabel, port, cause.getMessage());
+                        LOGGER.info("exceptionCaught {} {}={}: {}", connectionType, portLabel, port, cause.getMessage());
                     } else {
-                        LOGGER.info("{} {}={} exceptionCaught", connectionType, portLabel, port, cause);
+                        LOGGER.info("exceptionCaught {} {}={}", connectionType, portLabel, port, cause);
                     }
                     exception.set(cause);
                     exceptionThrownLatch.countDown();
@@ -1122,10 +1119,6 @@ public class SSLCertificateTest {
             SSLUtil.assertNotAuthenticated(connector, sessionID, authOn);
         }
 
-        public void expectException() {
-            exceptionExpected = true;
-        }
-
         public void assertLoggedOn(SessionID sessionID) {
             SessionUtil.assertLoggedOn(connector, sessionID);
         }
@@ -1139,7 +1132,6 @@ public class SSLCertificateTest {
         }
 
         public void assertSslExceptionThrown(String expectedErrorMessage, Class<?> expectedErrorType) throws Exception {
-            exceptionExpected = true;
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
@@ -1250,7 +1242,11 @@ public class SSLCertificateTest {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestAcceptor.class);
 
         public TestAcceptor(SessionSettings sessionSettings) throws ConfigError {
-            super(sessionSettings);
+            this(sessionSettings, false);
+        }
+
+        public TestAcceptor(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
+            super(sessionSettings, exceptionExpected);
         }
 
         @Override
@@ -1270,7 +1266,11 @@ public class SSLCertificateTest {
         private final AtomicBoolean logonSent = new AtomicBoolean(false);
 
         public TestInitiator(SessionSettings sessionSettings) throws ConfigError {
-            super(sessionSettings);
+            this(sessionSettings, false);
+        }
+
+        public TestInitiator(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
+            super(sessionSettings, exceptionExpected);
         }
 
         @Override
