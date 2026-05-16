@@ -281,17 +281,15 @@ public class DefaultSessionSchedule implements SessionSchedule {
     }
 
     @Override
-    public boolean isSameSession(ZonedDateTime time1, ZonedDateTime time2) {
+    public boolean isSameSession(long time1, long time2) {
         if (isNonStopSession())
             return true;
-        long ms1 = time1.toInstant().toEpochMilli();
-        long ms2 = time2.toInstant().toEpochMilli();
-        TimeInterval interval1 = theMostRecentIntervalBefore(ms1);
-        if (!interval1.isContainingTime(ms1)) {
+        TimeInterval interval1 = theMostRecentIntervalBefore(time1);
+        if (!interval1.isContainingTime(time1)) {
             return false;
         }
-        TimeInterval interval2 = theMostRecentIntervalBefore(ms2);
-        return interval2.isContainingTime(ms2) && interval1.equals(interval2);
+        TimeInterval interval2 = theMostRecentIntervalBefore(time2);
+        return interval2.isContainingTime(time2) && interval1.equals(interval2);
     }
 
     @Override

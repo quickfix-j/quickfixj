@@ -31,8 +31,7 @@ import java.util.Date;
  */
 public class NoopStore implements MessageStore {
 
-    private Date creationTime = new Date();
-    private Calendar creationTimeCalendar = SystemTime.getUtcCalendar(creationTime);
+    private Date creationTime = SystemTime.getDate();
     private int nextSenderMsgSeqNum = 1;
     private int nextTargetMsgSeqNum = 1;
 
@@ -44,7 +43,7 @@ public class NoopStore implements MessageStore {
     }
 
     public Calendar getCreationTimeCalendar() {
-        return creationTimeCalendar;
+        return SystemTime.getUtcCalendar(creationTime);
     }
 
     public int getNextSenderMsgSeqNum() {
@@ -64,7 +63,7 @@ public class NoopStore implements MessageStore {
     }
 
     public void reset() {
-        creationTime = new Date();
+        creationTime = SystemTime.getDate();
         nextSenderMsgSeqNum = 1;
         nextTargetMsgSeqNum = 1;
     }
