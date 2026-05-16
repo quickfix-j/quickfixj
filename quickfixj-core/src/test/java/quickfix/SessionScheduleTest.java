@@ -29,6 +29,8 @@ import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -875,7 +877,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("before session", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -884,13 +886,13 @@ public class SessionScheduleTest {
             // This should be an impossible situation. "Now" should always be
             // after the session create time.
             assertFalse(formatErrorMessage("before create", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
         while (withinSession(scheduleStartTime, scheduleEndTime)) {
             assertTrue(formatErrorMessage("within", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -899,7 +901,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("after", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
     }
@@ -930,8 +932,14 @@ public class SessionScheduleTest {
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time1, time2));
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time2, time1));
+        ZonedDateTime zdt1 = toZdt(time1);
+        ZonedDateTime zdt2 = toZdt(time2);
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(zdt1, zdt2));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(zdt2, zdt1));
+    }
+
+    private static ZonedDateTime toZdt(Calendar c) {
+        return c == null ? null : ZonedDateTime.ofInstant(c.toInstant(), ZoneOffset.UTC);
     }
 
     private Calendar getTimeStamp(int year, int month, int day, int hour, int minute, int second,

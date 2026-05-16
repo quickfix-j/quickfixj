@@ -59,8 +59,10 @@ import quickfix.mina.EventHandlingStrategy;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -658,7 +660,8 @@ public class Session implements Closeable {
     private boolean isCurrentSession(final long time)
             throws IOException {
         return sessionSchedule == null || sessionSchedule.isSameSession(
-                SystemTime.getUtcCalendar(time), state.getCreationTimeCalendar());
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneOffset.UTC),
+                ZonedDateTime.ofInstant(state.getCreationTime().toInstant(), ZoneOffset.UTC));
     }
 
     /**

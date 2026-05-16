@@ -19,7 +19,7 @@
 
 package quickfix;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 
 /**
  * Used to decide when to login and out of FIX sessions
@@ -32,7 +32,7 @@ public interface SessionSchedule {
      * @param time2 test time 2
      * @return return true if in the same session
      */
-    boolean isSameSession(Calendar time1, Calendar time2);
+    boolean isSameSession(ZonedDateTime time1, ZonedDateTime time2);
 
     boolean isNonStopSession();
 
