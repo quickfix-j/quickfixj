@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Locale;
@@ -366,7 +365,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
             buf.append("daily, ");
         }
 
-        ZoneId startZone = local ? startTime.getTimeZone().toZoneId() : ZoneOffset.UTC;
+        ZoneId startZone = local ? startTime.getTimeZone().toZoneId() : TimeZone.getTimeZone("UTC").toZoneId();
         buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getStart().getTimeInMillis())
                 .atZone(startZone)));
 
@@ -376,7 +375,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
             formatDayOfWeek(buf, endTime.getDay());
             buf.append(" ");
         }
-        ZoneId endZone = local ? endTime.getTimeZone().toZoneId() : ZoneOffset.UTC;
+        ZoneId endZone = local ? endTime.getTimeZone().toZoneId() : TimeZone.getTimeZone("UTC").toZoneId();
         buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getEnd().getTimeInMillis())
                 .atZone(endZone)));
     }
