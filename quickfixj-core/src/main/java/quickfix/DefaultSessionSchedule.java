@@ -22,8 +22,12 @@ package quickfix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -253,7 +257,8 @@ public class DefaultSessionSchedule implements SessionSchedule {
         }
 
         public String toString() {
-            return start.getTime() + " --> " + end.getTime();
+            return Instant.ofEpochMilli(start.getTimeInMillis()) + " --> "
+                    + Instant.ofEpochMilli(end.getTimeInMillis());
         }
 
         public boolean equals(Object other) {
@@ -322,11 +327,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
     public String toString() {
         StringBuilder buf = new StringBuilder();
 
-        SimpleDateFormat dowFormat = new SimpleDateFormat("EEEE");
-        dowFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss-z");
-        timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss-z", Locale.getDefault());
 
         TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar());
 
@@ -344,7 +345,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
     }
 
     private void formatTimeInterval(StringBuilder buf, TimeInterval timeInterval,
-                                    SimpleDateFormat timeFormat, boolean local) {
+                                    DateTimeFormatter timeFormat, boolean local) {
         if (isNonStopSession) {
             buf.append("nonstop");
             return;
@@ -365,10 +366,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
             buf.append("daily, ");
         }
 
-        if (local) {
-            timeFormat.setTimeZone(startTime.getTimeZone());
-        }
-        buf.append(timeFormat.format(timeInterval.getStart().getTime()));
+        ZoneId startZone = local ? startTime.getTimeZone().toZoneId() : ZoneOffset.UTC;
+        buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getStart().getTimeInMillis())
+                .atZone(startZone)));
 
         buf.append(" - ");
 
@@ -376,10 +376,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
             formatDayOfWeek(buf, endTime.getDay());
             buf.append(" ");
         }
-        if (local) {
-            timeFormat.setTimeZone(endTime.getTimeZone());
-        }
-        buf.append(timeFormat.format(timeInterval.getEnd().getTime()));
+        ZoneId endZone = local ? endTime.getTimeZone().toZoneId() : ZoneOffset.UTC;
+        buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getEnd().getTimeInMillis())
+                .atZone(endZone)));
     }
 
     private void formatDayOfWeek(StringBuilder buf, int dayOfWeek) {
