@@ -3,7 +3,7 @@
 
 	<groupId>org.quickfixj</groupId>
 	<artifactId>quickfixj-parent</artifactId>
-	<version>3.0.1-SNAPSHOT</version>
+	<version>3.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>QuickFIX/J Parent</name>
@@ -47,7 +47,6 @@
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-class-pruner-maven-plugin</module>
 		<module>quickfixj-orchestration</module>
 		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
@@ -63,7 +62,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>2.0.17</slf4j.version>
+		<slf4j.version>2.0.18</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>3.0</hamcrest.version>
 		<junit.jupiter.version>5.14.4</junit.jupiter.version>
@@ -71,8 +70,7 @@
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass />
         <maven.version>3.9.12</maven.version>
-		<maven-libs-version>${maven.version}</maven-libs-version>
-		<maven-plugin-api-version>3.9.15</maven-plugin-api-version>
+		<maven-plugin-api-version>3.9.16</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.15.0</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.5.0</maven-jar-plugin-version>
@@ -87,10 +85,7 @@
 		<maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
-		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
-		<file-management.version>3.2.0</file-management.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
-		<maven-plugin-testing-harness.version>3.5.1</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.2.1</xml-maven-plugin-version>
@@ -98,15 +93,17 @@
 		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>4.0.5</jaxb.version>
-		<apache.mina.version>2.2.4</apache.mina.version>
+		<apache.mina.version>2.2.7</apache.mina.version>
 		<commons.io.version>2.22.0</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.3</org.quickfixj.orchestra.tools.version>
-		<jaxen.version>2.0.1</jaxen.version>
+		<jaxen.version>2.0.3</jaxen.version>
 		<saxon.version>12.9</saxon.version>
-        <jmh.version>1.37</jmh.version>
-        <jcstress.version>0.16</jcstress.version>
-        <hsqldb.version>1.8.0.10</hsqldb.version>
+    	<jmh.version>1.37</jmh.version>
+    	<jcstress.version>0.16</jcstress.version>
+    	<hsqldb.version>1.8.0.10</hsqldb.version>
+		<netty.version>4.2.13.Final</netty.version>
+		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
 	</properties>
 
    <dependencyManagement>
@@ -178,56 +175,15 @@
 				<version>${maven-plugin-api-version}</version>
 			</dependency>
 			<dependency>
-			  <groupId>org.apache.maven.shared</groupId>
-			  <artifactId>maven-shared-utils</artifactId>
-			  <version>${maven-shared-utils.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven.shared</groupId>
-				<artifactId>file-management</artifactId>
-				<version>${file-management.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-core</artifactId>
-				<version>${maven-libs-version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-artifact</artifactId>
-				<version>${maven-libs-version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-compat</artifactId>
-				<version>${maven-libs-version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.maven.plugin-tools</groupId>
 				<artifactId>maven-plugin-annotations</artifactId>
 				<version>${maven-plugin-annotations.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven.plugin-testing</groupId>
-				<artifactId>maven-plugin-testing-harness</artifactId>
-				<version>${maven-plugin-testing-harness.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-project</artifactId>
 				<scope>provided</scope>
 				<version>2.2.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-utils</artifactId>
-				<version>4.0.3</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-xml</artifactId>
-				<version>4.0.4</version>
 			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
@@ -432,10 +388,6 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.10.0</version>
-				</plugin>
-				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
 					<version>3.15.2</version>
 				</plugin>
@@ -456,6 +408,11 @@
 					<groupId>org.quickfixj.orchestra</groupId>
 					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
 					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj</groupId>
+					<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
+					<version>${class-pruner-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
