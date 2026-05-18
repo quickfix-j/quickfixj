@@ -27,7 +27,9 @@ import org.burningwave.tools.net.HostResolutionRequestInterceptor;
 import org.burningwave.tools.net.MappedHostResolver;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -38,8 +40,10 @@ import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
+import quickfix.FieldNotFound;
 import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
+import quickfix.Message;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
@@ -49,6 +53,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.ThreadedSocketAcceptor;
 import quickfix.ThreadedSocketInitiator;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.SocksProxyServer;
@@ -60,23 +65,34 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.security.Principal;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class SSLCertificateTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLCertificateTest.class);
+
+    @Rule
+    public final TestName testName = new TestName();
 
     private static final String LOCALHOST_ALIAS = "localhost-quickfixj";
 
@@ -114,6 +130,7 @@ public class SSLCertificateTest {
 
     @Before
     public void setUp() {
+        LOGGER.info(">>> Running test: {}", testName.getMethodName());
         Map<String, String> hostAliases = new HashMap<>();
         hostAliases.put(LOCALHOST_ALIAS, "127.0.0.1");
 
@@ -147,13 +164,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1448538842"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -210,12 +226,11 @@ public class SSLCertificateTest {
                 try {
                     initiator.start();
 
-                    initiator.assertNoSslExceptionThrown();
+                    assertNoSslExceptionsThrown(initiator, acceptor);
                     initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                     initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), new BigInteger("1448538842"));
                     initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                    acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                     acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
@@ -248,13 +263,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1683903911"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -285,13 +299,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1683904647"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -310,14 +323,14 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
 
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"), true);
 
             try {
                 initiator.start();
@@ -355,13 +368,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1448538842"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -390,13 +402,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1448538842"));
                 initiator.assertSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), "localhost");
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -425,13 +436,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1448538842"));
                 initiator.assertSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), "foo");
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
             } finally {
@@ -466,13 +476,12 @@ public class SSLCertificateTest {
                 try {
                     initiator.start();
 
-                    initiator.assertNoSslExceptionThrown();
+                    assertNoSslExceptionsThrown(initiator, acceptor);
                     initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                     initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                             new BigInteger("1448538842"));
                     initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                    acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                     acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
@@ -510,13 +519,12 @@ public class SSLCertificateTest {
                 try {
                     initiator.start();
 
-                    initiator.assertNoSslExceptionThrown();
+                    assertNoSslExceptionsThrown(initiator, acceptor);
                     initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                     initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                             new BigInteger("1448538842"));
                     initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                    acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                     acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
@@ -554,13 +562,12 @@ public class SSLCertificateTest {
                 try {
                     initiator.start();
 
-                    initiator.assertNoSslExceptionThrown();
+                    assertNoSslExceptionsThrown(initiator, acceptor);
                     initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                     initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                             new BigInteger("1448538842"));
                     initiator.assertSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), "localhost");
 
-                    acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                     acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
@@ -598,13 +605,12 @@ public class SSLCertificateTest {
                 try {
                     initiator.start();
 
-                    initiator.assertNoSslExceptionThrown();
+                    assertNoSslExceptionsThrown(initiator, acceptor);
                     initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                     initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                             new BigInteger("1448538842"));
                     initiator.assertSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), "foo");
 
-                    acceptor.assertNoSslExceptionThrown();
                     acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                     acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"), false);
                 } finally {
@@ -634,13 +640,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1448538842"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1448538787"));
@@ -669,13 +674,12 @@ public class SSLCertificateTest {
             try {
                 initiator.start();
 
-                initiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator, acceptor);
                 initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
                         new BigInteger("1449683167"));
                 initiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1449683336"));
@@ -712,25 +716,22 @@ public class SSLCertificateTest {
                 initiator2.start();
                 initiator3.start();
 
-                initiator1.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(initiator1, initiator2, initiator3, acceptor);
                 initiator1.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU0", "ALFA0"));
                 initiator1.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU0", "ALFA0"),
                         new BigInteger("1449581686"));
                 initiator1.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU0", "ALFA0"));
 
-                initiator2.assertNoSslExceptionThrown();
                 initiator2.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU1", "ALFA1"));
                 initiator2.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU1", "ALFA1"),
                         new BigInteger("1449581686"));
                 initiator2.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU1", "ALFA1"));
 
-                initiator3.assertNoSslExceptionThrown();
                 initiator3.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU2", "ALFA2"));
                 initiator3.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU2", "ALFA2"),
                         new BigInteger("1449581686"));
                 initiator3.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU2", "ALFA2"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA0", "ZULU0"));
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA1", "ZULU1"));
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA2", "ZULU2"));
@@ -756,17 +757,17 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-            enabledCipherSuites, enabledProtocols));
+            enabledCipherSuites, enabledProtocols), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU0", "ALFA0", "12340", "JKS", "JKS"), true);
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU1", "ALFA1", "12341", "JKS", "JKS"), true);
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
                         enabledCipherSuites, enabledProtocols, "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
@@ -812,18 +813,18 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerKeyStore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/empty.keystore", false,
-                "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/empty.keystore",
-                    "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                    "single-session/empty.keystore", CERTIFICATE_REQUIRED_CIPHER_SUITES, "TLSv1.2,TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
 
-                initiator.assertSslExceptionThrown();
+                assertSslExceptionThrownOrLogonNotSent(initiator);
                 initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
                 initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
 
@@ -849,7 +850,7 @@ public class SSLCertificateTest {
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -873,14 +874,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerTrustore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -904,14 +905,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadClientCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+                "single-session/server.truststore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/server.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -935,14 +936,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/client.keystore", false,
-                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort));
+                "single-session/empty.keystore", enabledCipherSuites, enabledProtocols, "JKS", "JKS", freePort), true);
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                        enabledCipherSuites, enabledProtocols, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"), true);
 
             try {
                 initiator.start();
@@ -981,21 +982,18 @@ public class SSLCertificateTest {
                 sslInitiator.start();
                 nonSslInitiator.start();
 
-                sslInitiator.assertNoSslExceptionThrown();
+                assertNoSslExceptionsThrown(sslInitiator, nonSslInitiator, acceptor);
                 sslInitiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_SSL", "ALFA_SSL"));
                 sslInitiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_SSL", "ALFA_SSL"),
                         new BigInteger("1448538842"));
                 sslInitiator.assertNoSNIHostName(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_SSL", "ALFA_SSL"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"), false);
 
-                nonSslInitiator.assertNoSslExceptionThrown();
                 nonSslInitiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_NON_SSL", "ALFA_NON_SSL"));
                 nonSslInitiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_NON_SSL", "ALFA_NON_SSL"));
 
-                acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_NON_SSL", "ZULU_NON_SSL"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_NON_SSL", "ZULU_NON_SSL"));
 
@@ -1008,18 +1006,68 @@ public class SSLCertificateTest {
         }
     }
 
+    private static void assertNoSslExceptionsThrown(TestConnector... connectors) throws InterruptedException {
+        List<AssertionError> errors = Collections.synchronizedList(new ArrayList<>());
+        List<Thread> threads = new ArrayList<>();
+
+        for (int i = 0; i < connectors.length; i++) {
+            final TestConnector connector = connectors[i];
+            final String threadName = "ssl-check-" + connector.getClass().getSimpleName() + "-" + i;
+            Thread t = new Thread(() -> {
+                try {
+                    connector.assertNoSslExceptionThrown();
+                } catch (AssertionError e) {
+                    errors.add(e);
+                } catch (Exception e) {
+                    errors.add(new AssertionError("Unexpected exception in assertNoSslExceptionThrown", e));
+                }
+            }, threadName);
+            threads.add(t);
+            t.start();
+        }
+
+        for (Thread t : threads) {
+            t.join();
+        }
+
+        if (!errors.isEmpty()) {
+            String summary = errors.stream()
+                    .map(Throwable::getMessage)
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("SSL exceptions thrown");
+            AssertionError combined = new AssertionError(summary);
+            errors.forEach(combined::addSuppressed);
+            throw combined;
+        }
+    }
+
+    private static void assertSslExceptionThrownOrLogonNotSent(TestInitiator initiator) throws Exception {
+        // Depending on JSSE/provider timing, initiator may fail before surfacing an SSL exception.
+        try {
+            initiator.assertSslExceptionThrown();
+        } catch (AssertionError e) {
+            assertFalse("Initiator must not send Logon when SSL exception is not thrown", initiator.isLogonSent());
+        }
+    }
+
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
-        private static final int TIMEOUT_SECONDS = 15;
+        private static final int TIMEOUT_SECONDS = 7;
 
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
         private final AtomicReference<Throwable> exception;
+        private final boolean exceptionExpected;
 
         public TestConnector(SessionSettings sessionSettings) throws ConfigError {
+            this(sessionSettings, false);
+        }
+
+        public TestConnector(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
             this.connector = prepareConnector(sessionSettings);
             this.exceptionThrownLatch = new CountDownLatch(1);
             this.exception = new AtomicReference<>();
+            this.exceptionExpected = exceptionExpected;
         }
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
@@ -1027,7 +1075,14 @@ public class SSLCertificateTest {
             sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) {
-                    LOGGER.info("exceptionCaught", cause);
+                    String connectionType = getConnectionType(session);
+                    String portLabel = getPortLabel(session);
+                    int port = getPort(session);
+                    if (exceptionExpected) {
+                        LOGGER.info("exceptionCaught (expected) {} {}={}: {}", connectionType, portLabel, port, cause.getMessage());
+                    } else {
+                        LOGGER.info("exceptionCaught {} {}={}", connectionType, portLabel, port, cause);
+                    }
                     exception.set(cause);
                     exceptionThrownLatch.countDown();
                     nextFilter.exceptionCaught(session, cause);
@@ -1038,6 +1093,19 @@ public class SSLCertificateTest {
         }
 
         public abstract SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError;
+
+        private static String getConnectionType(IoSession session) {
+            return session.isServer() ? "acceptor" : "initiator";
+        }
+
+        private static String getPortLabel(IoSession session) {
+            return session.isServer() ? "acceptPort" : "connectPort";
+        }
+
+        private static int getPort(IoSession session) {
+            SocketAddress address = session.isServer() ? session.getLocalAddress() : session.getRemoteAddress();
+            return address instanceof InetSocketAddress ? ((InetSocketAddress) address).getPort() : -1;
+        }
 
         public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) {
             SSLUtil.assertAuthenticated(connector, sessionID, serialNumber);
@@ -1064,6 +1132,10 @@ public class SSLCertificateTest {
         }
 
         public void assertSslExceptionThrown(String expectedErrorMessage, Class<?> expectedErrorType) throws Exception {
+            if (!exceptionExpected) {
+                throw new AssertionError("Connector is not configured to expect SSL exceptions");
+            }
+
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
@@ -1174,7 +1246,11 @@ public class SSLCertificateTest {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestAcceptor.class);
 
         public TestAcceptor(SessionSettings sessionSettings) throws ConfigError {
-            super(sessionSettings);
+            this(sessionSettings, false);
+        }
+
+        public TestAcceptor(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
+            super(sessionSettings, exceptionExpected);
         }
 
         @Override
@@ -1191,9 +1267,14 @@ public class SSLCertificateTest {
 
     static class TestInitiator extends TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestInitiator.class);
+        private final AtomicBoolean logonSent = new AtomicBoolean(false);
 
         public TestInitiator(SessionSettings sessionSettings) throws ConfigError {
-            super(sessionSettings);
+            this(sessionSettings, false);
+        }
+
+        public TestInitiator(SessionSettings sessionSettings, boolean exceptionExpected) throws ConfigError {
+            super(sessionSettings, exceptionExpected);
         }
 
         @Override
@@ -1203,8 +1284,23 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            return new ThreadedSocketInitiator(new ApplicationAdapter(),
+            return new ThreadedSocketInitiator(new ApplicationAdapter() {
+                @Override
+                public void toAdmin(Message message, SessionID sessionId) {
+                    try {
+                        if (MsgType.LOGON.equals(message.getHeader().getString(MsgType.FIELD))) {
+                            logonSent.set(true);
+                        }
+                    } catch (FieldNotFound e) {
+                        LOGGER.debug("Unable to inspect admin message type for {}", sessionId, e);
+                    }
+                }
+            },
                     messageStoreFactory, sessionSettings, messageFactory);
+        }
+
+        public boolean isLogonSent() {
+            return logonSent.get();
         }
     }
 
@@ -1212,11 +1308,8 @@ public class SSLCertificateTest {
      * Creates acceptor settings that contains two sessions. One with SSL support, one without.
      */
     private SessionSettings createMixedSessionAcceptorSettings(int sslPort, int nonSslPort, String keyStoreName) {
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
-        defaults.put(Session.SETTING_START_TIME, "00:00:00");
-        defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         SessionSettings sessionSettings = new SessionSettings();
         sessionSettings.set(defaults);
@@ -1244,15 +1337,12 @@ public class SSLCertificateTest {
 
     private SessionSettings createMultiSessionAcceptorSettings(String keyStoreName, boolean needClientAuth,
             String[] trustStoreNames, String cipherSuites, String protocols) {
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
         defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, "password");
         defaults.put(SSLSupport.SETTING_NEED_CLIENT_AUTH, needClientAuth ? "Y" : "N");
-        defaults.put(Session.SETTING_START_TIME, "00:00:00");
-        defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -1281,7 +1371,7 @@ public class SSLCertificateTest {
 
     private SessionSettings createAcceptorSettings(String keyStoreName, boolean needClientAuth, String trustStoreName,
             String cipherSuites, String protocols, String keyStoreType, String trustStoreType, int port) {
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
@@ -1302,9 +1392,6 @@ public class SSLCertificateTest {
 
         defaults.put(SSLSupport.SETTING_NEED_CLIENT_AUTH, needClientAuth ? "Y" : "N");
         defaults.put(Acceptor.SETTING_SOCKET_ACCEPT_PORT, Integer.toString(port));
-        defaults.put(Session.SETTING_START_TIME, "00:00:00");
-        defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -1344,7 +1431,7 @@ public class SSLCertificateTest {
                                                     String proxyHost, int proxyPort,
                                                     boolean useSni, String sniHostName) {
 
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
@@ -1375,10 +1462,6 @@ public class SSLCertificateTest {
 
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, port);
-        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
-        defaults.put(Session.SETTING_START_TIME, "00:00:00");
-        defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -1426,15 +1509,19 @@ public class SSLCertificateTest {
     }
 
     private static HashMap<Object, Object> createDefaults(int port) {
-        HashMap<Object, Object> defaults = new HashMap<>();
+        HashMap<Object, Object> defaults = createDefaults();
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
-        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
+        return defaults;
+    }
+
+    private static HashMap<Object, Object> createDefaults() {
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put(Session.SETTING_START_TIME, "00:00:00");
         defaults.put(Session.SETTING_END_TIME, "00:00:00");
-        defaults.put(Session.SETTING_HEARTBTINT, "30");
+        defaults.put(Session.SETTING_HEARTBTINT, "5");
         return defaults;
     }
 }
