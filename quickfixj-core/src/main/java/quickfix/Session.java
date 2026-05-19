@@ -1951,14 +1951,10 @@ public class Session implements Closeable {
      */
     public void next() throws IOException {
 
-        if (!isEnabled()) {
-            if (isLoggedOn()) {
-                if (!state.isLogoutSent()) {
-                    getLog().onEvent("Initiated logout request");
-                    generateLogout(state.getLogoutReason());
-                }
-            } else {
-                return;
+        if (!isEnabled() && isLoggedOn()) {
+            if (!state.isLogoutSent()) {
+                getLog().onEvent("Initiated logout request");
+                generateLogout(state.getLogoutReason());
             }
         }
 
@@ -1980,6 +1976,13 @@ public class Session implements Closeable {
                     resetIfSessionNotCurrent(sessionID, now);
                 }
             }
+        }
+
+        // https://github.com/quickfix-j/quickfixj/issues/965
+        // allow the session schedule block above to run even when session is disabled,
+        // so that sequence numbers are reset as scheduled.
+        if (!isEnabled() && !isLoggedOn()) {
+            return;
         }
 
         // Return if we are not connected
