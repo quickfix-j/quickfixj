@@ -23,13 +23,13 @@ with the corresponding file here.  Missing or extra files also fail the test.
 1. Make your generator changes.
 2. Rebuild the module to pick up the new code:
    ```bash
-   mvn package -pl quickfixj-codegenerator -DskipTests
+   ./mvnw package -pl quickfixj-codegenerator -DskipTests
    ```
 3. Regenerate the golden files by running the generator against both dictionaries
    from the `quickfixj-codegenerator` directory:
    ```bash
    # FIX42
-   java -cp "target/quickfixj-codegenerator-*-SNAPSHOT.jar:$(mvn -q dependency:build-classpath -DincludeScope=compile -Dmdep.outputFile=/dev/stdout)" \
+   java -cp "target/quickfixj-codegenerator-*-SNAPSHOT.jar:$(./mvnw -q dependency:build-classpath -DincludeScope=compile -Dmdep.outputFile=/dev/stdout)" \
         org.quickfixj.codegenerator.MessageCodeGenerator \
         --spec ../quickfixj-messages/quickfixj-messages-fix42/src/main/resources/FIX42.xml \
         --transform src/main/resources/org/quickfixj/codegenerator \
@@ -45,7 +45,7 @@ with the corresponding file here.  Missing or extra files also fail the test.
    Alternatively, run the following Maven snippet from the repo root, which uses
    the same settings as the test:
    ```bash
-   mvn test -pl quickfixj-codegenerator -Dtest=GenerateGoldenFilesManual
+   ./mvnw test -pl quickfixj-codegenerator -Dtest=GenerateGoldenFilesManual
    ```
    *(Create a one-off test class that calls the generator and copies output to
    `src/test/resources/golden/` if you prefer a scripted approach.)*
@@ -56,7 +56,7 @@ with the corresponding file here.  Missing or extra files also fail the test.
    ```
 5. Run the full test suite to confirm the updated golden files now match:
    ```bash
-   mvn test -pl quickfixj-codegenerator
+   ./mvnw test -pl quickfixj-codegenerator
    ```
 6. Commit the updated golden files **together with your generator changes** in the
    same commit (or PR) so reviewers can see the diff side-by-side.

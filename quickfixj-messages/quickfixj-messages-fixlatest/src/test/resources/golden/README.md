@@ -29,7 +29,7 @@ with the corresponding file here.  Missing or extra files also fail the test.
 2. Rebuild `quickfixj-messages-all` to regenerate the minimised XML fixture (if
    the XSL or orchestra version changed) and to pick up any updated generator:
    ```bash
-   mvn package -pl quickfixj-orchestration,quickfixj-messages/quickfixj-messages-all -DskipTests
+   ./mvnw package -pl quickfixj-orchestration,quickfixj-messages/quickfixj-messages-all -DskipTests
    ```
 3. Regenerate the golden files.  The simplest approach is to temporarily point the
    test's temporary folder to a fixed path so you can inspect or copy the output.
@@ -37,7 +37,7 @@ with the corresponding file here.  Missing or extra files also fail the test.
    ```bash
    # From the repo root – adjust the JAR path to match the current snapshot version
    java -cp "quickfixj-orchestration/target/quickfixj-orchestration-*-SNAPSHOT.jar:\
-   $(mvn -q dependency:build-classpath \
+   $(./mvnw -q dependency:build-classpath \
          -pl quickfixj-messages/quickfixj-messages-fixlatest \
          -DincludeScope=test \
          -Dmdep.outputFile=/dev/stdout)" \
@@ -62,7 +62,7 @@ with the corresponding file here.  Missing or extra files also fail the test.
    ```
 6. Run the test suite to confirm the updated golden files now match:
    ```bash
-   mvn test -pl quickfixj-messages/quickfixj-messages-fixlatest
+   ./mvnw test -pl quickfixj-messages/quickfixj-messages-fixlatest
    ```
 7. Commit the updated golden files (and updated fixture if applicable) **together
    with your generator/XSL changes** in the same commit (or PR) so reviewers can
