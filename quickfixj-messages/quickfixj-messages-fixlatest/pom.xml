@@ -25,6 +25,43 @@
 			<scope>runtime</scope>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj.orchestra</groupId>
+			<artifactId>quickfixj-from-fix-orchestra-generator</artifactId>
+			<version>${org.quickfixj.orchestra.tools.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- The orchestra generator (1.0.3) was compiled against io.fixprotocol.orchestra:repository:1.6.8
+		     (Java 8 bytecode). The parent POM manages this artifact at 1.7.3 (Java 11 bytecode), which
+		     would break JDK 8 builds. Pin it explicitly here to force the JDK 8 compatible version. -->
+		<dependency>
+			<groupId>io.fixprotocol.orchestra</groupId>
+			<artifactId>repository</artifactId>
+			<version>1.6.8</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- The orchestra generator uses javax.xml.bind (JAXB 2.x API), which was removed
+		     from the JDK in Java 11. Add the standalone API jar so it is available on JDK 11+. -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- The orchestra generator was compiled against javax.xml.bind (JAXB 2.x).
+		     The parent POM manages jaxb-impl at 4.x (jakarta.xml.bind namespace), so we
+		     pin the 2.3.3 variant here to satisfy the generator's SPI look-up at test time. -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>
