@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-messages</artifactId>
-		<version>3.0.1-SNAPSHOT</version>
+		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>quickfixj-messages-fix43</artifactId>
@@ -28,7 +28,6 @@
 				<!-- prune classes that are not in the FIX Dictionaries specified below -->
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
-				<version>${project.version}</version>
 				<executions>
 					<execution>
 						<id>prune</id>

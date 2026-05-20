@@ -74,7 +74,7 @@ This can serve as a foundation for a custom Orchestration.
 * The QuickFIX/J project depends on [```quickfixj-orchestra```](https://github.com/quickfix-j/quickfixj-orchestra) project artefacts:  
   * ```quickfixj-from-fix-orchestra-code-generator-maven-plugin``` generates FIX Field, Component and Message sources directly from a FIX Orchestration. 
   * ```quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin``` generates a QuickFIX compatible dictionary from a FIX Orchestration. 
-* The QuickFIX/J project publishes the [```class-pruner-maven-plugin```](../class-pruner-maven-plugin/readme.md) that can be used to delete (generated) sources and classes that are not present in a provided QuickFIX Dictionary. 
+* The QuickFIX/J project publishes the [```quickfixj-class-pruner-maven-plugin```](https://github.com/quickfix-j/quickfixj-class-pruner-maven-plugin) that can be used to delete (generated) sources and classes that are not present in a provided QuickFIX Dictionary. 
 This is a very specialised plug-in and may not be needed for custom builds, see recommendations below.
 
 These tools should facilitate building custom Fields, Components and Message packages without needing to maintain a customised Fork of the entire QuickFIX/J project. 
