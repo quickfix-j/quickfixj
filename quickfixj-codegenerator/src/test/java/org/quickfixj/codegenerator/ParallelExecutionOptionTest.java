@@ -37,6 +37,8 @@ public class ParallelExecutionOptionTest {
         generator.generate(createTasks(4));
 
         assertTrue(generator.getMaxConcurrentTasks() > 1);
+        assertTrue(generator.containsInfoLog("parallel task execution enabled with"));
+        assertTrue(generator.containsInfoLog("for 4 task(s)"));
     }
 
     private static List<MessageCodeGenerator.Task> createTasks(int count) {
@@ -52,6 +54,7 @@ public class ParallelExecutionOptionTest {
     private static class TrackingMessageCodeGenerator extends MessageCodeGenerator {
         private final AtomicInteger currentConcurrentTasks = new AtomicInteger();
         private final AtomicInteger maxConcurrentTasks = new AtomicInteger();
+        private final List<String> infoMessages = new ArrayList<>();
 
         @Override
         public void generate(Task task) {
@@ -68,6 +71,20 @@ public class ParallelExecutionOptionTest {
 
         int getMaxConcurrentTasks() {
             return maxConcurrentTasks.get();
+        }
+
+        @Override
+        protected void logInfo(String msg) {
+            infoMessages.add(msg);
+        }
+
+        boolean containsInfoLog(String token) {
+            for (String infoMessage : infoMessages) {
+                if (infoMessage.contains(token)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

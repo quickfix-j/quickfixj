@@ -378,6 +378,8 @@ public class MessageCodeGenerator {
             return;
         }
         int parallelism = Math.min(tasks.size(), Math.max(2, Runtime.getRuntime().availableProcessors()));
+        logInfo("parallel task execution enabled with " + parallelism + " worker(s) for "
+                + tasks.size() + " task(s)");
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
         try {
             List<Future<?>> futures = new ArrayList<>();
