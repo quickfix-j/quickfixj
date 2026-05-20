@@ -42,7 +42,7 @@
 		<dependency>
 			<groupId>io.fixprotocol.orchestra</groupId>
 			<artifactId>repository</artifactId>
-			<version>1.6.8</version>
+			<version>1.7.3</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- The orchestra generator uses javax.xml.bind (JAXB 2.x API), which was removed
