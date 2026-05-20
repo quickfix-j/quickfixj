@@ -1,0 +1,73 @@
+package org.quickfixj.codegenerator;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.After;
+import org.junit.Test;
+
+public class ParallelExecutionOptionTest {
+
+    private static final String PARALLEL_OPTION = "generator.parallelExecution";
+
+    @After
+    public void clearParallelOption() {
+        System.clearProperty(PARALLEL_OPTION);
+    }
+
+    @Test
+    public void testSequentialExecutionWhenParallelOptionIsDisabled() {
+        System.setProperty(PARALLEL_OPTION, "false");
+
+        TrackingMessageCodeGenerator generator = new TrackingMessageCodeGenerator();
+        generator.generate(createTasks(4));
+
+        assertEquals(1, generator.getMaxConcurrentTasks());
+    }
+
+    @Test
+    public void testParallelExecutionWhenParallelOptionIsEnabled() {
+        System.setProperty(PARALLEL_OPTION, "true");
+
+        TrackingMessageCodeGenerator generator = new TrackingMessageCodeGenerator();
+        generator.generate(createTasks(4));
+
+        assertTrue(generator.getMaxConcurrentTasks() > 1);
+    }
+
+    private static List<MessageCodeGenerator.Task> createTasks(int count) {
+        List<MessageCodeGenerator.Task> tasks = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            MessageCodeGenerator.Task task = new MessageCodeGenerator.Task();
+            task.setName("task-" + i);
+            tasks.add(task);
+        }
+        return tasks;
+    }
+
+    private static class TrackingMessageCodeGenerator extends MessageCodeGenerator {
+        private final AtomicInteger currentConcurrentTasks = new AtomicInteger();
+        private final AtomicInteger maxConcurrentTasks = new AtomicInteger();
+
+        @Override
+        public void generate(Task task) {
+            int concurrentTaskCount = currentConcurrentTasks.incrementAndGet();
+            maxConcurrentTasks.accumulateAndGet(concurrentTaskCount, Math::max);
+            try {
+                Thread.sleep(100L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                currentConcurrentTasks.decrementAndGet();
+            }
+        }
+
+        int getMaxConcurrentTasks() {
+            return maxConcurrentTasks.get();
+        }
+    }
+}

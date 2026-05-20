@@ -45,6 +45,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +67,7 @@ public class MessageCodeGenerator {
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
     private static final String UTC_TIMESTAMP_PRECISION_OPTION = "generator.utcTimestampPrecision";
+    private static final String PARALLEL_TASK_EXECUTION_OPTION = "generator.parallelExecution";
 
     // An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
@@ -76,8 +82,18 @@ public class MessageCodeGenerator {
     private static final Set<String> UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES =
         Collections.unmodifiableSet(new HashSet<>(Arrays.asList("SECONDS", "MILLIS", "MICROS", "NANOS")));
 
+    private final ThreadLocal<String> logPrefix = new ThreadLocal<>();
+
+    protected String formatLogMessage(String msg) {
+        String prefix = logPrefix.get();
+        if (prefix == null) {
+            return msg;
+        }
+        return "[" + prefix + "] " + msg;
+    }
+
     protected void logInfo(String msg) {
-        System.out.println(msg);
+        System.out.println(formatLogMessage(msg));
     }
 
     protected void logDebug(String msg) {
@@ -85,14 +101,14 @@ public class MessageCodeGenerator {
     }
 
     protected void logError(String msg, Throwable e) {
-        System.err.println(msg);
+        System.err.println(formatLogMessage(msg));
         e.printStackTrace();
     }
 
     private void generateMessageBaseClass(Task task) throws
             ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        logInfo(task.getName() + ": generating message base class");
+        logInfo("generating message base class");
         Map<String, String> parameters = new HashMap<>();
         parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
         generateClassCode(task, "Message", parameters);
@@ -114,7 +130,7 @@ public class MessageCodeGenerator {
             throws ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError,
             TransformerException {
-        logDebug("generating " + className + " for " + task.getName());
+        logDebug("generating " + className);
         if (parameters == null) {
             parameters = new HashMap<>();
         }
@@ -130,7 +146,7 @@ public class MessageCodeGenerator {
             IOException {
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getFieldDirectory()
                 + "/";
-        logInfo(task.getName() + ": generating field classes in " + outputDirectory);
+        logInfo("generating field classes in " + outputDirectory);
         writePackageDocumentation(outputDirectory, "FIX field definitions for " + task.getName());
         Document document = getSpecification(task);
         List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
@@ -172,7 +188,7 @@ public class MessageCodeGenerator {
     private void generateMessageSubclasses(Task task) throws ParserConfigurationException,
             SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        logInfo(task.getName() + ": generating message subclasses");
+        logInfo("generating message subclasses");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/";
         writePackageDocumentation(outputDirectory, "Message classes");
@@ -195,7 +211,7 @@ public class MessageCodeGenerator {
     private void generateComponentClasses(Task task) throws ParserConfigurationException,
             SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        logInfo(task.getName() + ": generating component classes");
+        logInfo("generating component classes");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/component/";
         Document document = getSpecification(task);
@@ -234,7 +250,7 @@ public class MessageCodeGenerator {
         return transformerFactory.newTransformer(styleSource);
     }
 
-    private final Map<String, Document> specificationCache = new HashMap<>();
+    private final Map<String, Document> specificationCache = new ConcurrentHashMap<>();
 
     private Document getSpecification(Task task) throws ParserConfigurationException, SAXException,
             IOException {
@@ -326,6 +342,8 @@ public class MessageCodeGenerator {
      * Generate the Message and Field related source code.
      */
     public void generate(Task task) {
+        String previousLogPrefix = logPrefix.get();
+        logPrefix.set(task.getName());
         try {
             generateFieldClasses(task);
             generateMessageBaseClass(task);
@@ -337,6 +355,51 @@ public class MessageCodeGenerator {
             throw e;
         } catch (Exception e) {
             throw new CodeGenerationException(e);
+        } finally {
+            if (previousLogPrefix == null) {
+                logPrefix.remove();
+            } else {
+                logPrefix.set(previousLogPrefix);
+            }
+        }
+    }
+
+    /*
+     * Generate the Message and Field related source code for multiple tasks.
+     */
+    public void generate(List<Task> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return;
+        }
+        if (!getOption(PARALLEL_TASK_EXECUTION_OPTION, false) || tasks.size() == 1) {
+            for (Task task : tasks) {
+                generate(task);
+            }
+            return;
+        }
+        int parallelism = Math.min(tasks.size(), Math.max(2, Runtime.getRuntime().availableProcessors()));
+        ExecutorService executor = Executors.newFixedThreadPool(parallelism);
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+            for (Task task : tasks) {
+                futures.add(executor.submit(() -> generate(task)));
+            }
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new CodeGenerationException(e);
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof RuntimeException) {
+                        throw (RuntimeException) cause;
+                    }
+                    throw new CodeGenerationException(cause);
+                }
+            }
+        } finally {
+            executor.shutdownNow();
         }
     }
 
@@ -464,6 +527,7 @@ public class MessageCodeGenerator {
             long start = System.currentTimeMillis();
             final String[] versions = { "FIXT 1.1", "FIX 5.0", "FIX 4.4", "FIX 4.3", "FIX 4.2",
                     "FIX 4.1", "FIX 4.0" };
+            List<Task> tasks = new ArrayList<>();
             for (String ver : versions) {
                 Task task = new Task();
                 task.setName(ver);
@@ -477,8 +541,9 @@ public class MessageCodeGenerator {
                 task.setOverwrite(overwrite);
                 task.setOrderedFields(orderedFields);
                 task.setDecimalGenerated(useDecimal);
-                codeGenerator.generate(task);
+                tasks.add(task);
             }
+            codeGenerator.generate(tasks);
             double duration = System.currentTimeMillis() - start;
             DecimalFormat durationFormat = new DecimalFormat("#.###");
             codeGenerator.logInfo("Time for generation: "

@@ -34,14 +34,14 @@ public class MavenMessageCodeGenerator extends MessageCodeGenerator {
     }
 
     protected void logInfo(String msg) {
-        log.info(msg);
+        log.info(formatLogMessage(msg));
     }
 
     protected void logDebug(String msg) {
-        log.debug(msg);
+        log.debug(formatLogMessage(msg));
     }
 
     protected void logError(String msg, Throwable e) {
-        log.error(msg, e);
+        log.error(formatLogMessage(msg), e);
     }
 }
