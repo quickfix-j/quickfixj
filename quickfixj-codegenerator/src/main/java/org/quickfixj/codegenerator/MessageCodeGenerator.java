@@ -371,20 +371,23 @@ public class MessageCodeGenerator {
         if (tasks == null || tasks.isEmpty()) {
             return;
         }
-        if (!getOption(PARALLEL_TASK_EXECUTION_OPTION, true) || tasks.size() == 1) {
-            for (Task task : tasks) {
-                generate(task);
+        int totalTasks = tasks.size();
+        if (!getOption(PARALLEL_TASK_EXECUTION_OPTION, true) || totalTasks == 1) {
+            for (int i = 0; i < totalTasks; i++) {
+                processTaskWithProgress(tasks.get(i), i + 1, totalTasks);
             }
             return;
         }
-        int parallelism = Math.min(tasks.size(), Math.max(2, Runtime.getRuntime().availableProcessors()));
+        int parallelism = Math.min(totalTasks, Math.max(2, Runtime.getRuntime().availableProcessors()));
         logInfo("parallel task execution enabled with " + parallelism + " worker(s) for "
-                + tasks.size() + " task(s)");
+                + totalTasks + " task(s)");
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
         try {
             List<Future<?>> futures = new ArrayList<>();
-            for (Task task : tasks) {
-                futures.add(executor.submit(() -> generate(task)));
+            for (int i = 0; i < totalTasks; i++) {
+                Task task = tasks.get(i);
+                int taskIndex = i + 1;
+                futures.add(executor.submit(() -> processTaskWithProgress(task, taskIndex, totalTasks)));
             }
             for (Future<?> future : futures) {
                 try {
@@ -402,6 +405,19 @@ public class MessageCodeGenerator {
             }
         } finally {
             executor.shutdownNow();
+        }
+    }
+
+    private void processTaskWithProgress(Task task, int taskIndex, int totalTasks) {
+        String taskName = task.getName();
+        if (taskName == null || taskName.isEmpty()) {
+            taskName = "unnamed";
+        }
+        logInfo("Started task for " + taskName + " (" + taskIndex + " / " + totalTasks + ")");
+        try {
+            generate(task);
+        } finally {
+            logInfo("Finished task for " + taskName + " (" + taskIndex + " / " + totalTasks + ")");
         }
     }
 
