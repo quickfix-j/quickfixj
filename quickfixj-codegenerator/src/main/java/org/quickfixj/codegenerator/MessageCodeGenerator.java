@@ -371,7 +371,7 @@ public class MessageCodeGenerator {
         if (tasks == null || tasks.isEmpty()) {
             return;
         }
-        if (!getOption(PARALLEL_TASK_EXECUTION_OPTION, false) || tasks.size() == 1) {
+        if (!getOption(PARALLEL_TASK_EXECUTION_OPTION, true) || tasks.size() == 1) {
             for (Task task : tasks) {
                 generate(task);
             }

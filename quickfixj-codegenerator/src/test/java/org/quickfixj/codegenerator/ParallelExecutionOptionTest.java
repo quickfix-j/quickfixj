@@ -41,6 +41,18 @@ public class ParallelExecutionOptionTest {
         assertTrue(generator.containsInfoLog("for 4 task(s)"));
     }
 
+    @Test
+    public void testParallelExecutionIsEnabledByDefault() {
+        System.clearProperty(PARALLEL_OPTION);
+
+        TrackingMessageCodeGenerator generator = new TrackingMessageCodeGenerator();
+        generator.generate(createTasks(4));
+
+        assertTrue(generator.getMaxConcurrentTasks() > 1);
+        assertTrue(generator.containsInfoLog("parallel task execution enabled with"));
+        assertTrue(generator.containsInfoLog("for 4 task(s)"));
+    }
+
     private static List<MessageCodeGenerator.Task> createTasks(int count) {
         List<MessageCodeGenerator.Task> tasks = new ArrayList<>();
         for (int i = 0; i < count; i++) {
