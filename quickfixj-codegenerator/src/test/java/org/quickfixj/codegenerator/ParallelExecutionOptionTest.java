@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.junit.After;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class ParallelExecutionOptionTest {
     private static class TrackingMessageCodeGenerator extends MessageCodeGenerator {
         private final AtomicInteger currentConcurrentTasks = new AtomicInteger();
         private final AtomicInteger maxConcurrentTasks = new AtomicInteger();
-        private final List<String> infoMessages = new ArrayList<>();
+        private final List<String> infoMessages = new CopyOnWriteArrayList<>();
 
         @Override
         public void generate(Task task) {
