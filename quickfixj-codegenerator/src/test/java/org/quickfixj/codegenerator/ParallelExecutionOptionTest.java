@@ -55,8 +55,7 @@ public class ParallelExecutionOptionTest {
         assertTrue(generator.getMaxConcurrentTasks() > 1);
         assertTrue(generator.containsInfoLog("parallel task execution enabled with"));
         assertTrue(generator.containsInfoLog("for 4 task(s)"));
-        assertTrue(generator.containsInfoLog("Started task for task-0 (1 / 4)"));
-        assertTrue(generator.containsInfoLog("Finished task for task-3 (4 / 4)"));
+        assertTrue(generator.containsFinishLogForAllTasks(4));
     }
 
     private static List<MessageCodeGenerator.Task> createTasks(int count) {
@@ -103,6 +102,15 @@ public class ParallelExecutionOptionTest {
                 }
             }
             return false;
+        }
+
+        boolean containsFinishLogForAllTasks(int taskCount) {
+            for (int i = 0; i < taskCount; i++) {
+                if (!containsInfoLog("Finished task for task-" + i)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
