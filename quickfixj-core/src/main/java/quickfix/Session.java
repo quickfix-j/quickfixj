@@ -1313,7 +1313,7 @@ public class Session implements Closeable {
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (!verify(reject, false, validateSequenceNumbers)) {
+        if (!verify(reject, validateSequenceNumbers, validateSequenceNumbers)) {
             return;
         }
         if (getExpectedTargetNum() == reject.getHeader().getInt(MsgSeqNum.FIELD)) {
