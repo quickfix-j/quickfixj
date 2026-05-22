@@ -478,15 +478,16 @@ public class SessionTest {
             assertEquals(2, state.getNextSenderMsgSeqNum());
             assertEquals(2, state.getNextTargetMsgSeqNum());
             
-            processMessage(session, createReject(2, 100));
-            assertEquals(3, state.getNextTargetMsgSeqNum());
-            
             // Reject with unexpected seqnum should not increment target seqnum
             processMessage(session, createReject(50, 100));
-            assertEquals(3, state.getNextTargetMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
             
             // Reject with unexpected seqnum should not increment target seqnum
             processMessage(session, createReject(1, 100));
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+
+            // Reject with expected seqnum should increment target seqnum
+            processMessage(session, createReject(2, 100));
             assertEquals(3, state.getNextTargetMsgSeqNum());
         }
     }
