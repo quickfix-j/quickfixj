@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 import javax.xml.XMLConstants;
 
@@ -84,7 +83,6 @@ public class MessageCodeGenerator {
         Collections.unmodifiableSet(new HashSet<>(Arrays.asList("SECONDS", "MILLIS", "MICROS", "NANOS")));
 
     private final ThreadLocal<String> logPrefix = new ThreadLocal<>();
-    private final ConcurrentMap<String, Object> outputFileLocks = new ConcurrentHashMap<>();
 
     protected String formatLogMessage(String msg) {
         String prefix = logPrefix.get();
@@ -275,14 +273,12 @@ public class MessageCodeGenerator {
         if (!parentDirectory.exists()) {
             parentDirectory.mkdirs();
         }
-        synchronized (lockForFile(packageDescription)) {
-            try (PrintStream out = new PrintStream(new FileOutputStream(packageDescription))) {
-                out.println("<html>");
-                out.println("<head><title/></head>");
-                out.println("<body>" + description + "</body>");
-                out.println("</html>");
-            }
-        }
+        PrintStream out = new PrintStream(new FileOutputStream(packageDescription));
+        out.println("<html>");
+        out.println("<head><title/></head>");
+        out.println("<body>" + description + "</body>");
+        out.println("</html>");
+        out.close();
     }
 
     private List<String> getNames(Element element, String path) {
@@ -327,25 +323,19 @@ public class MessageCodeGenerator {
             }
         }
 
-        synchronized (lockForFile(outputFile)) {
-            DOMSource source = new DOMSource(document);
-            FileOutputStream fos = new FileOutputStream(outputFile);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
+        DOMSource source = new DOMSource(document);
+        FileOutputStream fos = new FileOutputStream(outputFile);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        try {
+            StreamResult result = new StreamResult(bos);
+            transformer.transform(source, result);
+        } finally {
             try {
-                StreamResult result = new StreamResult(bos);
-                transformer.transform(source, result);
-            } finally {
-                try {
-                    bos.close();
-                } catch (IOException ioe) {
-                    logError("error closing " + outputFile, ioe);
-                }
+                bos.close();
+            } catch (IOException ioe) {
+                logError("error closing " + outputFile, ioe);
             }
         }
-    }
-
-    private Object lockForFile(File file) {
-        return outputFileLocks.computeIfAbsent(file.getAbsolutePath(), path -> new Object());
     }
 
     /*
