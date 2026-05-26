@@ -20,8 +20,8 @@ import org.junit.rules.TemporaryFolder;
 public class ParallelFieldGenerationRaceTest {
 
     private static final String PARALLEL_OPTION = "generator.parallelExecution";
-    private static final int TOTAL_FIELDS = 100;
-    private static final int PARALLEL_TASKS = 8;
+    private static final int TOTAL_FIELDS = 1000;
+    private static final int PARALLEL_TASKS = 16;
     private static final int PARALLEL_ROUNDS = 8;
 
     @Rule
@@ -34,7 +34,7 @@ public class ParallelFieldGenerationRaceTest {
 
     @Test
     public void testParallelFieldGenerationMatchesSingleThreadedGolden() throws Exception {
-        File dictionary = createDictionaryWith100Fields();
+        File dictionary = createDictionaryWith1000Fields();
         File transformDirectory = new File("./src/main/resources/org/quickfixj/codegenerator");
 
         File goldenOutput = tempFolder.newFolder("golden");
@@ -96,8 +96,8 @@ public class ParallelFieldGenerationRaceTest {
         return sources;
     }
 
-    private File createDictionaryWith100Fields() throws Exception {
-        File dictionary = tempFolder.newFile("RaceCondition100Fields.xml");
+    private File createDictionaryWith1000Fields() throws Exception {
+        File dictionary = tempFolder.newFile("RaceCondition1000Fields.xml");
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<fix major=\"4\" minor=\"4\">\n");
