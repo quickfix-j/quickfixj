@@ -20,6 +20,7 @@ import org.junit.rules.TemporaryFolder;
 public class ParallelFieldGenerationRaceTest {
 
     private static final String PARALLEL_OPTION = "generator.parallelExecution";
+    private static final String PARALLEL_THREADS_OPTION = "generator.parallelThreads";
     private static final int TOTAL_FIELDS = 1000;
     private static final int PARALLEL_TASKS = 16;
     private static final int PARALLEL_ROUNDS = 8;
@@ -30,6 +31,7 @@ public class ParallelFieldGenerationRaceTest {
     @After
     public void clearParallelOption() {
         System.clearProperty(PARALLEL_OPTION);
+        System.clearProperty(PARALLEL_THREADS_OPTION);
     }
 
     @Test
@@ -45,6 +47,7 @@ public class ParallelFieldGenerationRaceTest {
         assertEquals(TOTAL_FIELDS, goldenFieldSources.size());
 
         System.setProperty(PARALLEL_OPTION, "true");
+        System.setProperty(PARALLEL_THREADS_OPTION, Integer.toString(PARALLEL_TASKS));
         for (int round = 0; round < PARALLEL_ROUNDS; round++) {
             File parallelOutput = tempFolder.newFolder("parallel-" + round);
             generator.generate(createParallelTasks(dictionary, transformDirectory, parallelOutput));

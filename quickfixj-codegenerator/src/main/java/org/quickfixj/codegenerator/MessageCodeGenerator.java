@@ -68,6 +68,7 @@ public class MessageCodeGenerator {
     private static final String OVERWRITE_OPTION = "generator.overwrite";
     private static final String UTC_TIMESTAMP_PRECISION_OPTION = "generator.utcTimestampPrecision";
     private static final String PARALLEL_TASK_EXECUTION_OPTION = "generator.parallelExecution";
+    private static final String PARALLEL_THREAD_COUNT_OPTION = "generator.parallelThreads";
 
     // An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
@@ -378,7 +379,7 @@ public class MessageCodeGenerator {
             }
             return;
         }
-        int parallelism = Math.min(totalTasks, Math.max(2, Runtime.getRuntime().availableProcessors()));
+        int parallelism = getParallelism(totalTasks);
         logInfo("parallel task execution enabled with " + parallelism + " worker(s) for "
                 + totalTasks + " task(s)");
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
@@ -419,6 +420,25 @@ public class MessageCodeGenerator {
         } finally {
             logInfo("Finished task for " + taskName + " (" + taskIndex + " / " + totalTasks + ")");
         }
+    }
+
+    private int getParallelism(int totalTasks) {
+        int defaultParallelism = Math.min(totalTasks, Math.max(2, Runtime.getRuntime().availableProcessors()));
+        String configuredParallelThreads = getOption(PARALLEL_THREAD_COUNT_OPTION, null);
+        if (configuredParallelThreads == null) {
+            return defaultParallelism;
+        }
+        try {
+            int configuredParallelism = Integer.parseInt(configuredParallelThreads.trim());
+            if (configuredParallelism > 0) {
+                return Math.min(totalTasks, configuredParallelism);
+            }
+        } catch (NumberFormatException ignored) {
+            // ignored, fallback to default below
+        }
+        logInfo("ignoring invalid " + PARALLEL_THREAD_COUNT_OPTION + " value '" + configuredParallelThreads
+                + "', using " + defaultParallelism + " worker(s)");
+        return defaultParallelism;
     }
 
     public static class Task {

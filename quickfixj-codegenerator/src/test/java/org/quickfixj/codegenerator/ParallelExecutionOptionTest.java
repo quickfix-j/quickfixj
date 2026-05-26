@@ -14,10 +14,12 @@ import org.junit.Test;
 public class ParallelExecutionOptionTest {
 
     private static final String PARALLEL_OPTION = "generator.parallelExecution";
+    private static final String PARALLEL_THREADS_OPTION = "generator.parallelThreads";
 
     @After
-    public void clearParallelOption() {
+    public void clearParallelOptions() {
         System.clearProperty(PARALLEL_OPTION);
+        System.clearProperty(PARALLEL_THREADS_OPTION);
     }
 
     @Test
@@ -44,6 +46,19 @@ public class ParallelExecutionOptionTest {
         assertTrue(generator.containsInfoLog("for 4 task(s)"));
         assertTrue(generator.containsInfoLog("Started task for task-0 (1 / 4)"));
         assertTrue(generator.containsInfoLog("Finished task for task-3 (4 / 4)"));
+    }
+
+    @Test
+    public void testParallelExecutionWhenParallelThreadsAreConfigured() {
+        System.setProperty(PARALLEL_OPTION, "true");
+        System.setProperty(PARALLEL_THREADS_OPTION, "2");
+
+        TrackingMessageCodeGenerator generator = new TrackingMessageCodeGenerator();
+        generator.generate(createTasks(4));
+
+        assertEquals(2, generator.getMaxConcurrentTasks());
+        assertTrue(generator.containsInfoLog("parallel task execution enabled with 2 worker(s)"));
+        assertTrue(generator.containsInfoLog("for 4 task(s)"));
     }
 
     @Test
