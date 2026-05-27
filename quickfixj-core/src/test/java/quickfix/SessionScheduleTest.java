@@ -79,6 +79,17 @@ public class SessionScheduleTest {
         doIsSessionTimeTest(schedule, false, 2004, 10, 10, 18, 0, 1);
     }
 
+    @Test
+    public void testSessionTimeTransitionsFromEndToNextStart() throws Exception {
+        Calendar start = getUtcTime(3, 0, 0);
+        Calendar end = getUtcTime(18, 0, 0);
+        SessionSchedule schedule = newSessionSchedule(start.getTime(), end.getTime(), -1, -1);
+
+        doIsSessionTimeTest(schedule, false, 2024, Calendar.JANUARY, 10, 18, 0, 1);
+        doIsSessionTimeTest(schedule, false, 2024, Calendar.JANUARY, 11, 2, 59, 59);
+        doIsSessionTimeTest(schedule, true, 2024, Calendar.JANUARY, 11, 3, 0, 0);
+    }
+
     private SessionSchedule newSessionSchedule(Date startTime, Date endTime, int startDay,
             int endDay) throws Exception {
         SessionSettings settings = new SessionSettings();
