@@ -1387,9 +1387,10 @@ public class SessionScheduleTest {
     public void testSettingsWithStartEndDayWithDSTMockedUsingWeekdays() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "America/New_York");
-        settings.setString(Session.SETTING_START_TIME, "20:00:00");
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.SUNDAY));
+        settings.setString(Session.SETTING_START_TIME, "17:02:00");
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.SUNDAY));
         settings.setString(Session.SETTING_END_TIME, "17:00:00");
-        settings.setString(Session.SETTING_WEEKDAYS, "Mon,Tue,Wed,Thu,Fri,Sat,Sun");
 
         mockSystemTimeSource.setTime(getTimeStamp(2008, Calendar.NOVEMBER, 2, 18, 0, 0, TimeZone.getTimeZone("America/New_York")));
 
