@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -1020,6 +1021,66 @@ public class SessionTest {
             session.next();
             assertEquals(1, state.getNextSenderMsgSeqNum());
             assertEquals(1, state.getNextTargetMsgSeqNum());
+        }
+    }
+
+    @Test
+    public void testAcceptorRejectsLogonBeforeStartAndAcceptsAtNextStart() throws Exception {
+        final LocalDateTime sessionDay = LocalDateTime.of(2024, 1, 10, 12, 0, 0);
+        final LocalDateTime afterEndTime = sessionDay.plusSeconds(11);
+        final LocalDateTime afterResetCheckTime = afterEndTime.plusSeconds(1);
+        final LocalDateTime nextStartTime = sessionDay.plusDays(1).minusSeconds(10);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                sessionDay.toInstant(ZoneOffset.UTC).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(
+                sessionDay.toLocalTime().minusSeconds(10), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime", UtcTimeOnlyConverter.convert(
+                sessionDay.toLocalTime().plusSeconds(10), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", "UTC");
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        try (Session session = setUpFileStoreSession(application, false,
+                responder, settings, sessionID)) {
+            final SessionState state = getSessionState(session);
+
+            int adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertTrue("Session should be connected", session.isLoggedOn());
+
+            systemTimeSource.increment(Duration.between(sessionDay, afterEndTime).toMillis());
+            session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+            systemTimeSource.increment(Duration.between(afterEndTime, afterResetCheckTime).toMillis());
+            session.next();
+            assertFalse("Session should be disconnected after EndTime", session.isLoggedOn());
+
+            session.setResponder(responder);
+            adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertFalse("Session should reject logon attempts before StartTime", session.isLoggedOn());
+
+            systemTimeSource.increment(Duration.between(afterResetCheckTime, nextStartTime).toMillis());
+            session.next();
+            session.setResponder(responder);
+            adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertTrue("Session should accept logons again at StartTime", session.isLoggedOn());
         }
     }
 
