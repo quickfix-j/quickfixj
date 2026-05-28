@@ -44,6 +44,7 @@ import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.fix40.Heartbeat;
 import quickfix.fix40.Logon;
 
 import java.util.Date;
@@ -312,6 +313,39 @@ public class ThreadPerSessionEventHandlingStrategyTest {
                         .createDispatcherThread(quickfixSession),
                 "queueTracker",
                 QueueTracker.class) instanceof WatermarkTracker);
+    }
+
+    @Test
+    public void testQueuedMessageFromDisconnectedSessionDisconnectsNewResponder() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        try (Session session = setUpSession(sessionID)) {
+            final ThreadPerSessionEventHandlingStrategyUnderTest strategy =
+                    new ThreadPerSessionEventHandlingStrategyUnderTest();
+
+            final Message staleMessage = new Heartbeat();
+            staleMessage.getHeader().setString(SenderCompID.FIELD, "ISLD");
+            staleMessage.getHeader().setString(TargetCompID.FIELD, "TW");
+            staleMessage.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(new Date(), false));
+            staleMessage.getHeader().setInt(MsgSeqNum.FIELD, 1);
+
+            strategy.onMessage(session, staleMessage);
+            assertThat(strategy.getQueueSize(sessionID), is(1));
+
+            final Responder oldResponder = mock(Responder.class);
+            session.setResponder(oldResponder);
+            session.disconnect("drop old connection", false);
+            verify(oldResponder).disconnect();
+            assertFalse(session.hasResponder());
+
+            final Responder newResponder = mock(Responder.class);
+            session.setResponder(newResponder);
+
+            strategy.getDispatcher(sessionID).run();
+
+            verify(newResponder, never()).disconnect();
+            assertTrue(session.hasResponder());
+        }
     }
 
     private Session setUpSession(SessionID sessionID) throws ConfigError {
