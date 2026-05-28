@@ -174,9 +174,11 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 	protected class MessageDispatchingThread extends ThreadAdapter {
         private final Session quickfixSession;
         private final BlockingQueue<Message> messages;
+        private final BlockingQueue<Responder> messageResponders;
         private final QueueTracker<Message> queueTracker;
         private volatile boolean stopped;
         private volatile boolean stopping;
+        private volatile boolean stopRequested;
 
         private MessageDispatchingThread(Session session, Executor executor) {
             super("QF/J Session dispatcher: " + session.getSessionID(), executor);
@@ -193,15 +195,19 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                     queueTracker = newDefaultQueueTracker(messages);
                 }
             }
+            messageResponders = new LinkedBlockingQueue<>();
         }
 
         public void enqueue(Message message) {
             if (message == END_OF_STREAM && stopping) {
                 return;
             }
+            final Responder responder = quickfixSession.getResponder();
             try {
+                messageResponders.add(responder);
                 queueTracker.put(message);
             } catch (final InterruptedException e) {
+                messageResponders.poll();
                 quickfixSession.getLog().onErrorEvent(e.toString());
                 Thread.currentThread().interrupt();
             }
@@ -220,8 +226,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                         // no message available in polling interval
                         continue;
                     }
+                    final Responder responder = messageResponders.poll();
+                    if (message != END_OF_STREAM && responder != quickfixSession.getResponder()) {
+                        continue;
+                    }
                     quickfixSession.next(message);
                     if (message == END_OF_STREAM) {
+                        stopRequested = true;
                         stopping = true;
                     }
                 } catch (final InterruptedException e) {
@@ -234,11 +245,15 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                             "Error during message processing", e);
                 }
             }
-            if (!messages.isEmpty()) {
+            if (!stopRequested && !messages.isEmpty()) {
                 final List<Message> tempList = new ArrayList<>(messages.size());
                 queueTracker.drainTo(tempList);
                 for (Message message : tempList) {
                     try {
+                        final Responder responder = messageResponders.poll();
+                        if (message != END_OF_STREAM && responder != quickfixSession.getResponder()) {
+                            continue;
+                        }
                         quickfixSession.next(message);
                     } catch (final Throwable e) {
                         LogUtil.logThrowable(quickfixSession.getSessionID(),
@@ -246,12 +261,14 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                     }
                 }
             }
+            messageResponders.clear();
 
             dispatchers.remove(quickfixSession.getSessionID());
             stopped = true;
         }
 
         public void stopDispatcher() {
+            stopRequested = true;
             enqueue(END_OF_STREAM);
             stopping = true;
             stopped = true;
