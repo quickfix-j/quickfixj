@@ -89,10 +89,15 @@ public class ParallelFieldGenerationRaceTest {
         System.setProperty(PARALLEL_OPTION, "true");
         System.setProperty(PARALLEL_THREADS_OPTION, Integer.toString(PARALLEL_TASKS));
         for (int round = 0; round < PARALLEL_ROUNDS; round++) {
-            File parallelOutput = tempFolder.newFolder("parallel-" + round);
-            generator.generate(createParallelTasks(dictionary, transformDirectory, parallelOutput));
-            assertEquals("Mismatch in round " + round, goldenFieldSources,
-                    collectFieldSources(parallelOutput));
+            File parallelRoot = tempFolder.newFolder("parallel-" + round);
+            List<MessageCodeGenerator.Task> tasks = createParallelTasks(dictionary, transformDirectory,
+                    parallelRoot);
+            generator.generate(tasks);
+            for (int i = 0; i < PARALLEL_TASKS; i++) {
+                File taskOutput = new File(parallelRoot, "task-" + i);
+                assertEquals("Mismatch in round " + round + ", task " + i, goldenFieldSources,
+                        collectFieldSources(taskOutput));
+            }
         }
     }
 
@@ -112,10 +117,11 @@ public class ParallelFieldGenerationRaceTest {
     }
 
     private List<MessageCodeGenerator.Task> createParallelTasks(File dictionary, File transformDirectory,
-            File outputDirectory) {
+            File parallelRoot) {
         List<MessageCodeGenerator.Task> tasks = new ArrayList<>();
         for (int i = 0; i < PARALLEL_TASKS; i++) {
-            tasks.add(createTask("race-" + i, dictionary, transformDirectory, outputDirectory));
+            File taskOutput = new File(parallelRoot, "task-" + i);
+            tasks.add(createTask("race-" + i, dictionary, transformDirectory, taskOutput));
         }
         return tasks;
     }
