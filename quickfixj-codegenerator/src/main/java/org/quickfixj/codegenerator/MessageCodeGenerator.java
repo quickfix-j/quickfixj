@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -325,18 +326,21 @@ public class MessageCodeGenerator {
         }
 
         DOMSource source = new DOMSource(document);
-        FileOutputStream fos = new FileOutputStream(outputFile);
-        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        OutputStream outputStream = createOutputStream(outputFile);
         try {
-            StreamResult result = new StreamResult(bos);
+            StreamResult result = new StreamResult(outputStream);
             transformer.transform(source, result);
         } finally {
             try {
-                bos.close();
+                outputStream.close();
             } catch (IOException ioe) {
                 logError("error closing " + outputFile, ioe);
             }
         }
+    }
+
+    protected OutputStream createOutputStream(File outputFile) throws FileNotFoundException {
+        return new BufferedOutputStream(new FileOutputStream(outputFile));
     }
 
     /*
