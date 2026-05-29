@@ -204,6 +204,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             }
             final Responder responder = quickfixSession.getResponder();
             try {
+                if (message == END_OF_STREAM) {
+                    clearPendingMessages();
+                }
                 messageResponders.add(responder);
                 queueTracker.put(message);
             } catch (final InterruptedException e) {
@@ -211,6 +214,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 quickfixSession.getLog().onErrorEvent(e.toString());
                 Thread.currentThread().interrupt();
             }
+        }
+
+        private void clearPendingMessages() {
+            if (!messages.isEmpty()) {
+                queueTracker.drainTo(new ArrayList<>(messages.size()));
+            }
+            messageResponders.clear();
         }
 
         public int getQueueSize() {

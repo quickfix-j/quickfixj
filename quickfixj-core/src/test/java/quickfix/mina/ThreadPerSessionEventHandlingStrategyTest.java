@@ -348,6 +348,28 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         }
     }
 
+    @Test
+    public void testDisconnectClearsQueuedMessages() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        try (Session session = setUpSession(sessionID)) {
+            final ThreadPerSessionEventHandlingStrategyUnderTest strategy =
+                    new ThreadPerSessionEventHandlingStrategyUnderTest();
+
+            final Message staleMessage = new Heartbeat();
+            staleMessage.getHeader().setString(SenderCompID.FIELD, "ISLD");
+            staleMessage.getHeader().setString(TargetCompID.FIELD, "TW");
+            staleMessage.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(new Date(), false));
+            staleMessage.getHeader().setInt(MsgSeqNum.FIELD, 1);
+
+            strategy.onMessage(session, staleMessage);
+            assertThat(strategy.getQueueSize(sessionID), is(1));
+
+            strategy.onMessage(session, EventHandlingStrategy.END_OF_STREAM);
+            assertThat(strategy.getQueueSize(sessionID), is(1));
+        }
+    }
+
     private Session setUpSession(SessionID sessionID) throws ConfigError {
         final UnitTestApplication application = new UnitTestApplication();
         return setUpSession(sessionID, application);
