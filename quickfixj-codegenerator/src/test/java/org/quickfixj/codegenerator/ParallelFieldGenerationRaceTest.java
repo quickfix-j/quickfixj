@@ -2,6 +2,7 @@ package org.quickfixj.codegenerator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -36,6 +37,11 @@ public class ParallelFieldGenerationRaceTest {
     private static final int PARALLEL_ROUNDS = 8;
     private static final String TARGET_FIELD_NAME = "RaceSharedField";
     private static final String TARGET_FIELD_FILE = TARGET_FIELD_NAME + ".java";
+    private static final String IDSOURCE_FILE = "IDSource.java";
+    private static final File FIX42_DICTIONARY = new File(
+            "../quickfixj-messages/quickfixj-messages-fix42/src/main/resources/FIX42.xml");
+    private static final File FIX42_IDSOURCE_GOLDEN = new File(
+            "./src/test/resources/golden/fix42/quickfix/field/IDSource.java");
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -72,6 +78,42 @@ public class ParallelFieldGenerationRaceTest {
         String actual = readTargetField(raceOutput);
         assertFalse("Expected a mixed/corrupt output, but got variant A", expectedA.equals(actual));
         assertFalse("Expected a mixed/corrupt output, but got variant B", expectedB.equals(actual));
+    }
+
+    @Test
+    public void testParallelSharedOutputDirectoryKeepsIdSourceGolden() throws Exception {
+        File transformDirectory = new File("./src/main/resources/org/quickfixj/codegenerator");
+        File mutatedFix42 = createMutatedFix42Dictionary();
+        File auxiliaryDictionary = createDictionaryWith1000Fields();
+        MessageCodeGenerator sequential = new MessageCodeGenerator();
+
+        String expectedGolden = generateAndReadField(sequential,
+                createTask("expected-golden", FIX42_DICTIONARY, transformDirectory,
+                        tempFolder.newFolder("expected-golden")),
+                IDSOURCE_FILE);
+        String expectedMutated = generateAndReadField(sequential,
+                createTask("expected-mutated", mutatedFix42, transformDirectory,
+                        tempFolder.newFolder("expected-mutated")),
+                IDSOURCE_FILE);
+        int splitPosition = calculateSplitPosition(expectedGolden, expectedMutated);
+
+        List<MessageCodeGenerator.Task> tasks = new ArrayList<>();
+        File sharedOutput = tempFolder.newFolder("shared-output");
+        tasks.add(createTask("idsource-golden", FIX42_DICTIONARY, transformDirectory, sharedOutput));
+        tasks.add(createTask("idsource-mutated", mutatedFix42, transformDirectory, sharedOutput));
+        for (int i = 0; i < 6; i++) {
+            tasks.add(createTask("aux-" + i, auxiliaryDictionary, transformDirectory, sharedOutput));
+        }
+
+        System.setProperty(PARALLEL_OPTION, "true");
+        System.setProperty(PARALLEL_THREADS_OPTION, Integer.toString(tasks.size()));
+        MessageCodeGenerator generator = new CoordinatedOutputMessageCodeGenerator(IDSOURCE_FILE,
+                splitPosition);
+        generator.generate(tasks);
+
+        String goldenSource = readFile(FIX42_IDSOURCE_GOLDEN);
+        String actual = readField(sharedOutput, IDSOURCE_FILE);
+        assertEquals(goldenSource, actual);
     }
 
     @Test
@@ -128,13 +170,26 @@ public class ParallelFieldGenerationRaceTest {
 
     private String generateAndReadTargetField(MessageCodeGenerator generator, MessageCodeGenerator.Task task)
             throws Exception {
+        return generateAndReadField(generator, task, TARGET_FIELD_FILE);
+    }
+
+    private String generateAndReadField(MessageCodeGenerator generator, MessageCodeGenerator.Task task,
+            String fieldFileName) throws Exception {
         generator.generate(task);
-        return readTargetField(task.getOutputBaseDirectory());
+        return readField(task.getOutputBaseDirectory(), fieldFileName);
     }
 
     private String readTargetField(File outputDirectory) throws Exception {
-        Path target = outputDirectory.toPath().resolve("quickfix/field").resolve(TARGET_FIELD_FILE);
+        return readField(outputDirectory, TARGET_FIELD_FILE);
+    }
+
+    private String readField(File outputDirectory, String fieldFileName) throws Exception {
+        Path target = outputDirectory.toPath().resolve("quickfix/field").resolve(fieldFileName);
         return new String(Files.readAllBytes(target), StandardCharsets.UTF_8);
+    }
+
+    private String readFile(File file) throws Exception {
+        return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
     }
 
     private Map<String, String> collectFieldSources(File outputDirectory) throws Exception {
@@ -234,6 +289,18 @@ public class ParallelFieldGenerationRaceTest {
         xml.append("</fix>\n");
         Files.write(dictionary.toPath(), xml.toString().getBytes(StandardCharsets.UTF_8));
         return dictionary;
+    }
+
+    private File createMutatedFix42Dictionary() throws Exception {
+        File mutated = tempFolder.newFile("FIX42-mutated-IDSource.xml");
+        String original = readFile(FIX42_DICTIONARY);
+        String marker = "<value enum=\"1\" description=\"CUSIP\"/>";
+        String replacement = "<value enum=\"1\" description=\"CUSIP_ALT\"/>";
+        String changed = original.replace(marker, replacement);
+        assertTrue("Expected FIX42 dictionary to contain IDSource CUSIP enum marker",
+                !original.equals(changed));
+        Files.write(mutated.toPath(), changed.getBytes(StandardCharsets.UTF_8));
+        return mutated;
     }
 
     private int calculateSplitPosition(String expectedA, String expectedB) {
