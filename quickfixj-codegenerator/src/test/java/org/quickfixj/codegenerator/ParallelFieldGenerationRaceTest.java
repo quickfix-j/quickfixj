@@ -1,6 +1,7 @@
 package org.quickfixj.codegenerator;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -56,7 +57,7 @@ public class ParallelFieldGenerationRaceTest {
         System.setProperty(PARALLEL_THREADS_OPTION, Integer.toString(PARALLEL_TASKS));
         generator.generate(tasks);
 
-        assertEquals(goldenFieldSources, collectFieldSources(sharedOutput));
+        assertFirstDifferenceOnly(goldenFieldSources, collectFieldSources(sharedOutput));
     }
 
     private MessageCodeGenerator.Task createTask(String name, File dictionary, File transformDirectory,
@@ -89,6 +90,47 @@ public class ParallelFieldGenerationRaceTest {
             });
         }
         return sources;
+    }
+
+    private void assertFirstDifferenceOnly(Map<String, String> expected, Map<String, String> actual) {
+        for (Map.Entry<String, String> entry : expected.entrySet()) {
+            String className = entry.getKey();
+            if (!actual.containsKey(className)) {
+                fail("First failing class: " + className + "\nDifference: class missing in generated output");
+            }
+
+            String expectedSource = entry.getValue();
+            String actualSource = actual.get(className);
+            if (!expectedSource.equals(actualSource)) {
+                fail(buildFirstDifferenceMessage(className, expectedSource, actualSource));
+            }
+        }
+
+        for (String className : actual.keySet()) {
+            if (!expected.containsKey(className)) {
+                fail("First failing class: " + className
+                        + "\nDifference: unexpected class present in generated output");
+            }
+        }
+    }
+
+    private String buildFirstDifferenceMessage(String className, String expected, String actual) {
+        String[] expectedLines = expected.split("\\R", -1);
+        String[] actualLines = actual.split("\\R", -1);
+        int lineCount = Math.min(expectedLines.length, actualLines.length);
+        for (int i = 0; i < lineCount; i++) {
+            if (!expectedLines[i].equals(actualLines[i])) {
+                return "First failing class: " + className
+                        + "\nDifference at line " + (i + 1)
+                        + "\nExpected: " + expectedLines[i]
+                        + "\nActual:   " + actualLines[i];
+            }
+        }
+
+        return "First failing class: " + className
+                + "\nDifference: source length mismatch"
+                + "\nExpected lines: " + expectedLines.length
+                + "\nActual lines:   " + actualLines.length;
     }
 
     private File createDictionary(String name, boolean withExtraEnum) throws Exception {
