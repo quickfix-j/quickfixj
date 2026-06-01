@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import org.junit.After;
@@ -39,12 +48,58 @@ public class ParallelFieldGenerationRaceTest {
         File transformDirectory = new File("./src/main/resources/org/quickfixj/codegenerator");
         File dictionaryTwoEnums = createDictionary("two-enums", false);
         File dictionaryThreeEnums = createDictionary("three-enums", true);
-        MessageCodeGenerator generator = new MessageCodeGenerator();
 
+        // Use a plain generator for the single-task golden baseline so that the
+        // barrier (which requires two parties) does not deadlock.
         File goldenOutput = tempFolder.newFolder("golden");
-        generator.generate(createTask("golden", dictionaryThreeEnums, transformDirectory, goldenOutput));
+        new MessageCodeGenerator().generate(
+                createTask("golden", dictionaryThreeEnums, transformDirectory, goldenOutput));
         Map<String, String> goldenFieldSources = collectFieldSources(goldenOutput);
         assertEquals(TOTAL_FIELDS, goldenFieldSources.size());
+
+        // For every output file path, keep a CyclicBarrier(2) so that the first
+        // two threads that open the same file must both reach their first write()
+        // call before either is allowed to proceed.  This forces two writers to
+        // be simultaneously mid-write on every field file, turning the
+        // probabilistic race into a near-deterministic one.
+        ConcurrentHashMap<String, CyclicBarrier> barriers = new ConcurrentHashMap<>();
+        MessageCodeGenerator generator = new MessageCodeGenerator() {
+            @Override
+            protected OutputStream createOutputStream(File outputFile) throws FileNotFoundException {
+                CyclicBarrier barrier = barriers.computeIfAbsent(
+                        outputFile.getAbsolutePath(), k -> new CyclicBarrier(2));
+                return new FilterOutputStream(super.createOutputStream(outputFile)) {
+                    private boolean awaited = false;
+
+                    @Override
+                    public void write(byte[] b, int off, int len) throws IOException {
+                        awaitBarrierOnce();
+                        out.write(b, off, len);
+                    }
+
+                    @Override
+                    public void write(int b) throws IOException {
+                        awaitBarrierOnce();
+                        out.write(b);
+                    }
+
+                    private void awaitBarrierOnce() throws IOException {
+                        if (!awaited) {
+                            awaited = true;
+                            try {
+                                barrier.await(10, TimeUnit.SECONDS);
+                            } catch (BrokenBarrierException | TimeoutException e) {
+                                // Proceed: either the barrier timed out because an odd
+                                // number of threads wrote this file, or it was broken
+                                // by a previous exception.
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                    }
+                };
+            }
+        };
 
         File sharedOutput = tempFolder.newFolder("shared-output");
         List<MessageCodeGenerator.Task> tasks = new ArrayList<>();
