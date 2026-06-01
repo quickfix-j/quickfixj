@@ -235,9 +235,6 @@
 						<forceLegacyJavacApi>true</forceLegacyJavacApi> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
 						<meminitial>2g</meminitial>
 						<maxmem>4g</maxmem>
-						<compilerArgs>
-							<arg>-Xdiags:verbose</arg>
-						</compilerArgs>
 					</configuration>
 				</plugin>
 				<plugin>

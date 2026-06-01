@@ -42,7 +42,7 @@ public class ParallelFieldGenerationRaceTest {
         MessageCodeGenerator generator = new MessageCodeGenerator();
 
         File goldenOutput = tempFolder.newFolder("golden");
-        generator.generate(createTask("golden", dictionaryTwoEnums, transformDirectory, goldenOutput));
+        generator.generate(createTask("golden", dictionaryThreeEnums, transformDirectory, goldenOutput));
         Map<String, String> goldenFieldSources = collectFieldSources(goldenOutput);
         assertEquals(TOTAL_FIELDS, goldenFieldSources.size());
 
