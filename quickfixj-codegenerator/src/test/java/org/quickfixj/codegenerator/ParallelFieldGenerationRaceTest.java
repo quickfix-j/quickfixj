@@ -136,8 +136,9 @@ public class ParallelFieldGenerationRaceTest {
     private File createDictionary(String name, boolean withExtraEnum) throws Exception {
         File dictionary = tempFolder.newFile("RaceCondition-" + name + ".xml");
         StringBuilder xml = new StringBuilder();
+        int minorVersion = withExtraEnum ? 4 : 2;
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<fix major=\"4\" minor=\"4\">\n");
+        xml.append("<fix major=\"4\" minor=\"").append(minorVersion).append("\">\n");
         xml.append("  <header/>\n");
         xml.append("  <trailer/>\n");
         xml.append("  <messages/>\n");
