@@ -103,7 +103,7 @@
     	<hsqldb.version>1.8.0.10</hsqldb.version>
 		<netty.version>4.2.14.Final</netty.version>
 		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
-		<codegenerator-plugin.version>3.0.1-SNAPSHOT</codegenerator-plugin.version>
+		<codegenerator-plugin.version>3.0.2</codegenerator-plugin.version>
 	</properties>
 
    <dependencyManagement>
