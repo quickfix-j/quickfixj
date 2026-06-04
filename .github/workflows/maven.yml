@@ -26,7 +26,27 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven
-        run: ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        shell: bash
+        run: |
+          set +e
+          log_file="${RUNNER_TEMP}/maven-build.log"
+          ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120" 2>&1 | tee "${log_file}"
+          status=${PIPESTATUS[0]}
+
+          if [ "${status}" -ne 0 ] && grep -q "COMPILATION ERROR" "${log_file}"; then
+            grep -Eo '/[^[:space:]]+\.java:\[[0-9]+,[0-9]+\]' "${log_file}" \
+              | sed -E 's/:\[[0-9]+,[0-9]+\]$//' \
+              | sort -u \
+              | while IFS= read -r file; do
+                  if [ -f "${file}" ]; then
+                    echo "::group::Contents of ${file}"
+                    cat "${file}"
+                    echo "::endgroup::"
+                  fi
+                done
+          fi
+
+          exit "${status}"
 
   test-windows:
     runs-on: ${{ matrix.os }}
@@ -53,4 +73,25 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Test with Maven on Windows
-        run: ./mvnw.cmd install -B -V  -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties"  -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        shell: pwsh
+        run: |
+          $logFile = Join-Path $env:RUNNER_TEMP "maven-build.log"
+          & ./mvnw.cmd install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120" 2>&1 | Tee-Object -FilePath $logFile
+          $status = $LASTEXITCODE
+
+          if ($status -ne 0 -and (Select-String -Path $logFile -Pattern 'COMPILATION ERROR' -Quiet)) {
+            $files = Select-String -Path $logFile -Pattern '(?<file>(?:[A-Za-z]:)?[\\/][^:\s]+\.java):\[\d+,\d+\]' -AllMatches |
+              ForEach-Object { $_.Matches } |
+              ForEach-Object { $_.Groups['file'].Value } |
+              Sort-Object -Unique
+
+            foreach ($file in $files) {
+              if (Test-Path -Path $file) {
+                Write-Host "::group::Contents of $file"
+                Get-Content -Path $file
+                Write-Host "::endgroup::"
+              }
+            }
+          }
+
+          exit $status

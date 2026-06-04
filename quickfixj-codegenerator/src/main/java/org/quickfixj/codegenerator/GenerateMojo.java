@@ -28,6 +28,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A mojo that uses the quickfix code generator to generate
@@ -44,6 +46,12 @@ public class GenerateMojo extends AbstractMojo {
      */
     @Parameter(defaultValue="${basedir}/src/main/quickfixj/dictionary/FIX44.xml")
     private File dictFile;
+
+    /**
+     * Optional list of dictionaries/tasks to generate in a single execution.
+     */
+    @Parameter
+    private List<GeneratorTask> tasks;
 
     /**
      * The source directory containing *.xsd files.
@@ -72,7 +80,7 @@ public class GenerateMojo extends AbstractMojo {
     /**
      * The package for the generated source.
      */
-    @Parameter(required = true)
+    @Parameter
     private String packaging;
 
     /**
@@ -122,29 +130,8 @@ public class GenerateMojo extends AbstractMojo {
             }
             generator.setLog(getLog());
 
-            MessageCodeGenerator.Task task = new MessageCodeGenerator.Task();
-            if (getLog().isInfoEnabled()) {
-                getLog().info("Initialising code generator task");
-            }
-
-            if (dictFile != null && dictFile.exists()) {
-                task.setSpecification(dictFile);
-            } else {
-                getLog().error("Cannot find file " + dictFile);
-                throw new MojoExecutionException("File could not be found or was NULL!");
-            }
-
-            log("Processing " + dictFile);
-            task.setName(dictFile.getName());
-            task.setTransformDirectory(schemaDirectory);
-            task.setMessagePackage(packaging);
-            task.setOutputBaseDirectory(outputDirectory);
-            task.setFieldPackage(fieldPackage);
-            task.setUtcTimestampPrecision(utcTimestampPrecision);
-            task.setOverwrite(overwrite);
-            task.setOrderedFields(orderedFields);
-            task.setDecimalGenerated(decimal);
-            generator.generate(task);
+            List<MessageCodeGenerator.Task> generationTasks = createGenerationTasks();
+            generator.generate(generationTasks);
         } catch (Throwable t) {
             throw new MojoExecutionException("QuickFIX/J code generator execution failed", t);
         }
@@ -161,6 +148,135 @@ public class GenerateMojo extends AbstractMojo {
      */
     private void log(final String msg) {
         getLog().info(msg);
+    }
+
+    private List<MessageCodeGenerator.Task> createGenerationTasks() throws MojoExecutionException {
+        List<GeneratorTask> configuredTasks;
+        if (tasks == null || tasks.isEmpty()) {
+            configuredTasks = new ArrayList<>();
+            GeneratorTask singleTask = new GeneratorTask();
+            singleTask.setDictFile(dictFile);
+            singleTask.setPackaging(packaging);
+            singleTask.setFieldPackage(fieldPackage);
+            singleTask.setUtcTimestampPrecision(utcTimestampPrecision);
+            singleTask.setOverwrite(overwrite);
+            singleTask.setOrderedFields(orderedFields);
+            singleTask.setDecimal(decimal);
+            configuredTasks.add(singleTask);
+        } else {
+            configuredTasks = tasks;
+        }
+
+        List<MessageCodeGenerator.Task> generationTasks = new ArrayList<>(configuredTasks.size());
+        for (GeneratorTask configuredTask : configuredTasks) {
+            MessageCodeGenerator.Task task = new MessageCodeGenerator.Task();
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Initialising code generator task");
+            }
+
+            if (configuredTask.getDictFile() != null && configuredTask.getDictFile().exists()) {
+                task.setSpecification(configuredTask.getDictFile());
+            } else {
+                getLog().error("Cannot find file " + configuredTask.getDictFile());
+                throw new MojoExecutionException("File could not be found or was NULL!");
+            }
+            if (configuredTask.getPackaging() == null || configuredTask.getPackaging().isEmpty()) {
+                throw new MojoExecutionException("Packaging could not be found or was NULL!");
+            }
+
+            log("Processing " + configuredTask.getDictFile());
+            task.setName(configuredTask.getDictFile().getName());
+            task.setTransformDirectory(schemaDirectory);
+            task.setMessagePackage(configuredTask.getPackaging());
+            task.setOutputBaseDirectory(outputDirectory);
+            task.setFieldPackage(configuredTask.getFieldPackage() != null ? configuredTask.getFieldPackage() : fieldPackage);
+            task.setUtcTimestampPrecision(configuredTask.getUtcTimestampPrecision() != null
+                    ? configuredTask.getUtcTimestampPrecision() : utcTimestampPrecision);
+            task.setOverwrite(configuredTask.getOverwrite() != null ? configuredTask.getOverwrite() : overwrite);
+            task.setOrderedFields(configuredTask.getOrderedFields() != null ? configuredTask.getOrderedFields() : orderedFields);
+            task.setDecimalGenerated(configuredTask.getDecimal() != null ? configuredTask.getDecimal() : decimal);
+            generationTasks.add(task);
+        }
+        return generationTasks;
+    }
+
+    public static class GeneratorTask {
+        @Parameter(required = true)
+        private File dictFile;
+
+        @Parameter(required = true)
+        private String packaging;
+
+        @Parameter
+        private String fieldPackage;
+
+        @Parameter
+        private String utcTimestampPrecision;
+
+        @Parameter
+        private Boolean overwrite;
+
+        @Parameter
+        private Boolean orderedFields;
+
+        @Parameter
+        private Boolean decimal;
+
+        public File getDictFile() {
+            return dictFile;
+        }
+
+        public void setDictFile(File dictFile) {
+            this.dictFile = dictFile;
+        }
+
+        public String getPackaging() {
+            return packaging;
+        }
+
+        public void setPackaging(String packaging) {
+            this.packaging = packaging;
+        }
+
+        public String getFieldPackage() {
+            return fieldPackage;
+        }
+
+        public void setFieldPackage(String fieldPackage) {
+            this.fieldPackage = fieldPackage;
+        }
+
+        public String getUtcTimestampPrecision() {
+            return utcTimestampPrecision;
+        }
+
+        public void setUtcTimestampPrecision(String utcTimestampPrecision) {
+            this.utcTimestampPrecision = utcTimestampPrecision;
+        }
+
+        public Boolean getOverwrite() {
+            return overwrite;
+        }
+
+        public void setOverwrite(Boolean overwrite) {
+            this.overwrite = overwrite;
+        }
+
+        public Boolean getOrderedFields() {
+            return orderedFields;
+        }
+
+        public void setOrderedFields(Boolean orderedFields) {
+            this.orderedFields = orderedFields;
+        }
+
+        public Boolean getDecimal() {
+            return decimal;
+        }
+
+        public void setDecimal(Boolean decimal) {
+            this.decimal = decimal;
+        }
     }
 
     /**
