@@ -45,7 +45,6 @@
 	</issueManagement>
 
 	<modules>
-		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
 		<module>quickfixj-orchestration</module>
 		<module>quickfixj-base</module>

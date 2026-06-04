@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-codegenerator</artifactId>
-			<version>${project.version}</version>
+			<version>3.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
@@ -163,7 +163,6 @@
 							<dependencySourceIncludes>
 								<dependencySourceInclude>org.quickfixj:quickfixj-base</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
-								<dependencySourceInclude>org.quickfixj:quickfixj-codegenerator</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-dictgenerator</dependencySourceInclude>
 							</dependencySourceIncludes>
 							<!-- disable links otherwise it runs again on all modules and it's too slow -->
