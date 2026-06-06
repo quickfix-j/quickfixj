@@ -52,6 +52,10 @@ public class SystemTime {
     public static long currentTimeMillis() {
         return systemTimeSource.getTime();
     }
+
+    public static long nanoTime() {
+        return systemTimeSource.getNanoTime();
+    }
     
     public static LocalDateTime now() {
         return systemTimeSource.getNow();

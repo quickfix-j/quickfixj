@@ -266,7 +266,7 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void waitForLogout() {
-        long start = System.currentTimeMillis();
+        final long startNanos = System.nanoTime();
         Set<Session> loggedOnSessions;
         while (!(loggedOnSessions = getLoggedOnSessions()).isEmpty()) {
             try {
@@ -275,11 +275,11 @@ public abstract class SessionConnector implements Connector {
                 log.error(e.getMessage(), e);
                 Thread.currentThread().interrupt();
             }
-            final long elapsed = System.currentTimeMillis() - start;
+            final long elapsedNanos = System.nanoTime() - startNanos;
             Iterator<Session> sessionItr = loggedOnSessions.iterator();
             while (sessionItr.hasNext()) {
                 Session session = sessionItr.next();
-                if (elapsed >= session.getLogoutTimeout() * 1000L) {
+                if (elapsedNanos >= TimeUnit.SECONDS.toNanos(session.getLogoutTimeout())) {
                     try {
                         session.disconnect("Logout timeout, force disconnect", false);
                     } catch (IOException e) {
@@ -289,7 +289,7 @@ public abstract class SessionConnector implements Connector {
                 }
             }
             // Be sure we don't look forever
-            if (elapsed > 60000L) {
+            if (elapsedNanos > TimeUnit.SECONDS.toNanos(60)) {
                 log.warn("Stopping session logout wait after 1 minute");
                 break;
             }

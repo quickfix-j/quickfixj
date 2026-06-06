@@ -93,6 +93,7 @@ public class SessionStateTest  {
             null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
         // session should timeout after 2.4 * 30 = 72 seconds
+        timeSource.setSystemTimes(950_000L);
         state.setLastReceivedTime(950_000);
 
         timeSource.setSystemTimes(1_000_000L);

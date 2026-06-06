@@ -40,4 +40,15 @@ public interface SystemTimeSource {
      * @return current (possible simulated) time up to nanosecond precision.
      */
     LocalDateTime getNow();
+
+    /**
+     * Obtain a monotonic nanosecond timestamp for measuring elapsed durations.
+     * The returned value has no absolute meaning; only differences between two
+     * calls to this method are meaningful.
+     *
+     * @return current (possibly simulated) monotonic nanosecond time
+     */
+    default long getNanoTime() {
+        return System.nanoTime();
+    }
 }

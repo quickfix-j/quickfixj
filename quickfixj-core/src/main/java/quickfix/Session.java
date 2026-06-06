@@ -68,6 +68,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -416,7 +417,7 @@ public class Session implements Closeable {
     // so we are checking only once per second.
     private long lastSessionTimeCheck = 0;
     private int logonAttempts = 0;
-    private long lastSessionLogon = 0;
+    private long lastSessionLogonNanos = 0;
 
     private final DataDictionaryProvider dataDictionaryProvider;
     private final ValidationSettings validationSettings;
@@ -2060,7 +2061,7 @@ public class Session implements Closeable {
     }
 
     private boolean isTimeToGenerateLogon() {
-        return SystemTime.currentTimeMillis() - lastSessionLogon >= computeNextLogonDelayMillis();
+        return SystemTime.nanoTime() - lastSessionLogonNanos >= TimeUnit.MILLISECONDS.toNanos(computeNextLogonDelayMillis());
     }
 
     public void generateHeartbeat() {
@@ -2348,7 +2349,7 @@ public class Session implements Closeable {
                 logApplicationException("onLogon()", t);
             }
             stateListener.onLogon(sessionID);
-            lastSessionLogon = SystemTime.currentTimeMillis();
+            lastSessionLogonNanos = SystemTime.nanoTime();
             logonAttempts = 0;
         }
     }

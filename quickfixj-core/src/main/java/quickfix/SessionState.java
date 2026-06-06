@@ -57,6 +57,8 @@ public final class SessionState {
     private int testRequestCounter;
     private long lastSentTime;
     private long lastReceivedTime;
+    private long lastSentTimeNanos;
+    private long lastReceivedTimeNanos;
     private final double testRequestDelayMultiplier;
     private final double heartBeatTimeoutMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
@@ -113,7 +115,7 @@ public final class SessionState {
     }
 
     public boolean isHeartBeatNeeded() {
-        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
+        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(SystemTime.nanoTime() - lastSentTimeNanos);
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
         return millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
     }
@@ -131,6 +133,7 @@ public final class SessionState {
     public void setLastReceivedTime(long lastReceivedTime) {
         synchronized (lock) {
             this.lastReceivedTime = lastReceivedTime;
+            this.lastReceivedTimeNanos = SystemTime.nanoTime();
         }
     }
 
@@ -143,6 +146,7 @@ public final class SessionState {
     public void setLastSentTime(long lastSentTime) {
         synchronized (lock) {
             this.lastSentTime = lastSentTime;
+            this.lastSentTimeNanos = SystemTime.nanoTime();
         }
     }
 
@@ -184,7 +188,8 @@ public final class SessionState {
 
     public boolean isLogonTimedOut() {
         synchronized (lock) {
-            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+            return isLogonSent()
+                    && TimeUnit.NANOSECONDS.toMillis(SystemTime.nanoTime() - lastReceivedTimeNanos) >= getLogonTimeoutMs();
         }
     }
 
@@ -253,7 +258,8 @@ public final class SessionState {
     }
 
     public boolean isLogoutTimedOut() {
-        return isLogoutSent() && ((SystemTime.currentTimeMillis() - getLastSentTime()) >= getLogoutTimeoutMs());
+        return isLogoutSent()
+                && TimeUnit.NANOSECONDS.toMillis(SystemTime.nanoTime() - lastSentTimeNanos) >= getLogoutTimeoutMs();
     }
 
     public MessageStore getMessageStore() {
@@ -293,7 +299,7 @@ public final class SessionState {
     }
 
     private long timeSinceLastReceivedMessage() {
-        return SystemTime.currentTimeMillis() - getLastReceivedTime();
+        return TimeUnit.NANOSECONDS.toMillis(SystemTime.nanoTime() - lastReceivedTimeNanos);
     }
 
     public boolean isTimedOut() {

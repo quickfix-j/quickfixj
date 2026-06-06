@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class MockSystemTimeSource implements SystemTimeSource {
     private long[] systemTimes = { System.currentTimeMillis() };
@@ -66,6 +67,11 @@ public class MockSystemTimeSource implements SystemTimeSource {
     public LocalDateTime getNow() {
         // TODO maybe we need nano-precision later on
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(getTime()), ZoneOffset.UTC);
+    }
+
+    @Override
+    public long getNanoTime() {
+        return TimeUnit.MILLISECONDS.toNanos(getTime());
     }
 
 }

@@ -108,6 +108,7 @@ public class IoSessionInitiator {
 
         private IoSession ioSession;
         private long lastReconnectAttemptTime;
+        private long lastReconnectAttemptNanos;
         private long lastConnectTime;
         private int nextSocketAddressIndex;
         private int connectionFailureCount;
@@ -238,6 +239,7 @@ public class IoSessionInitiator {
         private void connect() {
             try {
                 lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+                lastReconnectAttemptNanos = SystemTime.nanoTime();
                 SocketAddress nextSocketAddress = getNextSocketAddress();
                 if (localAddress == null) {
                     connectFuture = ioConnector.connect(nextSocketAddress);
@@ -258,12 +260,12 @@ public class IoSessionInitiator {
                     ioSession = connectFuture.getSession();
                     connectionFailureCount = 0;
                     nextSocketAddressIndex = 0;
-                    lastConnectTime = System.currentTimeMillis();
+                    lastConnectTime = SystemTime.currentTimeMillis();
                     connectFuture = null;
                 } else {
                     fixSession.getLog().onEvent(
                             "Pending connection not established after "
-                                    + (System.currentTimeMillis() - lastReconnectAttemptTime)
+                                    + TimeUnit.NANOSECONDS.toMillis(SystemTime.nanoTime() - lastReconnectAttemptNanos)
                                     + " ms.");
                 }
             } catch (Throwable e) {
@@ -324,7 +326,8 @@ public class IoSessionInitiator {
         }
 
         private boolean isTimeForReconnect() {
-            return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= computeNextRetryConnectDelay();
+            return SystemTime.nanoTime() - lastReconnectAttemptNanos
+                    >= TimeUnit.MILLISECONDS.toNanos(computeNextRetryConnectDelay());
         }
 
         // TODO JMX Expose reconnect property
