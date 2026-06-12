@@ -8,9 +8,6 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "org.apache.mina:mina-core"
-        versions: ["< 2.2.7"]  # Allow any 2.2.7+ security fix
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
