@@ -1841,6 +1841,7 @@ public class Session implements Closeable {
             // Handle poss dup where msgSeq is as expected
             // FIX 4.4 Vol 2, test case 2f&g
             if (isPossibleDuplicate(msg) && !validatePossDup(msg)) {
+                stateListener.onPossDupMessageDiscarded(sessionID, msg);
                 return false;
             }
 
@@ -1881,7 +1882,9 @@ public class Session implements Closeable {
             generateLogout(text);
             throw new SessionException(text);
         }
-        return validatePossDup(msg);
+        final boolean validPossDup = validatePossDup(msg);
+        stateListener.onPossDupMessageDiscarded(sessionID, msg);
+        return validPossDup;
     }
 
     private void doBadCompID(Message msg) throws IOException, FieldNotFound {

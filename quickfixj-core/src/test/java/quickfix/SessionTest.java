@@ -295,6 +295,105 @@ public class SessionTest {
     }
 
     @Test
+    public void testTooLowPossDupMessageDiscardNotifiesStateListener() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            logonTo(session);
+            session.next(createAppMessage(2));
+
+            assertEquals(3, session.getExpectedTargetNum());
+            assertEquals(1, application.fromAppMessages.size());
+
+            session.addStateListener(new SessionStateListener() {
+                @Override
+                public void onMissedHeartBeat(SessionID sessionID) {
+                }
+            });
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+
+            final Message possDupMessage = createPossDupAppMessage(2);
+            session.next(possDupMessage);
+
+            assertEquals(3, session.getExpectedTargetNum());
+            assertEquals(1, application.fromAppMessages.size());
+
+            final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(mockStateListener).onPossDupMessageDiscarded(session.getSessionID(),
+                    messageCaptor.capture());
+            assertTrue(possDupMessage == messageCaptor.getValue());
+            verifyNoMoreInteractions(mockStateListener);
+        }
+    }
+
+    @Test
+    public void testExpectedSequencePossDupMessageDiscardNotifiesStateListener()
+            throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            logonTo(session);
+
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+
+            final Message possDupMessage = createAppMessage(2);
+            possDupMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
+            session.next(possDupMessage);
+
+            assertEquals(2, session.getExpectedTargetNum());
+            assertNull(application.lastFromAppMessage());
+            assertEquals(Reject.MSGTYPE, application.lastToAdminMessage()
+                    .getHeader().getString(MsgType.FIELD));
+
+            final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(mockStateListener).onPossDupMessageDiscarded(session.getSessionID(),
+                    messageCaptor.capture());
+            assertTrue(possDupMessage == messageCaptor.getValue());
+            verifyNoMoreInteractions(mockStateListener);
+        }
+    }
+
+    @Test
+    public void testTooLowNonPossDupMessageDoesNotNotifyStateListener() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            logonTo(session);
+            session.next(createAppMessage(2));
+
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+
+            processMessage(session, createAppMessage(1));
+
+            verify(mockStateListener, times(0)).onPossDupMessageDiscarded(
+                    any(SessionID.class), any(Message.class));
+        }
+    }
+
+    @Test
+    public void testInSequenceMessageDoesNotNotifyPossDupDiscarded() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            logonTo(session);
+
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+
+            session.next(createAppMessage(2));
+
+            assertEquals(3, session.getExpectedTargetNum());
+            assertEquals(1, application.fromAppMessages.size());
+            verify(mockStateListener, times(0)).onPossDupMessageDiscarded(
+                    any(SessionID.class), any(Message.class));
+            verifyNoMoreInteractions(mockStateListener);
+        }
+    }
+
+    @Test
     public void testInferResetSeqNumAcceptedWithNonInitialSequenceNumber()
             throws Exception {
 
