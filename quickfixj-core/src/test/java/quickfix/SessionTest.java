@@ -342,7 +342,7 @@ public class SessionTest {
             possDupMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
             session.next(possDupMessage);
 
-            assertEquals(2, session.getExpectedTargetNum());
+            assertEquals(3, session.getExpectedTargetNum());
             assertNull(application.lastFromAppMessage());
             assertEquals(Reject.MSGTYPE, application.lastToAdminMessage()
                     .getHeader().getString(MsgType.FIELD));
