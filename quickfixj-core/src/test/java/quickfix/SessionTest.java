@@ -67,6 +67,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -320,7 +321,7 @@ public class SessionTest {
             assertEquals(1, application.fromAppMessages.size());
 
             final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-            verify(mockStateListener).onPossDupMessageDiscarded(session.getSessionID(),
+            verify(mockStateListener).onPossDupMessageDiscarded(eq(session.getSessionID()),
                     messageCaptor.capture());
             assertTrue(possDupMessage == messageCaptor.getValue());
             verifyNoMoreInteractions(mockStateListener);
@@ -348,7 +349,7 @@ public class SessionTest {
                     .getHeader().getString(MsgType.FIELD));
 
             final ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-            verify(mockStateListener).onPossDupMessageDiscarded(session.getSessionID(),
+            verify(mockStateListener).onPossDupMessageDiscarded(eq(session.getSessionID()),
                     messageCaptor.capture());
             assertTrue(possDupMessage == messageCaptor.getValue());
             verifyNoMoreInteractions(mockStateListener);
