@@ -1,14 +1,17 @@
 name: Java CI
 
 on:
+  # Build only the production branches on push, so internal feature branches do not trigger a build twice (once on push, once on the pull request).
   workflow_dispatch:
   push:
     branches:
+      # Restricts push builds to these branches, even if the workflow is copied to another branch.
       - master
       - 2.3.x
   pull_request:
     types: [reopened, opened, synchronize]
 
+# Check all pushes to production branches, but interrupt a PR job if a new commit is pushed.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
