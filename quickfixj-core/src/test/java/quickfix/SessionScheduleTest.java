@@ -29,6 +29,8 @@ import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -342,6 +344,29 @@ public class SessionScheduleTest {
         t1 = getUtcTimeStamp(2006, Calendar.DECEMBER, 31, 10, 10, 10);
         t2 = getUtcTimeStamp(2007, Calendar.JANUARY, 1, 10, 10, 10);
         doIsSameSessionTest(schedule, t1, t2, true);
+    }
+
+    @Test
+    public void testSessionStartInPreviousDayOfWeek() throws Exception {
+        Locale.setDefault(new Locale("en", "AU"));
+
+        final TimeZone tz = TimeZone.getTimeZone("Australia/Victoria");
+        mockSystemTimeSource.setTime(getTimeStamp(2026, Calendar.FEBRUARY, 23, 10, 0, 0, tz));
+
+        final SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_TIME, "13:00:00 Australia/Victoria");
+
+        // AU week starts on Sunday on Java 17 and below, but on Monday on Java 21 and above (not sure about in between).
+        settings.setString(Session.SETTING_START_DAY, "Sunday");
+
+        settings.setString(Session.SETTING_END_TIME, "17:00:00 America/New_York");
+        settings.setString(Session.SETTING_END_DAY, "Saturday");
+
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        final SessionSchedule schedule = new DefaultSessionSchedule(settings, sessionID);
+
+        mockSystemTimeSource.setTime(getTimeStamp(2026, Calendar.FEBRUARY, 23, 10, 0, 0, tz));
+        assertEquals("in session expectation incorrect", true, schedule.isSessionTime());
     }
 
     @Test
@@ -875,7 +900,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("before session", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -884,13 +909,13 @@ public class SessionScheduleTest {
             // This should be an impossible situation. "Now" should always be
             // after the session create time.
             assertFalse(formatErrorMessage("before create", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
         while (withinSession(scheduleStartTime, scheduleEndTime)) {
             assertTrue(formatErrorMessage("within", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -899,7 +924,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("after", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    toZdt(sessionCreateTime), toZdt(SystemTime.getUtcCalendar())));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
     }
@@ -930,8 +955,14 @@ public class SessionScheduleTest {
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time1, time2));
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time2, time1));
+        ZonedDateTime zdt1 = toZdt(time1);
+        ZonedDateTime zdt2 = toZdt(time2);
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(zdt1, zdt2));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(zdt2, zdt1));
+    }
+
+    private static ZonedDateTime toZdt(Calendar c) {
+        return c == null ? null : ZonedDateTime.ofInstant(c.toInstant(), ZoneOffset.UTC);
     }
 
     private Calendar getTimeStamp(int year, int month, int day, int hour, int minute, int second,
