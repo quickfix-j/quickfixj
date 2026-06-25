@@ -27,10 +27,20 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Logger;
 
 
 
 public class FileUtil {
+    private static final Logger LOG = Logger.getLogger(FileUtil.class.getName());
+
+    /**
+     * System property that controls whether plain HTTP URLs are allowed when loading
+     * resources (e.g. DataDictionary files). Set to {@code true} to permit HTTP.
+     * Defaults to {@code false} — HTTP is blocked to prevent man-in-the-middle attacks.
+     */
+    public static final String ALLOW_HTTP_URLS_PROPERTY = "quickfixj.fileutil.allowHttpUrls";
+
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
         return pathPrefix + (pathPrefix.endsWith(File.separator) ? "" : File.separator)
                 + pathSuffix;
@@ -146,6 +156,16 @@ public class FileUtil {
             case URL:
                 try {
                     URL url = new URL(name);
+                    if ("http".equalsIgnoreCase(url.getProtocol())) {
+                        if (!Boolean.getBoolean(ALLOW_HTTP_URLS_PROPERTY)) {
+                            LOG.warning("Blocked attempt to load resource over insecure HTTP: " + name
+                                    + ". Set system property -D" + ALLOW_HTTP_URLS_PROPERTY
+                                    + "=true to allow plain HTTP (not recommended).");
+                            break;
+                        }
+                        LOG.warning("Loading resource over insecure HTTP: " + name
+                                + ". Consider using HTTPS instead.");
+                    }
                     URLConnection urlConnection = url.openConnection();
                     if (urlConnection instanceof HttpURLConnection) {
                         HttpURLConnection httpURLConnection = (HttpURLConnection)urlConnection;

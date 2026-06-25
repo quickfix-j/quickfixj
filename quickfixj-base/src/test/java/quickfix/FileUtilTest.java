@@ -21,6 +21,7 @@ package quickfix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
@@ -57,13 +58,26 @@ public class FileUtilTest {
 
     @Test
     public void testURLLocation() throws Exception {
-        // Assumption: Internet access
-        if (isInternetAccessible()) {
-            InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
-            if (in != null) {
-                in.close();
+        // HTTP URLs are blocked by default to prevent MITM attacks (see FileUtil.ALLOW_HTTP_URLS_PROPERTY)
+        InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+        assertNull("Plain HTTP URL should be blocked by default", in);
+    }
+
+    @Test
+    public void testHTTPUrlAllowedViaSystemProperty() throws Exception {
+        System.setProperty(FileUtil.ALLOW_HTTP_URLS_PROPERTY, "true");
+        try {
+            // With the opt-in system property, plain HTTP URLs are attempted.
+            // We only verify connectivity when the network is available.
+            if (isInternetAccessible()) {
+                InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+                if (in != null) {
+                    in.close();
+                }
+                assertNotNull("HTTP URL should be reachable when opt-in property is set", in);
             }
-            assertNotNull("Resource not found", in);
+        } finally {
+            System.clearProperty(FileUtil.ALLOW_HTTP_URLS_PROPERTY);
         }
     }
 
