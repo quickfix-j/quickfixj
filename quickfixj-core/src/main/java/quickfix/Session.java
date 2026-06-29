@@ -2377,10 +2377,9 @@ public class Session implements Closeable {
         int msgSeqNum = 0;
         int begin = 0;
         int current = beginSeqNo;
-        boolean appMessageJustSent = false;
+        int newBegin = beginSeqNo;
 
         for (final String message : messages) {
-            appMessageJustSent = false;
             final Message msg;
             try {
                 // QFJ-626
@@ -2418,7 +2417,7 @@ public class Session implements Closeable {
                         return;
                     }
                     begin = 0;
-                    appMessageJustSent = true;
+                    newBegin = msgSeqNum + 1;
                 } else {
                     if (begin == 0) {
                         begin = msgSeqNum;
@@ -2426,11 +2425,6 @@ public class Session implements Closeable {
                 }
             }
             current = msgSeqNum + 1;
-        }
-
-        int newBegin = beginSeqNo;
-        if (appMessageJustSent) {
-            newBegin = msgSeqNum + 1;
         }
         if (enableNextExpectedMsgSeqNum) {
             if (begin != 0) {
