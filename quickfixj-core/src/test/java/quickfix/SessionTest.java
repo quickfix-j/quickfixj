@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -478,15 +479,16 @@ public class SessionTest {
             assertEquals(2, state.getNextSenderMsgSeqNum());
             assertEquals(2, state.getNextTargetMsgSeqNum());
             
-            processMessage(session, createReject(2, 100));
-            assertEquals(3, state.getNextTargetMsgSeqNum());
-            
             // Reject with unexpected seqnum should not increment target seqnum
             processMessage(session, createReject(50, 100));
-            assertEquals(3, state.getNextTargetMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
             
             // Reject with unexpected seqnum should not increment target seqnum
             processMessage(session, createReject(1, 100));
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+
+            // Reject with expected seqnum should increment target seqnum
+            processMessage(session, createReject(2, 100));
             assertEquals(3, state.getNextTargetMsgSeqNum());
         }
     }
@@ -1019,6 +1021,69 @@ public class SessionTest {
             session.next();
             assertEquals(1, state.getNextSenderMsgSeqNum());
             assertEquals(1, state.getNextTargetMsgSeqNum());
+        }
+    }
+
+    @Test
+    public void testAcceptorRejectsLogonBeforeStartAndAcceptsAtNextStart() throws Exception {
+        // Schedule: America/New_York, StartDay=Sunday StartTime=17:02:00, EndDay=Sunday EndTime=17:00:00
+        // Session active: Sunday 17:02 NY -> following Sunday 17:00 NY (2-minute gap each Sunday).
+        // January 2024: EST = UTC-5. Jan 7 = Sunday, Jan 14 = Sunday.
+        final LocalDateTime sessionDay = LocalDateTime.of(2024, 1, 7, 22, 30, 0);     // 17:30 NY Sun Jan 7, inside session
+        final LocalDateTime afterEndTime = LocalDateTime.of(2024, 1, 14, 22, 0, 10);  // 17:00:10 NY Sun Jan 14, just past EndTime
+        final LocalDateTime afterResetCheckTime = afterEndTime.plusSeconds(1);          // 17:00:11 NY Sun Jan 14
+        final LocalDateTime nextStartTime = LocalDateTime.of(2024, 1, 14, 22, 2, 10); // 17:02:10 NY Sun Jan 14, past StartTime
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                sessionDay.toInstant(ZoneOffset.UTC).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        settings.setString("StartTime", "17:02:00");
+        settings.setString("EndTime", "17:00:00");
+        settings.setString("TimeZone", "America/New_York");
+        settings.setString("StartDay", "Sunday");
+        settings.setString("EndDay", "Sunday");
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        try (Session session = setUpFileStoreSession(application, false,
+                responder, settings, sessionID)) {
+            final SessionState state = getSessionState(session);
+
+            int adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertTrue("Session should be connected", session.isLoggedOn());
+
+            systemTimeSource.increment(Duration.between(sessionDay, afterEndTime).toMillis());
+            session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+            systemTimeSource.increment(Duration.between(afterEndTime, afterResetCheckTime).toMillis());
+            session.next();
+            assertFalse("Session should be disconnected after EndTime", session.isLoggedOn());
+
+            session.setResponder(responder);
+            adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertFalse("Session should reject logon attempts before StartTime", session.isLoggedOn());
+
+            systemTimeSource.increment(Duration.between(afterResetCheckTime, nextStartTime).toMillis());
+            session.next();
+            session.setResponder(responder);
+            adminMessagesBeforeLogon = application.toAdminMessages.size();
+            logonTo(session);
+            assertEquals(adminMessagesBeforeLogon + 1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.lastToAdminMessage().getHeader()
+                    .getString(MsgType.FIELD));
+            assertTrue("Session should accept logons again at StartTime", session.isLoggedOn());
         }
     }
 
@@ -3305,6 +3370,65 @@ public class SessionTest {
 
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/965
+     * Verify that a disabled session is still reset per its SessionSchedule to avoid
+     * message loss when sequence numbers have advanced (e.g. messages queued via
+     * sendToTarget while the session was disconnected).
+     */
+    @Test
+    public void testDisabledSessionIsResetBySchedule() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // session window is in the future so we are currently outside session time
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(7200000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+
+        final SessionSchedule sessionSchedule = new DefaultSessionSchedule(settings, sessionID);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setApplication(application)
+                .setSessionSchedule(sessionSchedule)
+                .setIsInitiator(false)
+                .build()) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+
+            // simulate messages queued via sendToTarget while the session was disabled
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+            assertTrue(state.isResetNeeded());
+
+            // disable the session (e.g. as a result of calling logout())
+            session.logout();
+            assertFalse(session.isEnabled());
+            assertFalse(session.isLoggedOn());
+
+            // next() should trigger a reset per the session schedule even though
+            // the session is disabled, to avoid message loss (QFJ-965)
+            session.next();
+
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(1, application.sessionResets);
+            assertFalse(session.isEnabled());
+            assertFalse(session.isLoggedOn());
+        }
     }
 
     /**

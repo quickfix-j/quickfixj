@@ -130,7 +130,7 @@ The setup requires two plugins:
         <plugin>
             <groupId>org.quickfixj</groupId>
             <artifactId>quickfixj-codegenerator</artifactId>
-            <version>${quickfixj.version}</version>
+            <version>3.0.2</version>
             <executions>
                 <execution>
                     <goals><goal>generate</goal></goals>
@@ -220,7 +220,7 @@ buildscript {
       mavenCentral()
    }
    dependencies {
-      classpath 'org.quickfixj:quickfixj-codegenerator:2.3.2'
+      classpath 'org.quickfixj:quickfixj-codegenerator:3.0.2'
    }
 }
 

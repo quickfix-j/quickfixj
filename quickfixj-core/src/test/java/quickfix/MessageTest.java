@@ -35,8 +35,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -143,7 +141,6 @@ import quickfix.fixt11.TestRequest;
  * message classes that are generated later in the compile process.
  */
 public class MessageTest {
-
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -1265,7 +1262,7 @@ public class MessageTest {
 
     @Test
     public void shouldConvertToXmlWhenDataDictionaryLoadedWithExternalDTD() throws ConfigError {
-        DataDictionary dataDictionary = new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+        DataDictionary dataDictionary = ExternalDtdDataDictionaryLoader.load("FIX_External_DTD.xml");
         Message message = new Message();
         message.setString(Account.FIELD, "test-account");
 
@@ -1273,6 +1270,7 @@ public class MessageTest {
         xml = xml.replace("\r", "").replace("\n", "").replaceAll(">\\s+<", "><");
         assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field name=\"Account\" tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", xml);
     }
+
     @Test
     public void shouldConvertToXMLWithoutIndent() {
         Message message = new Message();

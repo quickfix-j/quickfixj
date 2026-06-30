@@ -1313,7 +1313,7 @@ public class Session implements Closeable {
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (!verify(reject, false, validateSequenceNumbers)) {
+        if (!verify(reject, validateSequenceNumbers, validateSequenceNumbers)) {
             return;
         }
         if (getExpectedTargetNum() == reject.getHeader().getInt(MsgSeqNum.FIELD)) {
@@ -1951,14 +1951,10 @@ public class Session implements Closeable {
      */
     public void next() throws IOException {
 
-        if (!isEnabled()) {
-            if (isLoggedOn()) {
-                if (!state.isLogoutSent()) {
-                    getLog().onEvent("Initiated logout request");
-                    generateLogout(state.getLogoutReason());
-                }
-            } else {
-                return;
+        if (!isEnabled() && isLoggedOn()) {
+            if (!state.isLogoutSent()) {
+                getLog().onEvent("Initiated logout request");
+                generateLogout(state.getLogoutReason());
             }
         }
 
@@ -1980,6 +1976,13 @@ public class Session implements Closeable {
                     resetIfSessionNotCurrent(sessionID, now);
                 }
             }
+        }
+
+        // https://github.com/quickfix-j/quickfixj/issues/965
+        // allow the session schedule block above to run even when session is disabled,
+        // so that sequence numbers are reset as scheduled.
+        if (!isEnabled() && !isLoggedOn()) {
+            return;
         }
 
         // Return if we are not connected
@@ -2025,7 +2028,13 @@ public class Session implements Closeable {
             } else {
                 getLog().onWarnEvent("Heartbeat failure detected but deactivated");
             }
-        } else {
+        } else if (isLoggedOn()) {
+            // #902: Only generate heartbeats/test requests when the session is
+            // fully established (Logon sent AND received). Generating a heartbeat
+            // in the window between setLogonReceived(true) and the acceptor's own
+            // outgoing Logon being sent would silently consume a sequence number
+            // via persist() without transmitting the message, causing the Logon
+            // response to carry the wrong MsgSeqNum.
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
