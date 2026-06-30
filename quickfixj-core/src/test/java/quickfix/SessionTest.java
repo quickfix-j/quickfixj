@@ -2339,7 +2339,7 @@ public class SessionTest {
 	}
 
 	/**
-	 * Regression test for GitHub issue #344.
+	 * Regression test for GitHub issue #344 ({@code enableNextExpectedMsgSeqNum=false}).
 	 *
 	 * <p>Bug: When {@code resendMessages} processes a range where the last retrieved
 	 * persisted message is an <em>admin</em> message (e.g. a Heartbeat at seqno 5),
@@ -2375,6 +2375,65 @@ public class SessionTest {
 	public void resendMessages_whenLastRetrievedMessageIsAdmin_finalSequenceResetShouldNotOverlapResentAppMessages()
 			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
 			IncorrectTagValue, IncorrectDataFormat {
+		doResendMessages_whenLastRetrievedMessageIsAdmin_scenario(false);
+	}
+
+	/**
+	 * Regression test for GitHub issue #344 ({@code enableNextExpectedMsgSeqNum=true}).
+	 *
+	 * <p>Same bug as the non-{@code enableNextExpectedMsgSeqNum} variant: when
+	 * {@code resendMessages} ends on an <em>admin</em> message, {@code newBegin} is
+	 * not advanced.  With {@code enableNextExpectedMsgSeqNum=true} the post-loop
+	 * code takes a different branch, so the trailing gap-fill SequenceReset is
+	 * omitted entirely rather than being emitted with the wrong sequence number.
+	 *
+	 * <p>The test asserts the <em>correct</em> output (7 messages total, last one
+	 * being SequenceReset(MsgSeqNum=6, NewSeqNo=11)) and therefore
+	 * <strong>fails on the current buggy code</strong>.
+	 *
+	 * <p>Scenario (with {@code enableNextExpectedMsgSeqNum=true}, no explicit
+	 * ResendRequest is sent by the session at logon time, so app messages start
+	 * one seqno earlier than in the non-{@code enableNextExpectedMsgSeqNum} variant):
+	 * <ul>
+	 *   <li>Message 1 (Logon) is admin – present in store</li>
+	 *   <li>Messages 2, 3 and 4 are application (ExecutionReport) – present in store</li>
+	 *   <li>Message 5 is admin (Heartbeat) – present in store</li>
+	 *   <li>Messages 6-10 are admin – NOT in store (seqnum incremented only)</li>
+	 *   <li>{@code NextSenderMsgSeqNum = 11}</li>
+	 * </ul>
+	 *
+	 * <p>Expected outgoing messages when the counterparty's ResendRequest arrives:
+	 * <ol>
+	 *   <li>SequenceReset(MsgSeqNum=1, NewSeqNo=2)  – gap-fill for admin 1</li>
+	 *   <li>ExecutionReport(2) resent (PossDupFlag)</li>
+	 *   <li>ExecutionReport(3) resent (PossDupFlag)</li>
+	 *   <li>ExecutionReport(4) resent (PossDupFlag)</li>
+	 *   <li>SequenceReset(MsgSeqNum=5, NewSeqNo=6)  – gap-fill for admin Heartbeat at 5</li>
+	 *   <li>SequenceReset(MsgSeqNum=<b>6</b>, NewSeqNo=11) – gap-fill for admin 6-10 (BUG: omitted)</li>
+	 * </ol>
+	 */
+	@Test
+	public void resendMessages_whenLastRetrievedMessageIsAdmin_finalSequenceResetShouldNotOverlapResentAppMessages_withEnableNextExpectedMsgSeqNum()
+			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
+			IncorrectTagValue, IncorrectDataFormat {
+		doResendMessages_whenLastRetrievedMessageIsAdmin_scenario(true);
+	}
+
+	/**
+	 * Shared scenario driver for the two issue #344 regression tests.
+	 *
+	 * <p>With {@code enableNextExpectedMsgSeqNum=false} the session sends an explicit
+	 * ResendRequest (seqno 2) after receiving the counterparty's too-high Logon, so
+	 * the application messages are stored at seqnos 3 and 4.
+	 * With {@code enableNextExpectedMsgSeqNum=true} the resend is implicit via tag 789
+	 * in the outgoing Logon and no ResendRequest is transmitted, so the application
+	 * messages start one seqno earlier (seqnos 2, 3 and 4).
+	 * In both cases the Heartbeat ends up at seqno 5 and
+	 * {@code NextSenderMsgSeqNum} ends at 11, giving 7 total outgoing messages.
+	 */
+	private void doResendMessages_whenLastRetrievedMessageIsAdmin_scenario(boolean enableNextExpectedMsgSeqNum)
+			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
+			IncorrectTagValue, IncorrectDataFormat {
 		final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 		final boolean resetOnLogon = false;
 		final boolean validateSequenceNumbers = true;
@@ -2384,7 +2443,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2398,12 +2457,16 @@ public class SessionTest {
 		verify(mockResponder).send(messageCaptor.capture());
 
 		// Receive Logon from counterparty with seqno 101 (too high).
-		// This brings the session into logged-on state and causes it to send a
-		// ResendRequest (seqno 2); NextSenderMsgSeqNum becomes 3.
+		// With enableNextExpectedMsgSeqNum=false: session sends an explicit ResendRequest
+		//   (seqno 2); NextSenderMsgSeqNum becomes 3.
+		// With enableNextExpectedMsgSeqNum=true: resend is implicit via tag 789; no
+		//   ResendRequest is transmitted; NextSenderMsgSeqNum stays at 2.
 		session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
 		MessageStore messageStore = session.getStore();
 
-		// Store application messages (ExecutionReports) at seqno 3 and 4.
+		// Store application messages (ExecutionReports).
+		// The start seqno is read from the store so it adapts to whether a ResendRequest
+		// was sent (false → starts at 3; true → starts at 2). The loop always stops at 4.
 		for (int i = messageStore.getNextSenderMsgSeqNum(); i <= 4; i++) {
 			String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
 			messageStore.set(i, executionReportString);
@@ -2432,7 +2495,8 @@ public class SessionTest {
 		final Message resendRequest = createResendRequest(1, 1);
 		session.next(resendRequest);
 
-		// Seven messages should have been sent in total:
+		// Seven messages should have been sent in total.
+		// With enableNextExpectedMsgSeqNum=false:
 		//   1. Logon (seqno 1)
 		//   2. ResendRequest (seqno 2, our request to counterparty)
 		//   3. SequenceReset(MsgSeqNum=1, NewSeqNo=3)  – gap-fill for admin 1-2
@@ -2440,12 +2504,22 @@ public class SessionTest {
 		//   5. ExecutionReport(4) resent
 		//   6. SequenceReset(MsgSeqNum=5, NewSeqNo=6)  – gap-fill for Heartbeat at 5
 		//   7. SequenceReset(MsgSeqNum=?, NewSeqNo=11) – trailing gap 6-10 (BUG: MsgSeqNum=1)
+		// With enableNextExpectedMsgSeqNum=true:
+		//   1. Logon (seqno 1)
+		//   2. SequenceReset(MsgSeqNum=1, NewSeqNo=2)  – gap-fill for admin 1
+		//   3. ExecutionReport(2) resent
+		//   4. ExecutionReport(3) resent
+		//   5. ExecutionReport(4) resent
+		//   6. SequenceReset(MsgSeqNum=5, NewSeqNo=6)  – gap-fill for Heartbeat at 5
+		//   7. SequenceReset(MsgSeqNum=6, NewSeqNo=11) – trailing gap 6-10 (BUG: omitted)
 		verify(mockResponder, times(7)).send(messageCaptor.capture());
 
 		Message lastSent = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size() - 1));
 		assertEquals("Last message should be a SequenceReset-GapFill",
 				MsgType.SEQUENCE_RESET, lastSent.getHeader().getString(MsgType.FIELD));
-		// Bug #344: current code gives MsgSeqNum=1 (beginSeqNo) instead of 6 (last admin seqno + 1).
+		// Bug #344: current code gives MsgSeqNum=1 (beginSeqNo) instead of 6 (last admin seqno + 1)
+		// for the enableNextExpectedMsgSeqNum=false case, and omits the trailing reset entirely
+		// for the enableNextExpectedMsgSeqNum=true case (causing times(7) above to fail first).
 		assertEquals("SequenceReset covering trailing gap should begin at seqno 6 (just after the admin "
 				+ "Heartbeat at 5), not at beginSeqNo=1",
 				"6", lastSent.getHeader().getString(MsgSeqNum.FIELD));
