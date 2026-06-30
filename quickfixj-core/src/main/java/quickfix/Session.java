@@ -2440,6 +2440,7 @@ public class Session implements Closeable {
         } else {
             if (begin != 0) {
                 generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
+                newBegin = msgSeqNum + 1;
             }
             generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
         }
