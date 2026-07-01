@@ -20,6 +20,11 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ master ]
 
+# Check all pushes to production branches, but interrupt a PR job if a new commit is pushed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     name: Analyze
