@@ -58,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @internal This class is not part of the public API and may be removed or changed in future releases.
+ * This class is not part of the public API and may be removed or changed in future releases.
  */
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
