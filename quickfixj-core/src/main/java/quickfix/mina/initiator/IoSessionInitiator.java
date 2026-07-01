@@ -57,9 +57,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This class is not part of the public API and may be removed or changed in future releases.
- */
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
     private final ScheduledExecutorService executor;
@@ -68,7 +65,7 @@ public class IoSessionInitiator {
 
     private Future<?> reconnectFuture;
 
-    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
+    IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
             SocketAddress localAddress, HostResolutionStrategy hostResolutionStrategy, int connectTimeout,
             int[] reconnectIntervalInSeconds, ScheduledExecutorService executor, SessionSettings sessionSettings,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
@@ -128,7 +125,7 @@ public class IoSessionInitiator {
         private final String proxyDomain;
         private final String proxyWorkstation;
 
-        public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
+        ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
                 SocketAddress localAddress, IoFilterChainBuilder userIoFilterChainBuilder,
                 Session fixSession, long connectTimeoutMillis, long[] reconnectIntervalInMillis,
                 SessionSettings sessionSettings, NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
