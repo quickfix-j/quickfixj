@@ -126,6 +126,7 @@ with QuickFIX, followed by an example.
 | `SocketLocalPort` | Bind the local socket to this port. Only used with a `SocketInitiator`. | positive integer | If unset the socket will be bound to a free port from the ephemeral port range. |
 | `SocketLocalHost` | Bind the local socket to this host. Only used with a `SocketInitiator`. | valid IP address in the format of `x.x.x.x` or a domain name | If unset the socket will be bound to all local interfaces. |
 | `DynamicSession` | Leave the corresponding session disconnected until `AbstractSocketInitiator.createDynamicSession` is called. | `Y`<br/>`N` | `N` |
+| `ReverseDNSEnabled` | Whether the initiator performs a reverse DNS lookup to resolve the peer host name when connecting directly to an IP address. The resolved host is used as the SSL peer host (e.g. for hostname verification). When disabled, the literal IP address is used as-is and no reverse DNS lookup is performed. Only used with a `SocketInitiator`. | `Y`<br/>`N` | `Y` |
 
 ---
 

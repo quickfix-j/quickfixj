@@ -591,6 +591,13 @@
     <TD> Y<br/>N </TD>
     <TD> N</TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ReverseDNSEnabled</I> </TD>
+
+    <TD> Whether the initiator performs a reverse DNS lookup to resolve the peer host name when connecting directly to an IP address. The resolved host is used as the SSL peer host (e.g. for hostname verification). When disabled, the literal IP address is used as-is and no reverse DNS lookup is performed. Only used with a SocketInitiator.</TD>
+    <TD> Y<br/>N </TD>
+    <TD> Y</TD>
+  </TR>
 
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Acceptor">Acceptor</A></TD>
