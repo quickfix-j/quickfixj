@@ -38,6 +38,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.field.converter.BooleanConverter;
 import quickfix.mina.EventHandlingStrategy;
+import quickfix.mina.HostResolutionStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
@@ -139,6 +140,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
         }
 
+        // Defaults to true for backwards compatibility
+        HostResolutionStrategy hostResolutionStrategy = getSettings().getBoolOrDefault(sessionID, Initiator.SETTING_REVERSE_DNS_ENABLED, true) ?
+            HostResolutionStrategy.WITH_REVERSE_DNS : HostResolutionStrategy.WITHOUT_REVERSE_DNS;
+
         String proxyUser = null;
         String proxyPassword = null;
         String proxyHost = null;
@@ -177,7 +182,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         ScheduledExecutorService scheduledExecutorService = (scheduledReconnectExecutor != null ? scheduledReconnectExecutor : getScheduledExecutorService());
         try {
             final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                    socketAddresses, localAddress, connectTimeout, reconnectingIntervals,
+                    socketAddresses, localAddress, hostResolutionStrategy, connectTimeout, reconnectingIntervals,
                     scheduledExecutorService, settings, networkingOptions,
                     getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);

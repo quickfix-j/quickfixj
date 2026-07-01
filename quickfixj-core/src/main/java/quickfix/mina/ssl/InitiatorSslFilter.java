@@ -2,6 +2,7 @@ package quickfix.mina.ssl;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
+import quickfix.mina.HostResolutionStrategy;
 
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLContext;
@@ -10,13 +11,18 @@ import javax.net.ssl.SSLParameters;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 
+/**
+ * This class is not part of the public API and may be removed or changed in future releases.
+ */
 public final class InitiatorSslFilter extends SslFilter {
 
     private final String sniHostName;
+    private final HostResolutionStrategy hostResolutionStrategy;
 
-    public InitiatorSslFilter(SSLContext sslContext, String sniHostName) {
+    public InitiatorSslFilter(SSLContext sslContext, String sniHostName, HostResolutionStrategy hostResolutionStrategy) {
         super(sslContext, false);
         this.sniHostName = sniHostName;
+        this.hostResolutionStrategy = hostResolutionStrategy;
     }
 
     @Override
@@ -24,7 +30,7 @@ public final class InitiatorSslFilter extends SslFilter {
         SSLEngine sslEngine;
 
         if (addr != null) {
-            sslEngine = sslContext.createSSLEngine(addr.getHostName(), addr.getPort());
+            sslEngine = sslContext.createSSLEngine(hostResolutionStrategy.getHost(addr), addr.getPort());
         } else {
             sslEngine = sslContext.createSSLEngine();
         }
