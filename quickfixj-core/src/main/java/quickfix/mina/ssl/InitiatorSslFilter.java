@@ -11,6 +11,9 @@ import javax.net.ssl.SSLParameters;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 
+/**
+ * @internal This class is not part of the public API and may be removed or changed in future releases.
+ */
 public final class InitiatorSslFilter extends SslFilter {
 
     private final String sniHostName;
