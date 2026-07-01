@@ -131,4 +131,10 @@ public interface Initiator extends Connector {
      */
     String SETTING_DYNAMIC_SESSION = "DynamicSession";
 
+    /**
+     * Whether the initiator should use reverse DNS to resolve
+     * the host when connecting directly to an IP address.
+     */
+    String SETTING_REVERSE_DNS_ENABLED = "ReverseDNSEnabled";
+
 }
