@@ -303,7 +303,7 @@ public class IoSessionInitiator {
                     try {
                         cancelAndResetPendingConnectAttempt(future);
                     } catch (Throwable cancelException) {
-                        fixSession.getLog().onEvent(
+                        fixSession.getLog().onWarnEvent(
                                 "Exception while cancelling pending connect future: "
                                         + cancelException
                         );
@@ -339,7 +339,7 @@ public class IoSessionInitiator {
                     future.cancel();
                 }
             } catch (Throwable e) {
-                fixSession.getLog().onEvent(
+                fixSession.getLog().onWarnEvent(
                         "Exception while cancelling pending connect future: " + e
                 );
             }
@@ -348,7 +348,7 @@ public class IoSessionInitiator {
                 try {
                     ((ProxyConnector) ioConnector).cancelConnectFuture();
                 } catch (Throwable e) {
-                    fixSession.getLog().onEvent(
+                    fixSession.getLog().onWarnEvent(
                             "Exception while cancelling proxy connector future: " + e
                     );
                 }
@@ -356,7 +356,7 @@ public class IoSessionInitiator {
                 try {
                     setupIoConnector();
                 } catch (Throwable e) {
-                    fixSession.getLog().onEvent("Exception while recreating proxy connector: " + e);
+                    fixSession.getLog().onErrorEvent("Exception while recreating proxy connector: " + e);
                     throw e;
                 }
             }
