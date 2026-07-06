@@ -328,7 +328,7 @@ public class IoSessionInitiator {
             }
         }
 
-        synchronized private void cancelAndResetPendingConnectAttempt(ConnectFuture future) throws ConfigError, GeneralSecurityException {
+        private void cancelAndResetPendingConnectAttempt(ConnectFuture future) throws ConfigError, GeneralSecurityException {
             try {
                 if (future != null) {
                     IoSession session = future.getSession();
