@@ -50,6 +50,18 @@ public final class NumbersCache {
         return String.valueOf(i);
     }
 
+    /**
+     * Get the String representing the given number
+     *
+     * @param l the long to convert
+     * @return the String representing the long
+     */
+    public static String get(long l) {
+        if (l < LITTLE_NUMBERS_LENGTH && l >= 0) {
+            return LITTLE_NUMBERS.get((int) l);
+        }
+        return String.valueOf(l);
+    }
 
      /**
       * Get the string representing the given double if it's an integer

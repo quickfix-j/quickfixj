@@ -36,6 +36,7 @@ import quickfix.field.converter.CharArrayConverter;
 import quickfix.field.converter.CharConverter;
 import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.LongConverter;
 import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
@@ -111,6 +112,59 @@ public class FieldConvertersTest {
         }
         try {
             IntConverter.convert("+");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testLongConversion() throws Exception {
+        String longMaxValuePlus3 = "9223372036854775810";
+        String longMaxValueMinus1 = "9223372036854775806";
+        String longLargeValue = "999999999999999999";
+        assertEquals(String.valueOf(Long.MAX_VALUE), LongConverter.convert(Long.MAX_VALUE));
+        assertEquals("0", LongConverter.convert(0L));
+        assertEquals("123", LongConverter.convert(123L));
+        assertEquals(123L, LongConverter.convert("123"));
+        assertEquals(0L, LongConverter.convert("0"));
+        assertEquals(Long.MAX_VALUE, LongConverter.convert(String.valueOf(Long.MAX_VALUE)));
+        assertEquals(999999999999999999L, LongConverter.convert(longLargeValue));
+        assertEquals(Long.MAX_VALUE - 1, LongConverter.convert(longMaxValueMinus1));
+        assertEquals(23L, LongConverter.convert("00023"));
+        try {
+            LongConverter.convert("abc");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            LongConverter.convert("123.4");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            LongConverter.convert("+200");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            LongConverter.convert("-1");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        // this should fail and not overflow
+        try {
+            LongConverter.convert(longMaxValuePlus3);
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            LongConverter.convert("");
             fail();
         } catch (FieldConvertError e) {
             // expected
