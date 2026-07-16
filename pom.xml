@@ -475,6 +475,11 @@
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
+			<properties>
+				<!-- Activate the full-fix-latest profile in quickfixj-messages-all so that
+				     releases and deployments to Sonatype Central include all FixLatest classes and fields. -->
+				<quickfixj.fixlatest.build>full</quickfixj.fixlatest.build>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>

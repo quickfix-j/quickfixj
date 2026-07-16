@@ -90,7 +90,15 @@
 		<profile>
 			<id>full-fix-latest</id>
 			<!-- This profile builds the full fix latest specification to testing that a new version of the full specification
-			     does not introduce issues in the core QuickFIX/J build -->
+			     does not introduce issues in the core QuickFIX/J build.
+			     It is also activated automatically when the 'release' profile is active (via the quickfixj.fixlatest.build property)
+			     so that releases and deployments to Sonatype Central include all FixLatest classes and fields. -->
+			<activation>
+				<property>
+					<name>quickfixj.fixlatest.build</name>
+					<value>full</value>
+				</property>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
