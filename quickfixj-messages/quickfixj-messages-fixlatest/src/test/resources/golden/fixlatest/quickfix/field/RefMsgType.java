@@ -19,7 +19,7 @@ public class RefMsgType extends StringField {
 
   public static final String LOGOUT = "5";
 
-  public static final String IOI = "6";
+  public static final String INDICATION_OF_INTEREST = "6";
 
   public static final String ADVERTISEMENT = "7";
 
