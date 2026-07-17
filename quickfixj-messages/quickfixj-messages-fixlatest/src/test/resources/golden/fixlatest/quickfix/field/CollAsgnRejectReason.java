@@ -1,0 +1,35 @@
+/* Generated Java Source File */
+package quickfix.field;
+import quickfix.IntField;
+
+public class CollAsgnRejectReason extends IntField {
+  static final long serialVersionUID = 552892318L;
+
+  public static final int FIELD = 906;
+
+  public static final int UNKNOWN_DEAL = 0;
+
+  public static final int UNKNOWN_OR_INVALID_INSTRUMENT = 1;
+
+  public static final int UNAUTHORIZED_TRANSACTION = 2;
+
+  public static final int INSUFFICIENT_COLLATERAL = 3;
+
+  public static final int INVALID_TYPE_OF_COLLATERAL = 4;
+
+  public static final int EXCESSIVE_SUBSTITUTION = 5;
+
+  public static final int OTHER = 99;
+
+  public CollAsgnRejectReason() {
+    super(906);
+  }
+
+  public CollAsgnRejectReason(Integer data) {
+    super(906, data);
+  }
+
+  public CollAsgnRejectReason(int data) {
+    super(906, data);
+  }
+}

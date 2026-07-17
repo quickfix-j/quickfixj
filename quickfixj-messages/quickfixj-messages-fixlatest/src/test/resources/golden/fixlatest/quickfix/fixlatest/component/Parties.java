@@ -39,7 +39,7 @@ public class Parties extends quickfix.MessageComponent {
 
 public static class NoPartyIDs extends Group {
   static final long serialVersionUID = 552892318L;
-  private static final int[]  ORDER = {448, 447, 452, 0};
+  private static final int[]  ORDER = {448, 447, 452, 2376, 802, 0};
 
   public NoPartyIDs() {
     super(453, 448, ORDER);
@@ -107,6 +107,112 @@ public static class NoPartyIDs extends Group {
   public boolean isSetPartyRole() {
     return isSetField(452);
   }
+
+  public void set(quickfix.field.PartyRoleQualifier value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartyRoleQualifier get(quickfix.field.PartyRoleQualifier value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartyRoleQualifier getPartyRoleQualifier() throws FieldNotFound {
+    return get(new quickfix.field.PartyRoleQualifier());
+  }
+
+  public boolean isSet(quickfix.field.PartyRoleQualifier field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartyRoleQualifier() {
+    return isSetField(2376);
+  }
+
+  public void set(quickfix.fixlatest.component.PtysSubGrp component) {
+    setComponent(component);
+  }
+
+  public quickfix.fixlatest.component.PtysSubGrp get(quickfix.fixlatest.component.PtysSubGrp component) throws FieldNotFound {
+    getComponent(component);
+    return component;
+  }
+
+  public quickfix.fixlatest.component.PtysSubGrp getPtysSubGrpComponent() throws FieldNotFound {
+    return get(new quickfix.fixlatest.component.PtysSubGrp());
+  }
+
+  public void set(quickfix.field.NoPartySubIDs value) {
+    setField(value);
+  }
+
+  public quickfix.field.NoPartySubIDs get(quickfix.field.NoPartySubIDs value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.NoPartySubIDs getNoPartySubIDs() throws FieldNotFound {
+    return get(new quickfix.field.NoPartySubIDs());
+  }
+
+  public boolean isSet(quickfix.field.NoPartySubIDs field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetNoPartySubIDs() {
+    return isSetField(802);
+  }
+
+public static class NoPartySubIDs extends Group {
+  static final long serialVersionUID = 552892318L;
+  private static final int[]  ORDER = {523, 803, 0};
+
+  public NoPartySubIDs() {
+    super(802, 523, ORDER);
+  }
+
+  public void set(quickfix.field.PartySubID value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartySubID get(quickfix.field.PartySubID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartySubID getPartySubID() throws FieldNotFound {
+    return get(new quickfix.field.PartySubID());
+  }
+
+  public boolean isSet(quickfix.field.PartySubID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartySubID() {
+    return isSetField(523);
+  }
+
+  public void set(quickfix.field.PartySubIDType value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartySubIDType get(quickfix.field.PartySubIDType value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartySubIDType getPartySubIDType() throws FieldNotFound {
+    return get(new quickfix.field.PartySubIDType());
+  }
+
+  public boolean isSet(quickfix.field.PartySubIDType field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartySubIDType() {
+    return isSetField(803);
+  }
+}
 }
 
   public void set(quickfix.field.PartyID value) {
@@ -171,4 +277,110 @@ public static class NoPartyIDs extends Group {
   public boolean isSetPartyRole() {
     return isSetField(452);
   }
+
+  public void set(quickfix.field.PartyRoleQualifier value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartyRoleQualifier get(quickfix.field.PartyRoleQualifier value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartyRoleQualifier getPartyRoleQualifier() throws FieldNotFound {
+    return get(new quickfix.field.PartyRoleQualifier());
+  }
+
+  public boolean isSet(quickfix.field.PartyRoleQualifier field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartyRoleQualifier() {
+    return isSetField(2376);
+  }
+
+  public void set(quickfix.fixlatest.component.PtysSubGrp component) {
+    setComponent(component);
+  }
+
+  public quickfix.fixlatest.component.PtysSubGrp get(quickfix.fixlatest.component.PtysSubGrp component) throws FieldNotFound {
+    getComponent(component);
+    return component;
+  }
+
+  public quickfix.fixlatest.component.PtysSubGrp getPtysSubGrpComponent() throws FieldNotFound {
+    return get(new quickfix.fixlatest.component.PtysSubGrp());
+  }
+
+  public void set(quickfix.field.NoPartySubIDs value) {
+    setField(value);
+  }
+
+  public quickfix.field.NoPartySubIDs get(quickfix.field.NoPartySubIDs value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.NoPartySubIDs getNoPartySubIDs() throws FieldNotFound {
+    return get(new quickfix.field.NoPartySubIDs());
+  }
+
+  public boolean isSet(quickfix.field.NoPartySubIDs field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetNoPartySubIDs() {
+    return isSetField(802);
+  }
+
+public static class NoPartySubIDs extends Group {
+  static final long serialVersionUID = 552892318L;
+  private static final int[]  ORDER = {523, 803, 0};
+
+  public NoPartySubIDs() {
+    super(802, 523, ORDER);
+  }
+
+  public void set(quickfix.field.PartySubID value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartySubID get(quickfix.field.PartySubID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartySubID getPartySubID() throws FieldNotFound {
+    return get(new quickfix.field.PartySubID());
+  }
+
+  public boolean isSet(quickfix.field.PartySubID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartySubID() {
+    return isSetField(523);
+  }
+
+  public void set(quickfix.field.PartySubIDType value) {
+    setField(value);
+  }
+
+  public quickfix.field.PartySubIDType get(quickfix.field.PartySubIDType value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.PartySubIDType getPartySubIDType() throws FieldNotFound {
+    return get(new quickfix.field.PartySubIDType());
+  }
+
+  public boolean isSet(quickfix.field.PartySubIDType field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetPartySubIDType() {
+    return isSetField(803);
+  }
+}
 }

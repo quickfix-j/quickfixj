@@ -1,0 +1,35 @@
+/* Generated Java Source File */
+package quickfix.field;
+import quickfix.IntField;
+
+public class AcctIDSource extends IntField {
+  static final long serialVersionUID = 552892318L;
+
+  public static final int FIELD = 660;
+
+  public static final int BIC = 1;
+
+  public static final int SIDCODE = 2;
+
+  public static final int TFM = 3;
+
+  public static final int OMGEO = 4;
+
+  public static final int DTCCCODE = 5;
+
+  public static final int SPSAID = 6;
+
+  public static final int OTHER = 99;
+
+  public AcctIDSource() {
+    super(660);
+  }
+
+  public AcctIDSource(Integer data) {
+    super(660, data);
+  }
+
+  public AcctIDSource(int data) {
+    super(660, data);
+  }
+}

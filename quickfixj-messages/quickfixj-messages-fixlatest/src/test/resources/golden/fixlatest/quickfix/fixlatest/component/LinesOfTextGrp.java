@@ -39,7 +39,7 @@ public class LinesOfTextGrp extends quickfix.MessageComponent {
 
 public static class NoLinesOfText extends Group {
   static final long serialVersionUID = 552892318L;
-  private static final int[]  ORDER = {58, 0};
+  private static final int[]  ORDER = {58, 354, 355, 0};
 
   public NoLinesOfText() {
     super(33, 58, ORDER);
@@ -65,6 +65,48 @@ public static class NoLinesOfText extends Group {
   public boolean isSetText() {
     return isSetField(58);
   }
+
+  public void set(quickfix.field.EncodedTextLen value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedTextLen get(quickfix.field.EncodedTextLen value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedTextLen getEncodedTextLen() throws FieldNotFound {
+    return get(new quickfix.field.EncodedTextLen());
+  }
+
+  public boolean isSet(quickfix.field.EncodedTextLen field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedTextLen() {
+    return isSetField(354);
+  }
+
+  public void set(quickfix.field.EncodedText value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedText get(quickfix.field.EncodedText value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedText getEncodedText() throws FieldNotFound {
+    return get(new quickfix.field.EncodedText());
+  }
+
+  public boolean isSet(quickfix.field.EncodedText field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedText() {
+    return isSetField(355);
+  }
 }
 
   public void set(quickfix.field.Text value) {
@@ -86,5 +128,47 @@ public static class NoLinesOfText extends Group {
 
   public boolean isSetText() {
     return isSetField(58);
+  }
+
+  public void set(quickfix.field.EncodedTextLen value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedTextLen get(quickfix.field.EncodedTextLen value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedTextLen getEncodedTextLen() throws FieldNotFound {
+    return get(new quickfix.field.EncodedTextLen());
+  }
+
+  public boolean isSet(quickfix.field.EncodedTextLen field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedTextLen() {
+    return isSetField(354);
+  }
+
+  public void set(quickfix.field.EncodedText value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedText get(quickfix.field.EncodedText value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedText getEncodedText() throws FieldNotFound {
+    return get(new quickfix.field.EncodedText());
+  }
+
+  public boolean isSet(quickfix.field.EncodedText field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedText() {
+    return isSetField(355);
   }
 }

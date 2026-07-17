@@ -62,6 +62,90 @@ public class BusinessMessageReject extends Message {
     return isSetField(372);
   }
 
+  public void set(quickfix.field.RefApplVerID value) {
+    setField(value);
+  }
+
+  public quickfix.field.RefApplVerID get(quickfix.field.RefApplVerID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.RefApplVerID getRefApplVerID() throws FieldNotFound {
+    return get(new quickfix.field.RefApplVerID());
+  }
+
+  public boolean isSet(quickfix.field.RefApplVerID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetRefApplVerID() {
+    return isSetField(1130);
+  }
+
+  public void set(quickfix.field.RefApplExtID value) {
+    setField(value);
+  }
+
+  public quickfix.field.RefApplExtID get(quickfix.field.RefApplExtID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.RefApplExtID getRefApplExtID() throws FieldNotFound {
+    return get(new quickfix.field.RefApplExtID());
+  }
+
+  public boolean isSet(quickfix.field.RefApplExtID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetRefApplExtID() {
+    return isSetField(1406);
+  }
+
+  public void set(quickfix.field.RefCstmApplVerID value) {
+    setField(value);
+  }
+
+  public quickfix.field.RefCstmApplVerID get(quickfix.field.RefCstmApplVerID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.RefCstmApplVerID getRefCstmApplVerID() throws FieldNotFound {
+    return get(new quickfix.field.RefCstmApplVerID());
+  }
+
+  public boolean isSet(quickfix.field.RefCstmApplVerID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetRefCstmApplVerID() {
+    return isSetField(1131);
+  }
+
+  public void set(quickfix.field.BusinessRejectRefID value) {
+    setField(value);
+  }
+
+  public quickfix.field.BusinessRejectRefID get(quickfix.field.BusinessRejectRefID value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.BusinessRejectRefID getBusinessRejectRefID() throws FieldNotFound {
+    return get(new quickfix.field.BusinessRejectRefID());
+  }
+
+  public boolean isSet(quickfix.field.BusinessRejectRefID field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetBusinessRejectRefID() {
+    return isSetField(379);
+  }
+
   public void set(quickfix.field.BusinessRejectReason value) {
     setField(value);
   }
@@ -102,5 +186,47 @@ public class BusinessMessageReject extends Message {
 
   public boolean isSetText() {
     return isSetField(58);
+  }
+
+  public void set(quickfix.field.EncodedTextLen value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedTextLen get(quickfix.field.EncodedTextLen value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedTextLen getEncodedTextLen() throws FieldNotFound {
+    return get(new quickfix.field.EncodedTextLen());
+  }
+
+  public boolean isSet(quickfix.field.EncodedTextLen field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedTextLen() {
+    return isSetField(354);
+  }
+
+  public void set(quickfix.field.EncodedText value) {
+    setField(value);
+  }
+
+  public quickfix.field.EncodedText get(quickfix.field.EncodedText value) throws FieldNotFound {
+    getField(value);
+    return value;
+  }
+
+  public quickfix.field.EncodedText getEncodedText() throws FieldNotFound {
+    return get(new quickfix.field.EncodedText());
+  }
+
+  public boolean isSet(quickfix.field.EncodedText field) {
+    return isSetField(field);
+  }
+
+  public boolean isSetEncodedText() {
+    return isSetField(355);
   }
 }
