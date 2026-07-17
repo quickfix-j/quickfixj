@@ -17,10 +17,11 @@ This file provides guidance for automated contributors/agents working in the `qu
 ## 3) Build instructions (fast/default/full)
 
 - Fast local package (no tests):
-  - `./mvnw clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest`
+  - `./mvnw clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin`
 - CI-equivalent validation baseline:
-  - `./mvnw install -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest`
+  - `./mvnw install -Dmaven.javadoc.skip=true -PskipBundlePlugin`
 - If OSGi bundle artifacts are required, omit `-PskipBundlePlugin`.
+- The `full-fix-latest` profile is active by default and builds the complete FIX Latest specification. The `minimal-fix-latest` profile (used only by CodeQL) overrides this with a reduced orchestra to limit heap usage.
 
 ## 4) Module dependency order for targeted `quickfixj-core` work
 
