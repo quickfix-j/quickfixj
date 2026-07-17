@@ -21,15 +21,14 @@ import org.quickfixj.orchestra.CodeGeneratorJ;
 /**
  * Golden-file regression test for the orchestra-based code generator.
  *
- * <p>The test runs {@link CodeGeneratorJ} against the committed minimised
- * {@code OrchestraFIXLatest.min.xml} test fixture and compares every generated
+ * <p>The test runs {@link CodeGeneratorJ} against the committed
+ * {@code OrchestraFIXLatest.xml} test fixture and compares every generated
  * {@code .java} file byte-for-byte against the committed golden files stored in
  * {@code src/test/resources/golden/fixlatest}.
  *
- * <p>The test fixture is the minimised orchestra file produced by applying
- * {@code quickfixj-messages-all/src/main/xsl/minimiseOrchestra.xsl} to the
- * {@code OrchestraFIXLatest.xml} from the {@code io.fixprotocol.orchestrations:fix-standard}
- * artifact at the version declared in the parent POM.
+ * <p>The test fixture is the full {@code OrchestraFIXLatest.xml} taken from the
+ * {@code io.fixprotocol.orchestrations:fix-standard} artifact at the version declared
+ * in the parent POM, built with the {@code full-fix-latest} Maven profile.
  *
  * <p>If the generator output must intentionally change, regenerate the golden files by
  * running the orchestra code generator directly against the same XML fixture and committing
@@ -55,9 +54,9 @@ public class OrchestraGoldenFileTest {
         File outputDir = tempFolder.newFolder("fixlatest");
 
         try (InputStream orchestraXml = OrchestraGoldenFileTest.class
-                .getResourceAsStream("/OrchestraFIXLatest.min.xml")) {
+                .getResourceAsStream("/OrchestraFIXLatest.xml")) {
             if (orchestraXml == null) {
-                fail("Test resource OrchestraFIXLatest.min.xml not found on classpath");
+                fail("Test resource OrchestraFIXLatest.xml not found on classpath");
             }
             CodeGeneratorJ generator = new CodeGeneratorJ();
             generator.setGenerateFixt11Package(false);
