@@ -192,7 +192,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             }
         }
         boolean reverseDnsEnabled = getSettings().getBoolOrDefault(sessionID,
-                Acceptor.SETTING_REVERSE_DNS_ENABLED, true);
+                SSLSupport.SETTING_REVERSE_DNS_ENABLED, true);
 
         int acceptPort = (int) settings.getLong(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PORT);
 

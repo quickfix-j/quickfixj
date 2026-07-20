@@ -44,10 +44,4 @@ public interface Acceptor extends Connector {
      * Acceptor setting specifying a template acceptor session.
      */
     String SETTING_ACCEPTOR_TEMPLATE = "AcceptorTemplate";
-
-    /**
-     * Whether the acceptor should use reverse DNS to resolve
-     * the peer host when accepting a connection directly from an IP address.
-     */
-    String SETTING_REVERSE_DNS_ENABLED = "ReverseDNSEnabled";
 }
