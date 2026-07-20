@@ -141,8 +141,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
 
         // Defaults to true for backwards compatibility
-        HostResolutionStrategy hostResolutionStrategy = getSettings().getBoolOrDefault(sessionID, Initiator.SETTING_REVERSE_DNS_ENABLED, true) ?
-            HostResolutionStrategy.WITH_REVERSE_DNS : HostResolutionStrategy.WITHOUT_REVERSE_DNS;
+        HostResolutionStrategy hostResolutionStrategy = HostResolutionStrategy.fromReverseDnsEnabled(
+                getSettings().getBoolOrDefault(sessionID, Initiator.SETTING_REVERSE_DNS_ENABLED, true));
 
         String proxyUser = null;
         String proxyPassword = null;

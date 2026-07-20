@@ -2,13 +2,56 @@ package quickfix.mina.ssl;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
+import quickfix.mina.HostResolutionStrategy;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import java.net.InetSocketAddress;
 
 public final class AcceptorSslFilter extends SslFilter {
+    private final HostResolutionStrategy hostResolutionStrategy;
 
-    public AcceptorSslFilter(SSLContext sslContext) {
+    public AcceptorSslFilter(SSLContext sslContext, HostResolutionStrategy hostResolutionStrategy) {
         super(sslContext);
+        this.hostResolutionStrategy = hostResolutionStrategy;
+    }
+
+    @Override
+    protected SSLEngine createEngine(IoSession session, InetSocketAddress addr) {
+        SSLEngine sslEngine;
+
+        if (addr != null) {
+            sslEngine = sslContext.createSSLEngine(hostResolutionStrategy.getHost(addr), addr.getPort());
+        } else {
+            sslEngine = sslContext.createSSLEngine();
+        }
+
+        if (wantClientAuth) {
+            sslEngine.setWantClientAuth(true);
+        }
+
+        if (needClientAuth) {
+            sslEngine.setNeedClientAuth(true);
+        }
+
+        if (enabledCipherSuites != null) {
+            sslEngine.setEnabledCipherSuites(enabledCipherSuites);
+        }
+
+        if (enabledProtocols != null) {
+            sslEngine.setEnabledProtocols(enabledProtocols);
+        }
+
+        if (getEndpointIdentificationAlgorithm() != null) {
+            SSLParameters sslParameters = sslEngine.getSSLParameters();
+            sslParameters.setEndpointIdentificationAlgorithm(getEndpointIdentificationAlgorithm());
+            sslEngine.setSSLParameters(sslParameters);
+        }
+
+        sslEngine.setUseClientMode(!session.isServer());
+
+        return sslEngine;
     }
 
     @Override
