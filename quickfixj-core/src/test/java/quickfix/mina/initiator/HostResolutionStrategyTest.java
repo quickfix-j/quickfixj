@@ -61,8 +61,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * End-to-end test for {@link HostResolutionStrategy} configurations.
  *
- * @see Initiator#SETTING_REVERSE_DNS_ENABLED
- * @see Acceptor#SETTING_REVERSE_DNS_ENABLED
+ * @see SSLSupport#SETTING_REVERSE_DNS_ENABLED
+ * @see SSLSupport#SETTING_REVERSE_DNS_ENABLED
  */
 public class HostResolutionStrategyTest {
 
@@ -273,7 +273,7 @@ public class HostResolutionStrategyTest {
         defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(Acceptor.SETTING_SOCKET_ACCEPT_PORT, Integer.toString(port));
         if (reverseDnsEnabled != null) {
-            defaults.put(Acceptor.SETTING_REVERSE_DNS_ENABLED, reverseDnsEnabled);
+            defaults.put(SSLSupport.SETTING_REVERSE_DNS_ENABLED, reverseDnsEnabled);
         }
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, QUICKFIXJ_KEY_STORE);
@@ -301,7 +301,7 @@ public class HostResolutionStrategyTest {
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, connectHost);
         defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
-        defaults.put(Initiator.SETTING_REVERSE_DNS_ENABLED, reverseDnsEnabled);
+        defaults.put(SSLSupport.SETTING_REVERSE_DNS_ENABLED, reverseDnsEnabled);
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, QUICKFIXJ_KEY_STORE);
         defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, QUICKFIXJ_KEY_STORE_PASSWORD);
