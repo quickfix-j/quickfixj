@@ -179,6 +179,29 @@ public class HostResolutionStrategyTest {
         assertEquals(1, reverseDnsResolver.getReverseDnsLookupCount());
     }
 
+    @Test
+    public void initiatorAndAcceptorShouldAttemptToCallReverseDnsDuringLogonWhenReverseDnsIsEnabled()
+            throws Exception {
+        installBlockingResolver();
+        int port = AvailablePortFinder.getNextAvailable();
+
+        acceptor = new TestAcceptor(createAcceptorSettings(port, "Y"));
+        acceptor.start();
+
+        initiator = new TestInitiator(createInitiatorSettings(LOOPBACK_IP, port, "Y"));
+        initiator.start();
+
+        assertTrue(reverseDnsResolver.awaitReverseDnsLookups(5, TimeUnit.SECONDS));
+        initiator.assertNotLoggedOn(INITIATOR_SESSION_ID, 1, TimeUnit.SECONDS);
+        acceptor.assertNotLoggedOn(ACCEPTOR_SESSION_ID, 1, TimeUnit.SECONDS);
+
+        reverseDnsResolver.releaseReverseDns();
+
+        initiator.assertLoggedOn(INITIATOR_SESSION_ID);
+        acceptor.assertLoggedOn(ACCEPTOR_SESSION_ID);
+        assertEquals(2, reverseDnsResolver.getReverseDnsLookupCount());
+    }
+
     // --- Helpers ---
 
     private void assertInitiatorLogsOnWhenReverseDnsAvailable(String connectHost, String reverseDnsEnabled)
@@ -319,12 +342,17 @@ public class HostResolutionStrategyTest {
     }
 
     static class BlockingReverseDnsResolver extends MappedHostResolver {
-        private final CountDownLatch reverseDnsLookupStarted = new CountDownLatch(1);
+        private final CountDownLatch reverseDnsLookupStarted;
         private final CountDownLatch reverseDnsLookupReleased = new CountDownLatch(1);
         private final AtomicInteger reverseDnsLookupCount = new AtomicInteger();
 
         BlockingReverseDnsResolver(Map<String, String> hostAliases) {
+            this(hostAliases, 1);
+        }
+
+        BlockingReverseDnsResolver(Map<String, String> hostAliases, int expectedReverseDnsLookups) {
             super(hostAliases);
+            reverseDnsLookupStarted = new CountDownLatch(expectedReverseDnsLookups);
         }
 
         @Override
@@ -349,6 +377,10 @@ public class HostResolutionStrategyTest {
         }
 
         boolean awaitReverseDnsLookup(long timeout, TimeUnit unit) throws InterruptedException {
+            return awaitReverseDnsLookups(timeout, unit);
+        }
+
+        boolean awaitReverseDnsLookups(long timeout, TimeUnit unit) throws InterruptedException {
             return reverseDnsLookupStarted.await(timeout, unit);
         }
 
