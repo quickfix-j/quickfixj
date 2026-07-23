@@ -452,7 +452,8 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugins>
+			</plugin>
+		</plugins>
 	</build>
 	<profiles>
 		<profile>
