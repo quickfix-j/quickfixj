@@ -24,6 +24,12 @@ jobs:
       - name: Build SNAPSHOT
         run: ./mvnw clean package -pl '!quickfixj-distribution' -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: quickfix-j/quickfixj
+
       - name: Delete old packages
         continue-on-error: true
         uses: SmartsquareGmbH/delete-old-packages@v1.0.0
