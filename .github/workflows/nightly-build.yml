@@ -22,7 +22,7 @@ jobs:
           cache: maven
 
       - name: Build SNAPSHOT
-        run: ./mvnw clean package -pl '!quickfixj-distribution' -B -V -D"maven.javadoc.skip"="true" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: ./mvnw clean package -pl '!quickfixj-distribution' -B -V -D"maven.javadoc.skip"="true" -P"coverage" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

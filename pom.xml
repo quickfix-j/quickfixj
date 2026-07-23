@@ -74,6 +74,7 @@
 		<maven-jar-plugin-version>3.5.0</maven-jar-plugin-version>
 		<maven-surefire-plugin-version>3.5.6</maven-surefire-plugin-version>
 		<jacoco-maven-plugin-version>0.8.15</jacoco-maven-plugin-version>
+		<argLine></argLine>
 		<maven-pmd-plugin-version>3.28.0</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.4.0</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
@@ -451,35 +452,44 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco-maven-plugin-version}</version>
-				<executions>
-					<execution>
-						<id>jacoco-initialize</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>jacoco-site</id>
-						<phase>package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-						<configuration>
-							<excludes>
-								<exclude>quickfixj-messages/quickfixj-messages-*/target/classes/**</exclude>
-							</excludes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+			</plugins>
 	</build>
 	<profiles>
+		<profile>
+			<id>coverage</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco-maven-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>jacoco-initialize</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>jacoco-site</id>
+								<phase>package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+								<configuration>
+									<excludes>
+										<exclude>quickfixj-messages/quickfixj-messages-*/target/classes/**</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>skipBundlePlugin</id>
 			<activation>
