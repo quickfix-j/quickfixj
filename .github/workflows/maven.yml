@@ -37,22 +37,8 @@ jobs:
           cache: 'maven'
       - name: Test with Maven
         run: ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
-
-  coverage:
-    runs-on: ubuntu-latest
-    name: Coverage JDK 21, ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'corretto'
-          java-version: 21
-          cache: 'maven'
-      - name: Test with Maven (coverage)
-        run: ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest,coverage" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
       - name: Upload coverage reports to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.java == 21
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
