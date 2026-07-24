@@ -3,6 +3,7 @@ QuickFIX/J
 [![Java CI](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml)
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.sml.io/sonatype-central/org.quickfixj/quickfixj-core)
+[![codecov](https://codecov.io/gh/quickfix-j/quickfixj/graph/badge.svg?token=svUBx8TTzQ)](https://codecov.io/gh/quickfix-j/quickfixj)
 
 This is the official QuickFIX/J project repository.
 
