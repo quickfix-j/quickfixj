@@ -18,6 +18,18 @@
 		<generator.decimal>false</generator.decimal>
 	</properties>
 
+	<build>
+		<plugins>
+			<!-- Message classes are generated code; exclude them from JaCoCo coverage entirely. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<modules>
 		<!-- The order in which these modules is run is significant
