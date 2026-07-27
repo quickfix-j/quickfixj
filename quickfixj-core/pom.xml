@@ -285,7 +285,7 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<argLine>
-								-Xmx2g -Djava.net.preferIPv4Stack=true
+								@{argLine} -Xmx2g -Djava.net.preferIPv4Stack=true
 							</argLine>
 							<trimStackTrace>false</trimStackTrace>
 							<includes>
@@ -321,7 +321,7 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<argLine>
-								-Xmx2g -Djava.net.preferIPv4Stack=true
+								@{argLine} -Xmx2g -Djava.net.preferIPv4Stack=true
 								--add-opens java.base/java.lang=ALL-UNNAMED
 							</argLine>
 							<trimStackTrace>false</trimStackTrace>
