@@ -30,8 +30,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Locale;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -673,7 +671,7 @@ public class DataDictionaryTest {
 
     @Test
     public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
-        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+        ExternalDtdDataDictionaryLoader.load("FIX_External_DTD.xml");
     }
 
     @Test

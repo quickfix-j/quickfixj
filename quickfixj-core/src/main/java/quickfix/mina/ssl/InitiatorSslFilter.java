@@ -8,7 +8,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.util.Collections;
 
 public final class InitiatorSslFilter extends SslFilter {
 
@@ -53,12 +53,22 @@ public final class InitiatorSslFilter extends SslFilter {
 
         if (sniHostName != null) {
             SSLParameters sslParameters = sslEngine.getSSLParameters();
-            sslParameters.setServerNames(Arrays.asList(new SNIHostName(sniHostName)));
+            sslParameters.setServerNames(Collections.singletonList(new SNIHostName(sniHostName)));
             sslEngine.setSSLParameters(sslParameters);
         }
 
         sslEngine.setUseClientMode(!session.isServer());
 
         return sslEngine;
+    }
+
+    @Override
+    public void sessionClosed(NextFilter next, IoSession session) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("CLIENT: Session {} closed", session);
+        }
+
+        onClose(next, session, true);
+        next.sessionClosed(session);
     }
 }

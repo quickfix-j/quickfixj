@@ -41,7 +41,7 @@ public class MessageCracker {
     public @interface Handler {
     }
 
-    public class RedundantHandlerException extends RuntimeException {
+    public static class RedundantHandlerException extends RuntimeException {
         private final Class<?> messageClass;
         private final Method originalMethod;
         private final Method redundantMethod;
@@ -55,7 +55,7 @@ public class MessageCracker {
 
         @Override
         public String toString() {
-            return "Duplicate handler method for " + messageClass + ", orginal method is "
+            return "Duplicate handler method for " + messageClass + ", original method is "
                     + originalMethod + ", redundant method is " + redundantMethod;
         }
     }
@@ -97,7 +97,7 @@ public class MessageCracker {
         return method.getName().equals("onMessage") || method.isAnnotationPresent(Handler.class);
     }
 
-    private class Invoker {
+    private static class Invoker {
         private final Object target;
         private final Method method;
 

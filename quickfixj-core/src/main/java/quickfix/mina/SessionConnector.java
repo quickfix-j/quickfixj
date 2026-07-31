@@ -99,7 +99,7 @@ public abstract class SessionConnector implements Connector {
      * If using external Executors, this method should be called immediately after the constructor. Once set, the
      * Executors cannot be changed.
      * </p>
-     * 
+     *
      * @param executorFactory See {@link ExecutorFactory} for detailed requirements.
      */
     public void setExecutorFactory(ExecutorFactory executorFactory) {
@@ -319,7 +319,7 @@ public abstract class SessionConnector implements Connector {
 
     // visible for testing
     boolean checkSessionTimerRunning() {
-        if ( sessionTimerFuture != null ) {
+        if (sessionTimerFuture != null) {
             return !sessionTimerFuture.isDone();
         }
         return false;
@@ -423,13 +423,13 @@ public abstract class SessionConnector implements Connector {
     protected IoFilterChainBuilder getIoFilterChainBuilder() {
         return ioFilterChainBuilder;
     }
-    
+
     /**
      * Closes all managed sessions of an Initiator/Acceptor.
      *
-     * @param ioService Acceptor or Initiator implementation
+     * @param ioService        Acceptor or Initiator implementation
      * @param awaitTermination whether to wait for underlying ExecutorService to terminate
-     * @param logger used for logging WARNING when IoSession could not be closed
+     * @param logger           used for logging WARNING when IoSession could not be closed
      */
     public static void closeManagedSessionsAndDispose(IoService ioService, boolean awaitTermination, Logger logger) {
         Map<Long, IoSession> managedSessions = ioService.getManagedSessions();

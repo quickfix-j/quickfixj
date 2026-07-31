@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.TimeZone;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -745,5 +747,46 @@ public class MessageTest {
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=241\001",
                 DataDictionaryTest.getDictionary());
         assertEquals("ABCD", m.getHeader().getString(SecureData.FIELD));
+    }
+
+    @Test
+    public void shouldTrimStringBuilder() {
+        // this test must run in a dedicated thread to avoid interference with other test cases (thread local)
+        CompletableFuture<?> future = CompletableFuture.runAsync(() -> {
+            Message message = new Message();
+
+            message.setString(131, "123456");
+            String str = message.toString();
+
+            assertEquals(23, str.length());
+            assertEquals(0, message.getStringBuilder().length());
+            assertEquals(1024, message.getStringBuilder().capacity());
+
+            message.setString(131, createLongString());
+            str = message.toString();
+
+            assertEquals(10020, str.length());
+            assertEquals(0, message.getStringBuilder().length());
+            assertEquals(4096, message.getStringBuilder().capacity());
+
+            message.setString(131, "123456");
+            str = message.toString();
+
+            assertEquals(23, str.length());
+            assertEquals(0, message.getStringBuilder().length());
+            assertEquals(4096, message.getStringBuilder().capacity());
+        }, Executors.newSingleThreadExecutor());
+
+        future.join();
+    }
+
+    private static String createLongString() {
+        StringBuilder builder = new StringBuilder(10_000);
+
+        for (int i = 0; i < 10_000; i++) {
+            builder.append('a');
+        }
+
+        return builder.toString();
     }
 }

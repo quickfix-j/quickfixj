@@ -35,24 +35,24 @@ public class FileUtilTest {
 
     @Test
     public void testFileLocation() throws Exception {
-        // Assumption: current directory is QFJ project base directory
-        InputStream in = FileUtil.open(null, "LICENSE");
-        in.close();
+        // Tests that FileUtil.open can find a file in parent directory
+        InputStream in = FileUtil.open(null, "../LICENSE");
         assertNotNull("File not found", in);
+        in.close();
     }
 
     @Test
     public void testClassResourceLocation() throws Exception {
         InputStream in = FileUtil.open(Message.class, "FixVersions.class");
-        in.close();
         assertNotNull("Resource not found", in);
+        in.close();
     }
 
     @Test
     public void testClassLoaderResourceLocation() throws Exception {
         InputStream in = FileUtil.open(Message.class, "quickfix/test/acceptance/definitions/client/Normal.def");
-        in.close();
         assertNotNull("Resource not found", in);
+        in.close();
     }
 
     @Test

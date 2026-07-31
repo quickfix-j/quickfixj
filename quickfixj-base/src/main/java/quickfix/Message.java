@@ -150,17 +150,14 @@ public class Message extends FieldMap {
     }
 
     private static final class Context {
+
+        private static final int MAX_MESSAGE_BUFFER_SIZE = 4096;
         private final BodyLength bodyLength = new BodyLength(100);
         private final CheckSum checkSum = new CheckSum("000");
         private final StringBuilder stringBuilder = new StringBuilder(1024);
     }
 
-    private static final ThreadLocal<Context> stringContexts = new ThreadLocal<Context>() {
-        @Override
-        protected Context initialValue() {
-            return new Context();
-        }
-    };
+    private static final ThreadLocal<Context> STRING_CONTEXTS = ThreadLocal.withInitial(Context::new);
 
     /**
      * Do not call this method concurrently while modifying the contents of the message.
@@ -173,7 +170,7 @@ public class Message extends FieldMap {
      */
     @Override
     public String toString() {
-        Context context = stringContexts.get();
+        Context context = STRING_CONTEXTS.get();
         if (CharsetSupport.isStringEquivalent()) { // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
             trailer.setField(context.checkSum);
@@ -192,6 +189,11 @@ public class Message extends FieldMap {
             }
             return stringBuilder.toString();
         } finally {
+            if (stringBuilder.length() > Context.MAX_MESSAGE_BUFFER_SIZE) {
+                stringBuilder.setLength(Context.MAX_MESSAGE_BUFFER_SIZE);
+                stringBuilder.trimToSize();
+            }
+
             stringBuilder.setLength(0);
         }
     }
@@ -1018,4 +1020,7 @@ public class Message extends FieldMap {
         this.isGarbled = isGarbled;
     }
 
+    StringBuilder getStringBuilder() {
+        return STRING_CONTEXTS.get().stringBuilder;
+    }
 }

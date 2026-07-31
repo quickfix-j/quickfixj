@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 /**
  * Acceptance test suite that programmatically discovers and runs FIX protocol tests.
@@ -42,6 +45,7 @@ public class AcceptanceTestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
     private static final String ATEST_TRANSPORT_KEY = "atest.transport";
     private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
+    private static final String ATEST_VERBOSE_KEY = "atest.verbose";
     private static final Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
@@ -50,6 +54,7 @@ public class AcceptanceTestSuite {
     private static int port = AvailablePortFinder.getNextAvailable();
 
     private final boolean skipSlowTests;
+    private final boolean verboseLogging;
     private final boolean multithreaded;
 
     private final Map<Object, Object> overridenProperties;
@@ -81,20 +86,51 @@ public class AcceptanceTestSuite {
             result.startTest(this);
             TestConnection connection = null;
             String failureString = "test " + filename + " failed with message: ";
+
+            log.info("Running test {}, filename : {}", this.testname, this.filename);
+
+            java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
+            Handler[] existingHandlers = rootLogger.getHandlers();
+            Level[] originalLevels = new Level[existingHandlers.length];
+            CapturingLogHandler capturingHandler = null;
+            if (!verboseLogging) {
+                for (int i = 0; i < existingHandlers.length; i++) {
+                    originalLevels[i] = existingHandlers[i].getLevel();
+                    existingHandlers[i].setLevel(Level.OFF);
+                }
+                capturingHandler = new CapturingLogHandler();
+                rootLogger.addHandler(capturingHandler);
+            }
+
+            boolean testFailed = false;
             try {
-                log.info("Running test {}, filename : {}", this.testname, this.filename);
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
                 for (TestStep testStep : testSteps) {
                     testStep.run(result, connection);
                 }
             } catch (AssertionFailedError e) {
+                testFailed = true;
                 result.addFailure(this, e);
                 log.error(failureString + e.getMessage());
             } catch (Throwable t) {
+                testFailed = true;
                 result.addError(this, t);
                 log.error(failureString + t.getMessage());
             } finally {
+                if (!verboseLogging) {
+                    rootLogger.removeHandler(capturingHandler);
+                    for (int i = 0; i < existingHandlers.length; i++) {
+                        existingHandlers[i].setLevel(originalLevels[i]);
+                    }
+                    if (testFailed) {
+                        for (LogRecord record : capturingHandler.drainRecords()) {
+                            for (Handler handler : existingHandlers) {
+                                handler.publish(record);
+                            }
+                        }
+                    }
+                }
                 if (connection != null) {
                     connection.tearDown();
                 }
@@ -150,6 +186,7 @@ public class AcceptanceTestSuite {
         }
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
+        this.verboseLogging = Boolean.getBoolean(ATEST_VERBOSE_KEY);
 
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix40"));
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix41"));
@@ -207,6 +244,29 @@ public class AcceptanceTestSuite {
         return skipSlowTests &&
                 (file.getName().contains("NoDataSentDuringHeartBtInt")
                         || file.getName().contains("SendTestRequest"));
+    }
+
+    private static final class CapturingLogHandler extends Handler {
+        private final List<LogRecord> records = new ArrayList<>();
+
+        @Override
+        public synchronized void publish(LogRecord record) {
+            records.add(record);
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() throws SecurityException {
+        }
+
+        public synchronized List<LogRecord> drainRecords() {
+            List<LogRecord> drained = new ArrayList<>(records);
+            records.clear();
+            return drained;
+        }
     }
 
     private static final class AcceptanceTestServerSetUp extends TestSetup {

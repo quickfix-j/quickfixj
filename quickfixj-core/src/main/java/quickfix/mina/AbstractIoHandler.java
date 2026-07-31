@@ -22,6 +22,7 @@ package quickfix.mina;
 import java.io.IOException;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
@@ -81,7 +82,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             }
         }
         String reason;
-        if (realCause instanceof IOException) {
+        if (realCause instanceof WriteToClosedSessionException) {
+            WriteToClosedSessionException exception =  (WriteToClosedSessionException) realCause;
+            log.debug("Write to closed session ({}): {}", ioSession.getRemoteAddress(), exception.getRequests());
+            return;
+        } else if (realCause instanceof IOException) {
             if (quickFixSession != null && quickFixSession.isEnabled()) {
                 reason = "Socket exception (" + ioSession.getRemoteAddress() + "): " + cause;
             } else {
@@ -123,8 +128,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             if (quickFixSession != null) {
                 eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM);
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
         }

@@ -19,72 +19,17 @@
         match="fixr:message[(@category='Session') ]" />
 
     <!-- filter out FIX Session Layer fields -->
-    <xsl:template match="fixr:fields/fixr:field[(   @id='7'
-                                                    or @id='8'
-                                                    or @id='9'
-                                                    or @id='10'
-                                                    or @id='16'
-                                                    or @id='34'
-                                                    or @id='35'
-                                                    or @id='36'
-                                                    or @id='43'
-                                                    or @id='49'
-                                                    or @id='50'
-                                                    or @id='52'
-                                                    or @id='56'
-                                                    or @id='57'
-                                                    or @id='89'
-                                                    or @id='90'
-                                                    or @id='91'
-                                                    or @id='93'
-                                                    or @id='95'
-                                                    or @id='96'
-                                                    or @id='97'
-                                                    or @id='98'
-                                                    or @id='108'
-                                                    or @id='112'
-                                                    or @id='115'
-                                                    or @id='116'
-                                                    or @id='122'
-                                                    or @id='123'
-                                                    or @id='128'
-                                                    or @id='129'
-                                                    or @id='141'
-                                                    or @id='142'
-                                                    or @id='143'
-                                                    or @id='144'
-                                                    or @id='145'
-                                                    or @id='212'
-                                                    or @id='213'
-                                                    or @id='347'
-                                                    or @id='369'
-                                                    or @id='371'
-                                                    or @id='373'
-                                                    or @id='383'
-                                                    or @id='385'
-                                                    or @id='464'
-                                                    or @id='553'
-                                                    or @id='554'
-                                                    or @id='627'
-                                                    or @id='628'
-                                                    or @id='629'
-                                                    or @id='630'
-                                                    or @id='789'
-                                                    or @id='925'
-                                                    or @id='1128'
-                                                    or @id='1129'
-                                                    or @id='1137'
-                                                    or @id='1156'
-                                                    or @id='1400'
-                                                    or @id='1401'
-                                                    or @id='1402'
-                                                    or @id='1403'
-                                                    or @id='1404'
-                                                    or @id='1407'
-                                                    or @id='1408'
-                                                    or @id='1409'
-                                                    or @id='1410'
-                                                    or @id='2085') ]" />
+    <xsl:template match="fixr:fields/fixr:field[@id = (
+                                                    '7', '8', '9', '10', '16', '34', '35', '36',
+                                                    '43', '49', '50', '52', '56', '57', '89', '90',
+                                                    '91', '93', '95', '96', '97', '98', '108', '112',
+                                                    '115', '116', '122', '123', '128', '129', '141',
+                                                    '142', '143', '144', '145', '212', '213', '347',
+                                                    '369', '371', '373', '383', '385', '464', '553',
+                                                    '554', '627', '628', '629', '630', '789', '925',
+                                                    '1128', '1129', '1137', '1156', '1400', '1401',
+                                                    '1402', '1403', '1404', '1407', '1408', '1409',
+                                                    '1410', '2085')] />
 
     <!-- Remove Session category -->
     <xsl:template match="fixr:categories/fixr:category[(@name='Session') ]" />

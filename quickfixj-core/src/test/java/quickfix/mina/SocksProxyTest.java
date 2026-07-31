@@ -3,7 +3,11 @@ package quickfix.mina;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import quickfix.Acceptor;
 import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
@@ -24,17 +28,23 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Performs end to end tests against SOCKS proxy server.
+ * Performs end-to-end tests against SOCKS proxy server.
  */
 public class SocksProxyTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SocksProxyTest.class);
+
     // maximum time to wait for session logon
     private static final long TIMEOUT_SECONDS = 5;
+
+    @Rule
+    public TestName testName = new TestName();
 
     private SocksProxyServer proxyServer;
 
     @Before
     public void setUp() {
+        LOGGER.info("Starting test {}", getCurrentTestName());
         int proxyPort = AvailablePortFinder.getNextAvailable();
 
         proxyServer = new SocksProxyServer(proxyPort);
@@ -43,7 +53,11 @@ public class SocksProxyTest {
 
     @After
     public void tearDown() {
-        proxyServer.stop();
+        if (proxyServer != null) {
+            proxyServer.stop();
+        }
+
+        LOGGER.info("Finished test {}", getCurrentTestName());
     }
 
     @Test
@@ -111,6 +125,16 @@ public class SocksProxyTest {
         return session.isLoggedOn();
     }
 
+    private String getCurrentTestName() {
+        String methodName = testName.getMethodName();
+
+        if (methodName == null) {
+            return getClass().getSimpleName();
+        }
+
+        return getClass().getSimpleName() + "." + methodName;
+    }
+
     private SessionConnector createAcceptor(int port) throws ConfigError {
         MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
         MessageFactory messageFactory = new DefaultMessageFactory();
@@ -173,5 +197,4 @@ public class SocksProxyTest {
 
         return sessionSettings;
     }
-
 }

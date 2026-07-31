@@ -105,4 +105,18 @@ public interface SessionStateListener {
      */
     default void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
     }
+
+    /**
+     * Called when a received PossDupFlag=Y message is discarded before
+     * application processing because it failed sequence number or
+     * OrigSendingTime validation.
+     * <p>
+     * The message is the full inbound message that was discarded. Listener
+     * implementations must treat it as read-only and must not mutate it.
+     *
+     * @param sessionID affected SessionID
+     * @param message discarded message
+     */
+    default void onPossDupMessageDiscarded(SessionID sessionID, Message message) {
+    }
 }

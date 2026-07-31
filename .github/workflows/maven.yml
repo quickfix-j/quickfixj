@@ -1,10 +1,20 @@
 name: Java CI
 
 on:
+  # Build only the production branches on push, so internal feature branches do not trigger a build twice (once on push, once on the pull request).
   workflow_dispatch:
   push:
+    branches:
+      # Restricts push builds to these branches, even if the workflow is copied to another branch.
+      - master
+      - 2.3.x
   pull_request:
     types: [reopened, opened, synchronize]
+
+# Check all pushes to production branches, but interrupt a PR job if a new commit is pushed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -18,7 +28,7 @@ jobs:
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -27,6 +37,12 @@ jobs:
           cache: 'maven'
       - name: Test with Maven
         run: ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+      - name: Upload coverage reports to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.java == 21 && github.repository == 'quickfix-j/quickfixj'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: quickfix-j/quickfixj
 
   test-windows:
     runs-on: ${{ matrix.os }}
@@ -39,7 +55,7 @@ jobs:
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Configure pagefile
         uses: al-cheb/configure-pagefile-action@v1.5
         with:
