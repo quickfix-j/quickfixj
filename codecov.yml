@@ -1,7 +1,4 @@
 coverage:
   ignore:
-    # Ignore golden test resource files — generated FIX field and message Java source
-    # templates used only for golden-file comparison tests, not hand-written code.
-    - "quickfixj-messages/*/src/test/resources/golden/**"
     # Ignore any generated sources that Maven places under target/ directories.
     - "**/target/generated-sources/**"
