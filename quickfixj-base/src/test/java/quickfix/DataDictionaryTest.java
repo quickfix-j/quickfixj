@@ -22,6 +22,7 @@ package quickfix;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -667,6 +668,59 @@ public class DataDictionaryTest {
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
             dictionary, validationSettings);
         dictionary.validate(messageWithGroupLevel2, validationSettings);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/1290
+     * */
+    @Test
+    public void testUnknownEnumValueIsRejectedByDefault() throws Exception {
+        final DataDictionary dictionary = new DataDictionary(getDictionary());
+        final ValidationSettings validationSettings = new ValidationSettings();
+        // TimeInForce(59)=Z is not a valid enum value in FIX 4.4
+        Message message = new Message(
+            "8=FIX.4.4\0019=136\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=Z\00110=239\001",
+            dictionary, validationSettings, false);
+
+        assertThrows(IncorrectTagValue.class, () -> dictionary.validate(message, validationSettings));
+
+        // multiple-value field ExecInst(18) with one invalid value (@)
+        Message messageWithMultipleValueField = new Message(
+            "8=FIX.4.4\0019=145\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00118=A @ D\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=0\00110=113\001",
+            dictionary, validationSettings, false);
+
+        assertThrows(IncorrectTagValue.class, () -> dictionary.validate(messageWithMultipleValueField, validationSettings));
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/1290
+     * */
+    @Test
+    public void testUnknownEnumValueIsAcceptedWhenAllowUnknownEnumValuesIsSet() throws Exception {
+        final DataDictionary dictionary = new DataDictionary(getDictionary());
+        final ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownEnumValues(true);
+        // TimeInForce(59)=Z is not a valid enum value in FIX 4.4
+        Message message = new Message(
+            "8=FIX.4.4\0019=136\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=Z\00110=239\001",
+            dictionary, validationSettings, false);
+
+        dictionary.validate(message, validationSettings);
+
+        // multiple-value field ExecInst(18) with one invalid value (@)
+        Message messageWithMultipleValueField = new Message(
+            "8=FIX.4.4\0019=145\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00118=A @ D\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=0\00110=113\001",
+            dictionary, validationSettings, false);
+
+        dictionary.validate(messageWithMultipleValueField, validationSettings);
     }
 
     @Test

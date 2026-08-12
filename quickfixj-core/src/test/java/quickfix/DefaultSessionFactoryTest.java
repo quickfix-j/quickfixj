@@ -63,6 +63,27 @@ public class DefaultSessionFactoryTest {
         factory.create(sessionID, settings);
     }
 
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/1290
+     * */
+    @Test
+    public void testAllowUnknownEnumValuesSetting() throws Exception {
+        settings.setString(sessionID, Session.SETTING_ALLOW_UNKNOWN_ENUM_VALUES, "Y");
+        try (Session session = factory.create(sessionID, settings)) {
+            assertTrue(session.getValidationSettings().isAllowUnknownEnumValues());
+        }
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/1290
+     * */
+    @Test
+    public void testAllowUnknownEnumValuesDefaultsToFalse() throws Exception {
+        try (Session session = factory.create(sessionID, settings)) {
+            assertFalse(session.getValidationSettings().isAllowUnknownEnumValues());
+        }
+    }
+
     @Test
     public void testFixTMinimalSettings() throws Exception {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");

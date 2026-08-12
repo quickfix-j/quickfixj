@@ -670,7 +670,7 @@ public class DataDictionary {
 
             if (hasVersion) {
                 checkValidFormat(settings, field);
-                checkValue(field);
+                checkValue(settings, field);
             }
 
             if (beginString != null) {
@@ -788,7 +788,10 @@ public class DataDictionary {
         }
     }
 
-    private void checkValue(StringField field) throws IncorrectTagValue {
+    private void checkValue(ValidationSettings settings, StringField field) throws IncorrectTagValue {
+        if (settings.allowUnknownEnumValues) {
+            return;
+        }
         int tag = field.getField();
         if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
             throw new IncorrectTagValue(tag);

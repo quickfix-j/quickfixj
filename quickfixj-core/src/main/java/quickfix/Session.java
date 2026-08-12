@@ -329,6 +329,14 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";
 
+    /**
+     * Allow field values that are not defined as enumerated values in the data
+     * dictionary, i.e. skip the validation of field values against the enumerated
+     * values defined for the field. Values of fields without enumerated values
+     * are not affected.
+     */
+    public static final String SETTING_ALLOW_UNKNOWN_ENUM_VALUES = "AllowUnknownEnumValues";
+
     public static final String SETTING_DEFAULT_APPL_VER_ID = "DefaultApplVerID";
 
     /**
