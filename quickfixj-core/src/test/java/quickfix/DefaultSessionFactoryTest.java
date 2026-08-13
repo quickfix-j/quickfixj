@@ -63,9 +63,6 @@ public class DefaultSessionFactoryTest {
         factory.create(sessionID, settings);
     }
 
-    /**
-     * https://github.com/quickfix-j/quickfixj/issues/1290
-     * */
     @Test
     public void testAllowUnknownEnumValuesSetting() throws Exception {
         settings.setString(sessionID, Session.SETTING_ALLOW_UNKNOWN_ENUM_VALUES, "Y");
@@ -74,9 +71,6 @@ public class DefaultSessionFactoryTest {
         }
     }
 
-    /**
-     * https://github.com/quickfix-j/quickfixj/issues/1290
-     * */
     @Test
     public void testAllowUnknownEnumValuesDefaultsToFalse() throws Exception {
         try (Session session = factory.create(sessionID, settings)) {

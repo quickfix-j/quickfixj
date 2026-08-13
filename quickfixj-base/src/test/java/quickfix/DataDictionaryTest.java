@@ -670,9 +670,6 @@ public class DataDictionaryTest {
         dictionary.validate(messageWithGroupLevel2, validationSettings);
     }
 
-    /**
-     * https://github.com/quickfix-j/quickfixj/issues/1290
-     * */
     @Test
     public void testUnknownEnumValueIsRejectedByDefault() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
@@ -696,9 +693,6 @@ public class DataDictionaryTest {
         assertThrows(IncorrectTagValue.class, () -> dictionary.validate(messageWithMultipleValueField, validationSettings));
     }
 
-    /**
-     * https://github.com/quickfix-j/quickfixj/issues/1290
-     * */
     @Test
     public void testUnknownEnumValueIsAcceptedWhenAllowUnknownEnumValuesIsSet() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
