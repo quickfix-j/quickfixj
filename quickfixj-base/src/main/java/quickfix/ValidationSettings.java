@@ -25,6 +25,7 @@ public class ValidationSettings {
     boolean checkUserDefinedFields = true;
     boolean checkUnorderedGroupFields = true;
     boolean allowUnknownMessageFields = false;
+    boolean allowUnknownEnumValues = false;
     boolean firstFieldInGroupIsDelimiter = false;
 
     public ValidationSettings() {}
@@ -35,6 +36,7 @@ public class ValidationSettings {
         this.checkUserDefinedFields = validationSettings.checkUserDefinedFields;
         this.checkUnorderedGroupFields = validationSettings.checkUnorderedGroupFields;
         this.allowUnknownMessageFields = validationSettings.allowUnknownMessageFields;
+        this.allowUnknownEnumValues = validationSettings.allowUnknownEnumValues;
         this.firstFieldInGroupIsDelimiter = validationSettings.firstFieldInGroupIsDelimiter;
     }
 
@@ -100,6 +102,21 @@ public class ValidationSettings {
 
     public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
         allowUnknownMessageFields = allowUnknownFields;
+    }
+
+    public boolean isAllowUnknownEnumValues() {
+        return allowUnknownEnumValues;
+    }
+
+    /**
+     * Controls whether unknown enumeration values are allowed,
+     * i.e. whether the validation of field values against the
+     * enumerated values defined in the data dictionary is skipped.
+     *
+     * @param allowUnknownEnumValues true = allowed (not validated), false = validated
+     */
+    public void setAllowUnknownEnumValues(boolean allowUnknownEnumValues) {
+        this.allowUnknownEnumValues = allowUnknownEnumValues;
     }
 
     /**
