@@ -613,12 +613,6 @@ public class DataDictionary {
         new DataDictionaryValidator(settings).validate(this, message, bodyOnly);
     }
 
-    static void validate(Message message, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
-            IncorrectDataFormat {
-        new DataDictionaryValidator(settings).validate(message, sessionDataDictionary, applicationDataDictionary);
-    }
-
     /** Check if this dictionary was loaded with a FIX version. **/
     boolean hasVersion() {
         return hasVersion;
