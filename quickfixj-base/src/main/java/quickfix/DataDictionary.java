@@ -24,17 +24,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import quickfix.field.BeginString;
 import quickfix.field.MsgType;
 import quickfix.field.SessionRejectReason;
-import quickfix.field.converter.BooleanConverter;
-import quickfix.field.converter.CharArrayConverter;
-import quickfix.field.converter.CharConverter;
-import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
-import quickfix.field.converter.UtcDateOnlyConverter;
-import quickfix.field.converter.UtcTimeOnlyConverter;
-import quickfix.field.converter.UtcTimestampConverter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -603,7 +595,7 @@ public class DataDictionary {
      */
     public void validate(Message message, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
-        validate(message, false, settings);
+        new DataDictionaryValidator(settings).validate(this, message);
     }
 
     /**
@@ -618,101 +610,29 @@ public class DataDictionary {
      */
     public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
-        validate(message, bodyOnly ? null : this, this, settings);
+        new DataDictionaryValidator(settings).validate(this, message, bodyOnly);
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
             DataDictionary applicationDataDictionary, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
-        final boolean bodyOnly = sessionDataDictionary == null;
-        if (settings == null) {
-            settings = new ValidationSettings();
-        }
-        
-        if (isVersionSpecified(sessionDataDictionary)
-                && !sessionDataDictionary.getVersion().equals(
-                        message.getHeader().getString(BeginString.FIELD))
-                && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1")
-                && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
-            throw new UnsupportedVersion("Message version '" + message.getHeader().getString(BeginString.FIELD)
-                    + "' does not match the data dictionary version '" + sessionDataDictionary.getVersion() + "'");
-        }
-
-        if (!message.hasValidStructure() && message.getException() != null) {
-            throw message.getException();
-        }
-
-        final String msgType = message.getHeader().getString(MsgType.FIELD);
-        if (isVersionSpecified(applicationDataDictionary)) {
-            applicationDataDictionary.checkMsgType(msgType);
-            applicationDataDictionary.checkHasRequired(message.getHeader(), message,
-                    message.getTrailer(), msgType, bodyOnly);
-        }
-
-        if (!bodyOnly) {
-            sessionDataDictionary.iterate(settings, message.getHeader(), HEADER_ID, sessionDataDictionary);
-            sessionDataDictionary.iterate(settings, message.getTrailer(), TRAILER_ID, sessionDataDictionary);
-        }
-
-        applicationDataDictionary.iterate(settings, message, msgType, applicationDataDictionary);
+        new DataDictionaryValidator(settings).validate(message, sessionDataDictionary, applicationDataDictionary);
     }
 
-    private static boolean isVersionSpecified(DataDictionary dd) {
-        return dd != null && dd.hasVersion;
+    /** Check if this dictionary was loaded with a FIX version. **/
+    boolean hasVersion() {
+        return hasVersion;
     }
 
-    private void iterate(ValidationSettings settings, FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
-            IncorrectDataFormat {
-        for (final Field<?> f : map) {
-            final StringField field = (StringField) f;
-
-            checkHasValue(settings, field);
-
-            if (hasVersion) {
-                checkValidFormat(settings, field);
-                checkValue(settings.allowUnknownEnumValues, field);
-            }
-
-            if (beginString != null) {
-                dd.checkField(settings, field, msgType, map instanceof Message);
-                dd.checkGroupCount(field, map, msgType);
-            }
-        }
-
-        for (final List<Group> groups : map.getGroups().values()) {
-            for (final Group group : groups) {
-                iterate(settings, group, msgType, dd.getGroup(msgType, group.getFieldTag())
-                        .getDataDictionary());
-            }
-        }
-    }
-
-    /** Check if message type is defined in spec. **/
-    private void checkMsgType(String msgType) {
-        if (!isMsgType(msgType)) {
-            throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
-        }
+    /** Get the required fields for a message type, or null if there are none. **/
+    Set<Integer> getRequiredFields(String msgType) {
+        return requiredFields.get(msgType);
     }
 
     /** Check if field tag number is defined in spec. **/
     void checkValidTagNumber(Field<?> field) {
         if (!fields.contains(field.getTag())) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
-        }
-    }
-
-    /** Check if field tag is defined for message or group **/
-    void checkField(ValidationSettings settings, Field<?> field, String msgType, boolean message) {
-        // use different validation for groups and messages
-        boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
-        boolean fail = checkFieldFailure(settings, field.getField(), messageField);
-
-        if (fail) {
-            if (fields.contains(field.getField())) {
-                throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());
-            } else {
-                throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
-            }
         }
     }
 
@@ -724,145 +644,6 @@ public class DataDictionary {
             fail = !messageField && settings.checkUserDefinedFields;
         }
         return fail;
-    }
-
-    private void checkValidFormat(ValidationSettings settings, StringField field) throws IncorrectDataFormat {
-        FieldType fieldType = getFieldType(field.getTag());
-        if (fieldType == null) {
-            return;
-        }
-        if (!settings.checkFieldsHaveValues && field.getValue().length() == 0) {
-            return;
-        }
-        try {
-            switch (fieldType) {
-                case STRING:
-                case MULTIPLEVALUESTRING:
-                case MULTIPLESTRINGVALUE:
-                case EXCHANGE:
-                case LOCALMKTDATE:
-                case DATA:
-                case MONTHYEAR:
-                case DAYOFMONTH:
-                case COUNTRY:
-                    // String
-                    break;
-                case MULTIPLECHARVALUE:
-                    CharArrayConverter.convert(field.getValue());
-                    break;
-                case INT:
-                case NUMINGROUP:
-                case SEQNUM:
-                case LENGTH:
-                    IntConverter.convert(field.getValue());
-                    break;
-                case PRICE:
-                case AMT:
-                case QTY:
-                case FLOAT:
-                case PRICEOFFSET:
-                case PERCENTAGE:
-                    DoubleConverter.convert(field.getValue());
-                    break;
-                case BOOLEAN:
-                    BooleanConverter.convert(field.getValue());
-                    break;
-                case UTCDATE:
-                    UtcDateOnlyConverter.convert(field.getValue());
-                    break;
-                case UTCTIMEONLY:
-                    UtcTimeOnlyConverter.convert(field.getValue());
-                    break;
-                case UTCTIMESTAMP:
-                case TIME:
-                    UtcTimestampConverter.convert(field.getValue());
-                    break;
-                case CHAR:
-                    if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
-                        CharConverter.convert(field.getValue());
-                    } // otherwise it's a String, for older FIX versions
-                    break;
-            }
-        } catch (final FieldConvertError e) {
-            throw new IncorrectDataFormat(field.getTag(), field.getValue());
-        }
-    }
-
-    private void checkValue(boolean allowUnknownEnumValues, StringField field) throws IncorrectTagValue {
-        if (allowUnknownEnumValues) {
-            return;
-        }
-        int tag = field.getField();
-        if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
-            throw new IncorrectTagValue(tag);
-        }
-    }
-
-    /** Check if a field has a value. **/
-    private void checkHasValue(ValidationSettings settings, StringField field) {
-        if (settings.checkFieldsHaveValues && field.getValue().length() == 0) {
-            throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
-                    field.getField());
-        }
-    }
-
-    /**
-     * Check if group count matches number of groups in message. *
-     */
-    private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
-        final int fieldNum = field.getField();
-        if (isGroup(msgType, fieldNum)) {
-            try {
-                if (fieldMap.getGroupCount(fieldNum) != IntConverter.convert(field.getValue())) {
-                    throwNewFieldException(fieldNum);
-                }
-            } catch (FieldConvertError ex) {
-                throwNewFieldException(fieldNum);
-            }
-        }
-    }
-
-    private void throwNewFieldException(final int fieldNum) throws FieldException {
-        throw new FieldException(
-                SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
-                fieldNum);
-    }
-
-    /** Check if a message has all required fields. **/
-    void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType,
-            boolean bodyOnly) {
-        if (!bodyOnly) {
-            checkHasRequired(HEADER_ID, header, bodyOnly);
-            checkHasRequired(TRAILER_ID, trailer, bodyOnly);
-        }
-
-        checkHasRequired(msgType, body, bodyOnly);
-    }
-
-    private void checkHasRequired(String msgType, FieldMap fields, boolean bodyOnly) {
-        final Set<Integer> requiredFieldsForMessage = requiredFields.get(msgType);
-        if (requiredFieldsForMessage == null || requiredFieldsForMessage.isEmpty()) {
-            return;
-        }
-
-        for (int field : requiredFieldsForMessage) {
-            if (!fields.isSetField(field)) {
-                throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
-            }
-        }
-
-        final Map<Integer, List<Group>> groups = fields.getGroups();
-        if (!groups.isEmpty()) {
-            for (Map.Entry<Integer, List<Group>> entry : groups.entrySet()) {
-                final GroupInfo p = getGroup(msgType, entry.getKey());
-                if (p != null) {
-                    for (Group groupInstance : entry.getValue()) {
-                        p.getDataDictionary().checkHasRequired(groupInstance, groupInstance,
-                                groupInstance, msgType, bodyOnly);
-                    }
-                }
-            }
-        }
     }
 
     private int countElementNodes(NodeList nodes) {
