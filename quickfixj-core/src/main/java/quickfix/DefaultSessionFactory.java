@@ -307,6 +307,9 @@ public class DefaultSessionFactory implements SessionFactory {
         validationSettings.setAllowUnknownMessageFields(settings.getBoolOrDefault(sessionID,
                 Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS, validationSettings.isAllowUnknownMessageFields()));
 
+        validationSettings.setAllowUnknownEnumValues(settings.getBoolOrDefault(sessionID,
+                Session.SETTING_ALLOW_UNKNOWN_ENUM_VALUES, validationSettings.isAllowUnknownEnumValues()));
+
         validationSettings.setFirstFieldInGroupIsDelimiter(settings.getBoolOrDefault(sessionID,
                 Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER, validationSettings.isFirstFieldInGroupIsDelimiter()));
 
