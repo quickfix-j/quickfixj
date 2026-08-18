@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +74,36 @@ public class AcceptorSslFilterTest {
 
         assertNotNull(engine);
         assertFalse(engine.getUseClientMode());
+    }
+
+    @Test
+    public void shouldApplyOptionalEngineSettings() {
+        AcceptorSslFilter filter = new AcceptorSslFilter(sslContext,
+                HostResolutionStrategy.WITHOUT_REVERSE_DNS);
+        String cipherSuite = sslContext.getDefaultSSLParameters().getCipherSuites()[0];
+        String protocol = sslContext.getDefaultSSLParameters().getProtocols()[0];
+        filter.setWantClientAuth(true);
+        filter.setEnabledCipherSuites(cipherSuite);
+        filter.setEnabledProtocols(protocol);
+        filter.setEndpointIdentificationAlgorithm("HTTPS");
+
+        SSLEngine engine = filter.createEngine(session, null);
+
+        assertTrue(engine.getWantClientAuth());
+        assertEquals(cipherSuite, engine.getEnabledCipherSuites()[0]);
+        assertEquals(protocol, engine.getEnabledProtocols()[0]);
+        assertEquals("HTTPS", engine.getSSLParameters().getEndpointIdentificationAlgorithm());
+    }
+
+    @Test
+    public void shouldCreateClientEngineForClientSession() {
+        when(session.isServer()).thenReturn(false);
+        AcceptorSslFilter filter = new AcceptorSslFilter(sslContext,
+                HostResolutionStrategy.WITHOUT_REVERSE_DNS);
+
+        SSLEngine engine = filter.createEngine(session, null);
+
+        assertTrue(engine.getUseClientMode());
     }
 
     private static SSLContext buildSslContext() throws Exception {
