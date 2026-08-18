@@ -345,6 +345,31 @@ public class SessionScheduleTest {
     }
 
     @Test
+    public void testSessionStartInPreviousDayOfWeek() throws Exception {
+        Locale.setDefault(new Locale("en", "AU"));
+
+        final TimeZone tz = TimeZone.getTimeZone("Australia/Victoria");
+        mockSystemTimeSource.setTime(getTimeStamp(2026, Calendar.FEBRUARY, 23, 10, 0, 0, tz));
+
+        final SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_TIME, "13:00:00 Australia/Victoria");
+
+        // AU week starts on Sunday on Java 17 and below, but on Monday on Java 21 and above (not sure about in between).
+        settings.setString(Session.SETTING_START_DAY, "Sunday");
+
+        settings.setString(Session.SETTING_END_TIME, "17:00:00 America/New_York");
+        settings.setString(Session.SETTING_END_DAY, "Saturday");
+
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        final SessionSchedule schedule = new DefaultSessionSchedule(settings, sessionID);
+
+        mockSystemTimeSource
+                .setTime(getTimeStamp(2026, Calendar.FEBRUARY, 23, 10, 0, 0, tz));
+        assertEquals("in session expectation incorrect", true, schedule
+                .isSessionTime());
+    }
+
+    @Test
     public void testSettingsWithoutStartEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_TIME, "01:00:00 ");
