@@ -62,7 +62,6 @@ import static org.junit.Assert.assertTrue;
  * End-to-end test for {@link HostResolutionStrategy} configurations.
  *
  * @see SSLSupport#SETTING_REVERSE_DNS_ENABLED
- * @see SSLSupport#SETTING_REVERSE_DNS_ENABLED
  */
 public class HostResolutionStrategyTest {
 
