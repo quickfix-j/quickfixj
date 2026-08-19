@@ -214,6 +214,53 @@ public class DataDictionaryValidatorTest {
     }
 
     @Test
+    public void testMatchingGroupCountIsAccepted() throws Exception {
+        DataDictionary dictionary = DataDictionaryTest.getDictionary();
+        Message message = parse(dictionary, VALID_ORDER);
+        Group alloc = new Group(78, 79);
+        alloc.setString(79, "allocAccount");
+        message.addGroup(alloc);
+
+        new DataDictionaryValidator(new ValidationSettings()).validate(dictionary, message);
+    }
+
+    @Test
+    public void testNonIntegerGroupCountIsRejected() throws Exception {
+        DataDictionary dictionary = DataDictionaryTest.getDictionary();
+        // an empty NoAllocs(78) passes the format check when checkFieldsHaveValues is
+        // disabled, so the conversion failure surfaces in the group count check
+        Message message = parse(dictionary, VALID_ORDER);
+        Group alloc = new Group(78, 79);
+        alloc.setString(79, "allocAccount");
+        message.addGroup(alloc);
+        message.setString(78, "");
+        ValidationSettings settings = new ValidationSettings();
+        settings.setCheckFieldsHaveValues(false);
+        DataDictionaryValidator validator = new DataDictionaryValidator(settings);
+
+        FieldException e = assertThrows(FieldException.class,
+                () -> validator.validate(dictionary, message));
+        assertEquals(SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
+                e.getSessionRejectReason());
+    }
+
+    @Test
+    public void testGroupNotDefinedForMessageTypeIsRejected() throws Exception {
+        DataDictionary dictionary = DataDictionaryTest.getDictionary();
+        // NoMDEntries(268) is a valid FIX 4.4 group but not defined for NewOrderSingle
+        Message message = parse(dictionary, VALID_ORDER);
+        Group mdEntry = new Group(268, 269);
+        mdEntry.setString(269, "0");
+        message.addGroup(mdEntry);
+        DataDictionaryValidator validator = new DataDictionaryValidator(new ValidationSettings());
+
+        FieldException e = assertThrows(FieldException.class,
+                () -> validator.validate(dictionary, message));
+        assertEquals(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE,
+                e.getSessionRejectReason());
+    }
+
+    @Test
     public void testStoredParseExceptionIsRethrown() throws Exception {
         DataDictionary dictionary = DataDictionaryTest.getDictionary();
         // header field SenderCompID(49) in the body is stored as a deferred exception during parse

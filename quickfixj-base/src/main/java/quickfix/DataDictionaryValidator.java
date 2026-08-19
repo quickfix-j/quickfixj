@@ -266,18 +266,16 @@ public class DataDictionaryValidator {
         if (dd.isGroup(msgType, fieldNum)) {
             try {
                 if (fieldMap.getGroupCount(fieldNum) != IntConverter.convert(field.getValue())) {
-                    throwNewFieldException(fieldNum);
+                    throw new FieldException(
+                            SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
+                            fieldNum);
                 }
             } catch (FieldConvertError ex) {
-                throwNewFieldException(fieldNum);
+                throw new FieldException(
+                        SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
+                        fieldNum);
             }
         }
-    }
-
-    private void throwNewFieldException(final int fieldNum) throws FieldException {
-        throw new FieldException(
-                SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
-                fieldNum);
     }
 
     /** Check if a message has all required fields. **/
