@@ -207,7 +207,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         // Check for cached descriptor
         AcceptorSocketDescriptor descriptor = socketDescriptorForAddress.get(acceptorAddress);
         if (descriptor != null) {
-            if (descriptor.isUseSSL() != useSSL || !equals(sslConfig, descriptor.getSslConfig())) {
+            if (descriptor.isUseSSL() != useSSL || !equals(sslConfig, descriptor.getSslConfig())
+                    || descriptor.isReverseDnsEnabled() != reverseDnsEnabled) {
                 throw new ConfigError("Conflicting configurations of acceptor socket: " + acceptorAddress);
             }
         } else {

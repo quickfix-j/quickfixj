@@ -73,6 +73,8 @@ public class HostResolutionStrategyTest {
 
     private static final SessionID INITIATOR_SESSION_ID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA");
     private static final SessionID ACCEPTOR_SESSION_ID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU");
+    private static final SessionID SECOND_ACCEPTOR_SESSION_ID = new SessionID(
+            FixVersions.BEGINSTRING_FIX44, "BRAVO", "ZULU");
 
     private TestAcceptor acceptor;
     private TestInitiator initiator;
@@ -190,7 +192,7 @@ public class HostResolutionStrategyTest {
         initiator = new TestInitiator(createInitiatorSettings(LOOPBACK_IP, port, "Y"));
         initiator.start();
 
-        assertTrue(reverseDnsResolver.awaitReverseDnsLookups(5, TimeUnit.SECONDS));
+        assertTrue(reverseDnsResolver.awaitReverseDnsLookup(5, TimeUnit.SECONDS));
         initiator.assertNotLoggedOn(INITIATOR_SESSION_ID, 1, TimeUnit.SECONDS);
         acceptor.assertNotLoggedOn(ACCEPTOR_SESSION_ID, 1, TimeUnit.SECONDS);
 
@@ -199,6 +201,19 @@ public class HostResolutionStrategyTest {
         initiator.assertLoggedOn(INITIATOR_SESSION_ID);
         acceptor.assertLoggedOn(ACCEPTOR_SESSION_ID);
         assertEquals(2, reverseDnsResolver.getReverseDnsLookupCount());
+    }
+
+    @Test(expected = ConfigError.class)
+    public void acceptorShouldRejectConflictingReverseDnsSettingsOnSameSocket() throws Exception {
+        SessionSettings settings = createAcceptorSettings(AvailablePortFinder.getNextAvailable(), "Y");
+        settings.setString(SECOND_ACCEPTOR_SESSION_ID, "BeginString", FixVersions.BEGINSTRING_FIX44);
+        settings.setString(SECOND_ACCEPTOR_SESSION_ID, "DataDictionary", "FIX44.xml");
+        settings.setString(SECOND_ACCEPTOR_SESSION_ID, "SenderCompID", "BRAVO");
+        settings.setString(SECOND_ACCEPTOR_SESSION_ID, "TargetCompID", "ZULU");
+        settings.setString(SECOND_ACCEPTOR_SESSION_ID, SSLSupport.SETTING_REVERSE_DNS_ENABLED, "N");
+
+        acceptor = new TestAcceptor(settings);
+        acceptor.start();
     }
 
     // --- Helpers ---
@@ -341,17 +356,12 @@ public class HostResolutionStrategyTest {
     }
 
     static class BlockingReverseDnsResolver extends MappedHostResolver {
-        private final CountDownLatch reverseDnsLookupStarted;
+        private final CountDownLatch reverseDnsLookupStarted = new CountDownLatch(1);
         private final CountDownLatch reverseDnsLookupReleased = new CountDownLatch(1);
         private final AtomicInteger reverseDnsLookupCount = new AtomicInteger();
 
         BlockingReverseDnsResolver(Map<String, String> hostAliases) {
-            this(hostAliases, 1);
-        }
-
-        BlockingReverseDnsResolver(Map<String, String> hostAliases, int expectedReverseDnsLookups) {
             super(hostAliases);
-            reverseDnsLookupStarted = new CountDownLatch(expectedReverseDnsLookups);
         }
 
         @Override
@@ -376,10 +386,6 @@ public class HostResolutionStrategyTest {
         }
 
         boolean awaitReverseDnsLookup(long timeout, TimeUnit unit) throws InterruptedException {
-            return awaitReverseDnsLookups(timeout, unit);
-        }
-
-        boolean awaitReverseDnsLookups(long timeout, TimeUnit unit) throws InterruptedException {
             return reverseDnsLookupStarted.await(timeout, unit);
         }
 
