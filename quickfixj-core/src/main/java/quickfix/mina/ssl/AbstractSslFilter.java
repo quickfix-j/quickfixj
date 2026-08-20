@@ -58,4 +58,14 @@ abstract class AbstractSslFilter extends SslFilter {
 
     protected void configureEngine(SSLEngine sslEngine) {
     }
+
+    @Override
+    public final void sessionClosed(NextFilter next, IoSession session) throws Exception {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Session {} closed", session);
+        }
+
+        onClose(next, session, true);
+        next.sessionClosed(session);
+    }
 }

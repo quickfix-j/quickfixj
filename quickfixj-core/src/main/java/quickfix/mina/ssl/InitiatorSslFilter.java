@@ -1,6 +1,5 @@
 package quickfix.mina.ssl;
 
-import org.apache.mina.core.session.IoSession;
 import quickfix.mina.HostResolutionStrategy;
 
 import javax.net.ssl.SNIHostName;
@@ -28,15 +27,5 @@ public final class InitiatorSslFilter extends AbstractSslFilter {
             sslParameters.setServerNames(Collections.singletonList(new SNIHostName(sniHostName)));
             sslEngine.setSSLParameters(sslParameters);
         }
-    }
-
-    @Override
-    public void sessionClosed(NextFilter next, IoSession session) throws Exception {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("CLIENT: Session {} closed", session);
-        }
-
-        onClose(next, session, true);
-        next.sessionClosed(session);
     }
 }
