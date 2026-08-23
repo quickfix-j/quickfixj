@@ -2061,6 +2061,7 @@
       <component name="TrdRegTimestamps" required="N"/>
       <field name="RefOrderID" required="N"/>
       <field name="RefOrderIDSource" required="N"/>
+      <field name="SelfMatchPreventionID" required="N"/>
     </message>
     <message name="NewOrderList" msgtype="E" msgcat="app">
       <field name="ListID" required="Y"/>
@@ -9937,5 +9938,6 @@
       <value enum="2" description="REJECTED"/>
       <value enum="3" description="TERMINATE_UNASSIGN"/>
     </field>
+    <field number="2362" name="SelfMatchPreventionID" type="STRING"/>
   </fields>
 </fix>
