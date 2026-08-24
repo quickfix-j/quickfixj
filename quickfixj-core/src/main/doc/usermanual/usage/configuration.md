@@ -160,7 +160,7 @@ with QuickFIX, followed by an example.
 | `EndpointIdentificationAlgorithm` | Sets the endpoint identification algorithm. If the algorithm parameter is non-null, the endpoint identification/verification procedures must be handled during SSL/TLS handshaking. See [Endpoint Identification Algorithm Names](https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#jssenames). | | |
 | `UseSNI` | Enables the SSL engine to use Server Name Indication (SNI). This option is only applicable for initiators. If provided, `SNIHostName` will be used as the server name. Otherwise, `SocketConnectHost` or `SocketConnectHost<n>` will be used. Note: When this option is disabled, the JVM may still implicitly send the SSL `server_name` extension. | `Y`<br/>`N` | `N` |
 | `SNIHostName` | SNI host name to be used as desired Server Name Indication (SNI) parameter. | | |
-| `ReverseDNSEnabled` | Whether to perform a reverse DNS lookup to resolve the peer host name when connected directly to/from an IP address. The resolved host is used as the SSL peer host (e.g. for hostname verification). When disabled, the literal IP address is used as-is and no reverse DNS lookup is performed. Applies to both initiator and acceptor sessions. | `Y`<br/>`N` | `Y` |
+| `ReverseDNSEnabled` | Whether to perform a reverse DNS lookup when connected directly to/from an IP address. The resolved host is used as the SSL peer host (e.g. for hostname verification). For initiators, disabling this option also avoids reverse DNS when recreating the remote socket address before connection. Applies to both initiator and acceptor SSL sessions. | `Y`<br/>`N` | `Y` |
 
 ---
 
