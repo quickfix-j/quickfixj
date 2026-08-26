@@ -94,6 +94,28 @@ public class DataDictionaryValidator {
     public void validate(Message message, DataDictionary sessionDataDictionary,
             DataDictionary applicationDataDictionary) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
+        validateInternal(message, sessionDataDictionary, applicationDataDictionary, settings);
+    }
+
+    /**
+     * Validate the message header and trailer against the session data dictionary
+     * and the body against the application data dictionary, without constructing
+     * a validator instance.
+     *
+     * @param message the message
+     * @param sessionDataDictionary the dictionary for the header and trailer; if null, only the body is validated
+     * @param applicationDataDictionary the dictionary for the message body
+     * @param settings the validation settings to apply; may be null, in which case default settings are used
+     * @throws IncorrectTagValue if a field value is not valid
+     * @throws FieldNotFound if a field cannot be found
+     * @throws IncorrectDataFormat if a field value has a wrong data type
+     */
+    static void validateInternal(Message message, DataDictionary sessionDataDictionary,
+            DataDictionary applicationDataDictionary, ValidationSettings settings)
+            throws IncorrectTagValue, FieldNotFound, IncorrectDataFormat {
+        if (settings == null) {
+            settings = new ValidationSettings();
+        }
         final boolean bodyOnly = sessionDataDictionary == null;
 
         if (isVersionSpecified(sessionDataDictionary)
@@ -118,32 +140,32 @@ public class DataDictionaryValidator {
 
         if (!bodyOnly) {
             iterate(sessionDataDictionary, message.getHeader(), DataDictionary.HEADER_ID,
-                    sessionDataDictionary);
+                    sessionDataDictionary, settings);
             iterate(sessionDataDictionary, message.getTrailer(), DataDictionary.TRAILER_ID,
-                    sessionDataDictionary);
+                    sessionDataDictionary, settings);
         }
 
-        iterate(applicationDataDictionary, message, msgType, applicationDataDictionary);
+        iterate(applicationDataDictionary, message, msgType, applicationDataDictionary, settings);
     }
 
     private static boolean isVersionSpecified(DataDictionary dd) {
         return dd != null && dd.hasVersion();
     }
 
-    private void iterate(DataDictionary rootDictionary, FieldMap map, String msgType,
-            DataDictionary dd) throws IncorrectTagValue, IncorrectDataFormat {
+    private static void iterate(DataDictionary rootDictionary, FieldMap map, String msgType,
+            DataDictionary dd, ValidationSettings settings) throws IncorrectTagValue, IncorrectDataFormat {
         for (final Field<?> f : map) {
             final StringField field = (StringField) f;
 
-            checkHasValue(field);
+            checkHasValue(field, settings);
 
             if (rootDictionary.hasVersion()) {
-                checkValidFormat(rootDictionary, field);
-                checkValue(rootDictionary, field);
+                checkValidFormat(rootDictionary, field, settings);
+                checkValue(rootDictionary, field, settings);
             }
 
             if (rootDictionary.getVersion() != null) {
-                checkField(dd, field, msgType, map instanceof Message);
+                checkField(dd, field, msgType, map instanceof Message, settings);
                 checkGroupCount(dd, field, map, msgType);
             }
         }
@@ -151,20 +173,21 @@ public class DataDictionaryValidator {
         for (final List<Group> groups : map.getGroups().values()) {
             for (final Group group : groups) {
                 iterate(rootDictionary, group, msgType, dd.getGroup(msgType, group.getFieldTag())
-                        .getDataDictionary());
+                        .getDataDictionary(), settings);
             }
         }
     }
 
     /** Check if message type is defined in spec. **/
-    private void checkMsgType(DataDictionary dd, String msgType) {
+    private static void checkMsgType(DataDictionary dd, String msgType) {
         if (!dd.isMsgType(msgType)) {
             throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
         }
     }
 
     /** Check if field tag is defined for message or group **/
-    private void checkField(DataDictionary dd, Field<?> field, String msgType, boolean message) {
+    private static void checkField(DataDictionary dd, Field<?> field, String msgType, boolean message,
+            ValidationSettings settings) {
         // use different validation for groups and messages
         boolean messageField = message ? dd.isMsgField(msgType, field.getField()) : dd.isField(field.getField());
         boolean fail = dd.checkFieldFailure(settings, field.getField(), messageField);
@@ -178,7 +201,8 @@ public class DataDictionaryValidator {
         }
     }
 
-    private void checkValidFormat(DataDictionary dd, StringField field) throws IncorrectDataFormat {
+    private static void checkValidFormat(DataDictionary dd, StringField field,
+            ValidationSettings settings) throws IncorrectDataFormat {
         FieldType fieldType = dd.getFieldType(field.getTag());
         if (fieldType == null) {
             return;
@@ -240,7 +264,8 @@ public class DataDictionaryValidator {
         }
     }
 
-    private void checkValue(DataDictionary dd, StringField field) throws IncorrectTagValue {
+    private static void checkValue(DataDictionary dd, StringField field, ValidationSettings settings)
+            throws IncorrectTagValue {
         if (settings.allowUnknownEnumValues) {
             return;
         }
@@ -251,7 +276,7 @@ public class DataDictionaryValidator {
     }
 
     /** Check if a field has a value. **/
-    private void checkHasValue(StringField field) {
+    private static void checkHasValue(StringField field, ValidationSettings settings) {
         if (settings.checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
                     field.getField());
@@ -261,7 +286,7 @@ public class DataDictionaryValidator {
     /**
      * Check if group count matches number of groups in message. *
      */
-    private void checkGroupCount(DataDictionary dd, StringField field, FieldMap fieldMap, String msgType) {
+    private static void checkGroupCount(DataDictionary dd, StringField field, FieldMap fieldMap, String msgType) {
         final int fieldNum = field.getField();
         if (dd.isGroup(msgType, fieldNum)) {
             try {
@@ -279,7 +304,7 @@ public class DataDictionaryValidator {
     }
 
     /** Check if a message has all required fields. **/
-    private void checkHasRequired(DataDictionary dd, FieldMap header, FieldMap body, FieldMap trailer,
+    private static void checkHasRequired(DataDictionary dd, FieldMap header, FieldMap body, FieldMap trailer,
             String msgType, boolean bodyOnly) {
         if (!bodyOnly) {
             checkHasRequired(dd, DataDictionary.HEADER_ID, header, bodyOnly);
@@ -289,7 +314,7 @@ public class DataDictionaryValidator {
         checkHasRequired(dd, msgType, body, bodyOnly);
     }
 
-    private void checkHasRequired(DataDictionary dd, String msgType, FieldMap fields, boolean bodyOnly) {
+    private static void checkHasRequired(DataDictionary dd, String msgType, FieldMap fields, boolean bodyOnly) {
         final Set<Integer> requiredFieldsForMessage = dd.getRequiredFields(msgType);
         if (requiredFieldsForMessage == null || requiredFieldsForMessage.isEmpty()) {
             return;

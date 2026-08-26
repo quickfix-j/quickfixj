@@ -595,7 +595,7 @@ public class DataDictionary {
      */
     public void validate(Message message, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
-        new DataDictionaryValidator(settings).validate(this, message);
+        DataDictionaryValidator.validateInternal(message, this, this, settings);
     }
 
     /**
@@ -610,7 +610,7 @@ public class DataDictionary {
      */
     public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
-        new DataDictionaryValidator(settings).validate(this, message, bodyOnly);
+        DataDictionaryValidator.validateInternal(message, bodyOnly ? null : this, this, settings);
     }
 
     /** Check if this dictionary was loaded with a FIX version. **/
