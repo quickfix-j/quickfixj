@@ -22,8 +22,12 @@ package quickfix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,13 +45,11 @@ public class DefaultSessionSchedule implements SessionSchedule {
     private final int[] weekdayOffsets;
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultSessionSchedule.class);
 
-    //Cache recent time data to reduce creation of calendar objects
-    private final ThreadLocal<Calendar> threadLocalCalendar;
+    //Cache recent time data to reduce creation of objects
     private final ThreadLocal<TimeInterval> threadLocalRecentTimeInterval;
 
     public DefaultSessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
-        threadLocalCalendar = ThreadLocal.withInitial(SystemTime::getUtcCalendar);
         threadLocalRecentTimeInterval = new ThreadLocal<>();
         isNonStopSession = settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION)
             && settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
@@ -187,73 +189,70 @@ public class DefaultSessionSchedule implements SessionSchedule {
     /**
      * find the most recent session date/time range on or before t
      * if t is in a session then that session will be returned
-     * @param t specific date/time
+     * @param epochMillis specific date/time as epoch milliseconds
      * @return relevant session date/time range
      */
-    private TimeInterval theMostRecentIntervalBefore(Calendar t) {
-        TimeInterval timeInterval = new TimeInterval();
-        Calendar intervalStart = timeInterval.getStart();
-        intervalStart.setTimeZone(startTime.getTimeZone());
-        intervalStart.setTimeInMillis(t.getTimeInMillis());
-        intervalStart.set(Calendar.HOUR_OF_DAY, startTime.getHour());
-        intervalStart.set(Calendar.MINUTE, startTime.getMinute());
-        intervalStart.set(Calendar.SECOND, startTime.getSecond());
-        intervalStart.set(Calendar.MILLISECOND, 0);
+    private TimeInterval theMostRecentIntervalBefore(long epochMillis) {
+        ZonedDateTime intervalStart = ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(epochMillis), startTime.getTimeZone().toZoneId())
+                .withHour(startTime.getHour()).withMinute(startTime.getMinute())
+                .withSecond(startTime.getSecond()).withNano(0);
 
-        Calendar intervalEnd = timeInterval.getEnd();
-        intervalEnd.setTimeZone(endTime.getTimeZone());
-        intervalEnd.setTimeInMillis(t.getTimeInMillis());
-        intervalEnd.set(Calendar.HOUR_OF_DAY, endTime.getHour());
-        intervalEnd.set(Calendar.MINUTE, endTime.getMinute());
-        intervalEnd.set(Calendar.SECOND, endTime.getSecond());
-        intervalEnd.set(Calendar.MILLISECOND, 0);
+        ZonedDateTime intervalEnd = ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(epochMillis), endTime.getTimeZone().toZoneId())
+                .withHour(endTime.getHour()).withMinute(endTime.getMinute())
+                .withSecond(endTime.getSecond()).withNano(0);
 
         if (isWeekdaySession) {
-            while (intervalStart.getTimeInMillis() > t.getTimeInMillis() ||
-                    !validDayOfWeek(intervalStart)) {
-                intervalStart.add(Calendar.DAY_OF_WEEK, -1);
-                intervalEnd.add(Calendar.DAY_OF_WEEK, -1);
+            while (intervalStart.toInstant().toEpochMilli() > epochMillis || !validDayOfWeek(intervalStart)) {
+                intervalStart = intervalStart.minusDays(1);
+                intervalEnd = intervalEnd.minusDays(1);
             }
-
-            while (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
-                intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
+            while (intervalEnd.toInstant().toEpochMilli() <= intervalStart.toInstant().toEpochMilli()) {
+                intervalEnd = intervalEnd.plusDays(1);
             }
-
         } else {
             if (isSet(startTime.getDay())) {
-                intervalStart.set(Calendar.DAY_OF_WEEK, startTime.getDay());
-                if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
-                    intervalStart.add(Calendar.WEEK_OF_YEAR, -1);
-                    intervalEnd.add(Calendar.WEEK_OF_YEAR, -1);
+                intervalStart = intervalStart.with(WeekFields.SUNDAY_START.dayOfWeek(), startTime.getDay());
+                if (intervalStart.toInstant().toEpochMilli() > epochMillis) {
+                    intervalStart = intervalStart.minusWeeks(1);
+                    intervalEnd = intervalEnd.minusWeeks(1);
                 }
-            } else if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
-                intervalStart.add(Calendar.DAY_OF_YEAR, -1);
-                intervalEnd.add(Calendar.DAY_OF_YEAR, -1);
+            } else if (intervalStart.toInstant().toEpochMilli() > epochMillis) {
+                intervalStart = intervalStart.minusDays(1);
+                intervalEnd = intervalEnd.minusDays(1);
             }
 
             if (isSet(endTime.getDay())) {
-                intervalEnd.set(Calendar.DAY_OF_WEEK, endTime.getDay());
-                if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
-                    intervalEnd.add(Calendar.WEEK_OF_MONTH, 1);
+                intervalEnd = intervalEnd.with(WeekFields.SUNDAY_START.dayOfWeek(), endTime.getDay());
+                if (intervalEnd.toInstant().toEpochMilli() <= intervalStart.toInstant().toEpochMilli()) {
+                    intervalEnd = intervalEnd.plusWeeks(1);
                 }
-            } else if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
-                intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
+            } else if (intervalEnd.toInstant().toEpochMilli() <= intervalStart.toInstant().toEpochMilli()) {
+                intervalEnd = intervalEnd.plusDays(1);
             }
         }
 
-        return timeInterval;
+        return new TimeInterval(
+                intervalStart.toInstant().toEpochMilli(),
+                intervalEnd.toInstant().toEpochMilli());
     }
 
     private static class TimeInterval {
-        private final Calendar start = SystemTime.getUtcCalendar();
-        private final Calendar end = SystemTime.getUtcCalendar();
+        private final long startMs;
+        private final long endMs;
 
-        boolean isContainingTime(Calendar t) {
-            return t.compareTo(start) >= 0 && t.compareTo(end) <= 0;
+        TimeInterval(long startMs, long endMs) {
+            this.startMs = startMs;
+            this.endMs = endMs;
+        }
+
+        boolean isContainingTime(long epochMillis) {
+            return epochMillis >= startMs && epochMillis <= endMs;
         }
 
         public String toString() {
-            return start.getTime() + " --> " + end.getTime();
+            return Instant.ofEpochMilli(startMs) + " --> " + Instant.ofEpochMilli(endMs);
         }
 
         public boolean equals(Object other) {
@@ -264,7 +263,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
                 return false;
             }
             TimeInterval otherInterval = (TimeInterval) other;
-            return start.equals(otherInterval.start) && end.equals(otherInterval.end);
+            return startMs == otherInterval.startMs && endMs == otherInterval.endMs;
         }
 
         public int hashCode() {
@@ -272,17 +271,17 @@ public class DefaultSessionSchedule implements SessionSchedule {
             return 0;
         }
 
-        Calendar getStart() {
-            return start;
+        long getStartMs() {
+            return startMs;
         }
 
-        Calendar getEnd() {
-            return end;
+        long getEndMs() {
+            return endMs;
         }
     }
 
     @Override
-    public boolean isSameSession(Calendar time1, Calendar time2) {
+    public boolean isSameSession(long time1, long time2) {
         if (isNonStopSession())
             return true;
         TimeInterval interval1 = theMostRecentIntervalBefore(time1);
@@ -307,14 +306,13 @@ public class DefaultSessionSchedule implements SessionSchedule {
         if(isNonStopSession()) {
             return true;
         }
-        Calendar now = threadLocalCalendar.get();
-        now.setTimeInMillis(SystemTime.currentTimeMillis());
+        long nowMs = SystemTime.currentTimeMillis();
         TimeInterval mostRecentInterval = threadLocalRecentTimeInterval.get();
-        if (mostRecentInterval != null && mostRecentInterval.isContainingTime(now)) {
+        if (mostRecentInterval != null && mostRecentInterval.isContainingTime(nowMs)) {
             return true;
         }
-        mostRecentInterval = theMostRecentIntervalBefore(now);
-        boolean result = mostRecentInterval.isContainingTime(now);
+        mostRecentInterval = theMostRecentIntervalBefore(nowMs);
+        boolean result = mostRecentInterval.isContainingTime(nowMs);
         threadLocalRecentTimeInterval.set(mostRecentInterval);
         return result;
     }
@@ -322,13 +320,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
     public String toString() {
         StringBuilder buf = new StringBuilder();
 
-        SimpleDateFormat dowFormat = new SimpleDateFormat("EEEE");
-        dowFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss-z", Locale.getDefault());
 
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss-z");
-        timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar());
+        TimeInterval ti = theMostRecentIntervalBefore(SystemTime.currentTimeMillis());
 
         formatTimeInterval(buf, ti, timeFormat, false);
 
@@ -344,7 +338,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
     }
 
     private void formatTimeInterval(StringBuilder buf, TimeInterval timeInterval,
-                                    SimpleDateFormat timeFormat, boolean local) {
+                                    DateTimeFormatter timeFormat, boolean local) {
         if (isNonStopSession) {
             buf.append("nonstop");
             return;
@@ -365,10 +359,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
             buf.append("daily, ");
         }
 
-        if (local) {
-            timeFormat.setTimeZone(startTime.getTimeZone());
-        }
-        buf.append(timeFormat.format(timeInterval.getStart().getTime()));
+        ZoneId startZone = local ? startTime.getTimeZone().toZoneId() : TimeZone.getTimeZone("UTC").toZoneId();
+        buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getStartMs())
+                .atZone(startZone)));
 
         buf.append(" - ");
 
@@ -376,10 +369,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
             formatDayOfWeek(buf, endTime.getDay());
             buf.append(" ");
         }
-        if (local) {
-            timeFormat.setTimeZone(endTime.getTimeZone());
-        }
-        buf.append(timeFormat.format(timeInterval.getEnd().getTime()));
+        ZoneId endZone = local ? endTime.getTimeZone().toZoneId() : TimeZone.getTimeZone("UTC").toZoneId();
+        buf.append(timeFormat.format(Instant.ofEpochMilli(timeInterval.getEndMs())
+                .atZone(endZone)));
     }
 
     private void formatDayOfWeek(StringBuilder buf, int dayOfWeek) {
@@ -414,8 +406,8 @@ public class DefaultSessionSchedule implements SessionSchedule {
      * @param startDateTime time to test
      * @return flag indicating if valid
      */
-    private boolean validDayOfWeek(Calendar startDateTime) {
-        int dow = startDateTime.get(Calendar.DAY_OF_WEEK);
+    private boolean validDayOfWeek(ZonedDateTime startDateTime) {
+        int dow = (int) startDateTime.get(WeekFields.SUNDAY_START.dayOfWeek());
         for (int i = 0; i < weekdayOffsets.length; i++)
             if (weekdayOffsets[i] == dow)
                 return true;

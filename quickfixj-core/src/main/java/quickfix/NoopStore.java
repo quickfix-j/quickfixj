@@ -20,6 +20,7 @@
 
 package quickfix;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -31,8 +32,7 @@ import java.util.Date;
  */
 public class NoopStore implements MessageStore {
 
-    private Date creationTime = new Date();
-    private Calendar creationTimeCalendar = SystemTime.getUtcCalendar(creationTime);
+    private Date creationTime = Date.from(Instant.ofEpochMilli(SystemTime.currentTimeMillis()));
     private int nextSenderMsgSeqNum = 1;
     private int nextTargetMsgSeqNum = 1;
 
@@ -44,7 +44,7 @@ public class NoopStore implements MessageStore {
     }
 
     public Calendar getCreationTimeCalendar() {
-        return creationTimeCalendar;
+        return SystemTime.getUtcCalendar(creationTime);
     }
 
     public int getNextSenderMsgSeqNum() {
@@ -64,7 +64,7 @@ public class NoopStore implements MessageStore {
     }
 
     public void reset() {
-        creationTime = new Date();
+        creationTime = Date.from(Instant.ofEpochMilli(SystemTime.currentTimeMillis()));
         nextSenderMsgSeqNum = 1;
         nextTargetMsgSeqNum = 1;
     }

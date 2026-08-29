@@ -22,7 +22,6 @@ package quickfix;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Calendar;
 import java.util.Date;
 import org.junit.After;
 import static org.junit.Assert.assertTrue;
@@ -61,7 +60,7 @@ public class LogUtilTest {
         Session session = new Session(null, sessionID1 -> {
             try {
                 return new MemoryStore() {
-                    public Calendar getCreationTimeCalendar() throws IOException {
+                    public Date getCreationTime() throws IOException {
                         throw new IOException("test");
                     }
                 };
