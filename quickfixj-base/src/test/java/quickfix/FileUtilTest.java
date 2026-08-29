@@ -21,6 +21,7 @@ package quickfix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
@@ -57,13 +58,25 @@ public class FileUtilTest {
 
     @Test
     public void testURLLocation() throws Exception {
+        // Plain HTTP is blocked by default; the method should return null
+        InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+        assertNull("Plain HTTP URL should be refused by default", in);
+    }
+
+    @Test
+    public void testHTTPUrlAllowedViaSystemProperty() throws Exception {
         // Assumption: Internet access
         if (isInternetAccessible()) {
-            InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
-            if (in != null) {
-                in.close();
+            System.setProperty(FileUtil.ALLOW_HTTP_URLS_PROPERTY, "true");
+            try {
+                InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+                if (in != null) {
+                    in.close();
+                }
+                assertNotNull("Resource not found when HTTP explicitly allowed", in);
+            } finally {
+                System.clearProperty(FileUtil.ALLOW_HTTP_URLS_PROPERTY);
             }
-            assertNotNull("Resource not found", in);
         }
     }
 
