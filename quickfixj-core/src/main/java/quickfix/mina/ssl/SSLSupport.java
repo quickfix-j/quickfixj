@@ -41,6 +41,7 @@ public class SSLSupport {
     public static final String SETTING_NEED_CLIENT_AUTH = "NeedClientAuth";
     public static final String SETTING_ENDPOINT_IDENTIFICATION_ALGORITHM = "EndpointIdentificationAlgorithm";
     public static final String SETTING_USE_SNI = "UseSNI";
+    public static final String SETTING_REVERSE_DNS_ENABLED = "ReverseDNSEnabled";
     public static final String SETTING_SNI_HOST_NAME = "SNIHostName";
     public static final String SETTING_ENABLED_PROTOCOLS = "EnabledProtocols";
     public static final String SETTING_CIPHER_SUITES = "CipherSuites";
