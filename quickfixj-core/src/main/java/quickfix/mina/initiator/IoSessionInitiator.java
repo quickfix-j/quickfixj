@@ -252,22 +252,113 @@ public class IoSessionInitiator {
         }
 
         private void pollConnectFuture() {
+            ConnectFuture future = connectFuture;
+            if (future == null) {
+                return;
+            }
+
             try {
-                connectFuture.awaitUninterruptibly(CONNECT_POLL_TIMEOUT);
-                if (connectFuture.getSession() != null) {
-                    ioSession = connectFuture.getSession();
+                future.awaitUninterruptibly(CONNECT_POLL_TIMEOUT);
+
+                IoSession session = future.getSession();
+                if (session != null) {
+                    ioSession = session;
                     connectionFailureCount = 0;
                     nextSocketAddressIndex = 0;
                     lastConnectTime = System.currentTimeMillis();
                     connectFuture = null;
-                } else {
-                    fixSession.getLog().onEvent(
-                            "Pending connection not established after "
-                                    + (System.currentTimeMillis() - lastReconnectAttemptTime)
-                                    + " ms.");
+                    return;
                 }
+
+                Throwable exception = future.getException();
+                if (exception != null) {
+                    connectFuture = null;
+
+                    /*
+                     * Do not call cancelPendingConnectAttempt() here.
+                     * The future already completed with an exception.
+                     * Just release our reference to the connector.
+                     */
+
+                    handleConnectException(exception);
+                    return;
+                }
+                long now = System.currentTimeMillis();
+                long pendingMillis = now - lastReconnectAttemptTime;
+
+                fixSession.getLog().onEvent(
+                            "Pending connection not established after "
+                                + pendingMillis
+                                    + " ms.");
+
+                long maxPendingMillis = connectTimeoutMillis;
+
+                if (maxPendingMillis > 0 && pendingMillis >= maxPendingMillis) {
+                    fixSession.getLog().onEvent(
+                            "Pending connection exceeded max wait of "
+                                    + maxPendingMillis
+                                    + " ms; cancelling connect attempt and allowing reconnect."
+                    );
+
+                    try {
+                        cancelAndResetPendingConnectAttempt(future);
+                    } catch (Throwable cancelException) {
+                        fixSession.getLog().onWarnEvent(
+                                "Exception while cancelling pending connect future: "
+                                        + cancelException
+                        );
+                    }
+
+                    /*
+                     * Important:
+                     * Reset reconnect timing from this failure moment.
+                     * Without this, the next timer tick may reconnect immediately
+                     * because pendingMillis has already exceeded ReconnectInterval.
+                     */
+                    lastConnectTime = now;
+                    lastReconnectAttemptTime = now;
+
+                    handleConnectException(new IOException(
+                            "Connect attempt exceeded max pending time of " + maxPendingMillis + " ms"
+                    ));
+                }
+
             } catch (Throwable e) {
                 handleConnectException(e);
+            }
+        }
+
+        private void cancelAndResetPendingConnectAttempt(ConnectFuture future) throws ConfigError, GeneralSecurityException {
+            try {
+                if (future != null) {
+                    IoSession session = future.getSession();
+                    if (session != null) {
+                        session.closeNow();
+                    }
+
+                    future.cancel();
+                }
+            } catch (Throwable e) {
+                fixSession.getLog().onWarnEvent(
+                        "Exception while cancelling pending connect future: " + e
+                );
+            }
+
+            if (ioConnector instanceof ProxyConnector) {
+                try {
+                    ((ProxyConnector) ioConnector).cancelConnectFuture();
+                } catch (Throwable e) {
+                    fixSession.getLog().onWarnEvent(
+                            "Exception while cancelling proxy connector future: " + e
+                    );
+                }
+
+                try {
+                    setupIoConnector();
+                } catch (Throwable e) {
+                    fixSession.getLog().onErrorEvent("Exception while recreating proxy connector: " + e);
+                    throw e;
+                }
             }
         }
 
