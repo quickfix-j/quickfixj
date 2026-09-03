@@ -1,0 +1,65 @@
+name: Update FIX Orchestra
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-orchestra:
+    if: github.repository == 'quickfix-j/quickfixj'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download latest FIX Orchestra
+        id: orchestra
+        run: |
+          set -euo pipefail
+          target="quickfixj-orchestration/src/main/resources/OrchestraFIXLatest.xml"
+          temporary="$(mktemp)"
+          trap 'rm -f "$temporary"' EXIT
+
+          curl --fail --location --retry 3 \
+            "https://raw.githubusercontent.com/FIXTradingCommunity/orchestrations/refs/heads/master/FIX%20Standard/OrchestraFIXLatest.xml" \
+            --output "$temporary"
+
+          remote_version="$(grep -oP 'version="FIX\.Latest_EP\K[0-9]+' "$temporary" | head -1)"
+          if [[ ! "$remote_version" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: could not determine remote FIX Latest version"
+            exit 1
+          fi
+
+          current_version=0
+          if [[ -f "$target" ]]; then
+            current_version="$(grep -oP 'version="FIX\.Latest_EP\K[0-9]+' "$target" | head -1 || true)"
+            if [[ ! "$current_version" =~ ^[0-9]+$ ]]; then
+              echo "ERROR: could not determine stored FIX Latest version"
+              exit 1
+            fi
+          fi
+
+          if (( 10#$remote_version > 10#$current_version )); then
+            mkdir -p "$(dirname "$target")"
+            cp "$temporary" "$target"
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$remote_version" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.orchestra.outputs.updated == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: update FIX Orchestra to EP${{ steps.orchestra.outputs.version }}"
+          title: "chore: update FIX Orchestra to EP${{ steps.orchestra.outputs.version }}"
+          body: |
+            Automated update of `OrchestraFIXLatest.xml` to FIX Latest Extension Pack `${{ steps.orchestra.outputs.version }}`.
+          branch: chore/update-orchestra
+          delete-branch: true
