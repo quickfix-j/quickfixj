@@ -662,6 +662,13 @@ public class SessionScheduleTest {
         c.set(Calendar.HOUR_OF_DAY, 15);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
+        // Fix the millisecond to a non-zero value so that this test is not flaky:
+        // the session interval end computed by DefaultSessionSchedule always has
+        // MILLISECOND == 0, and the end of an interval is treated as inclusive, so if
+        // "now" happened to also land on MILLISECOND == 0 (which depends on the real
+        // wall-clock time when the test starts), the transition out of the session would
+        // be detected one timeIncrement late, causing a spurious "wrong end time" failure.
+        c.set(Calendar.MILLISECOND, 1);
         mockSystemTimeSource.setTime(c);
 
         assertFalse(schedule.isSessionTime());
