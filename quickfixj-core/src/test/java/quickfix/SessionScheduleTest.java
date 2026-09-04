@@ -700,6 +700,34 @@ public class SessionScheduleTest {
     }
 
     @Test
+    public void testWeeklyIsSessionTimeInclusiveAtEndBoundary() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_START_TIME, "16:00:00");
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_END_TIME, "13:00:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new DefaultSessionSchedule(settings, sessionID);
+
+        Calendar end = SystemTime.getUtcCalendar();
+        end.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        end.set(Calendar.HOUR_OF_DAY, 13);
+        end.set(Calendar.MINUTE, 0);
+        end.set(Calendar.SECOND, 0);
+        end.set(Calendar.MILLISECOND, 0);
+
+        // DefaultSessionSchedule computes the interval end with MILLISECOND == 0 and
+        // treats it as inclusive, so "now" landing exactly on the end time must still
+        // be considered in session, while one millisecond later it must not be.
+        mockSystemTimeSource.setTime(end);
+        assertTrue("end time should be inclusive", schedule.isSessionTime());
+
+        mockSystemTimeSource.increment(1);
+        assertFalse("one millisecond past the inclusive end should be out of session",
+                schedule.isSessionTime());
+    }
+
+    @Test
     public void testWeeklyIsSameSessionPeriodically() throws Exception {
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.WEDNESDAY), "12:00:00");
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.TUESDAY), "18:00:00");
