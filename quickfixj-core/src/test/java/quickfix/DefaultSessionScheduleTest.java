@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -116,5 +117,23 @@ public class DefaultSessionScheduleTest {
         DefaultSessionSchedule schedule = new DefaultSessionSchedule(sessionSettings, sessionID);
 
         assertFalse(schedule.isSessionTime());
+    }
+
+    @Test
+    public void toString_uses_expected_utc_time_format() throws FieldConvertError, ConfigError {
+        when(mockTimeSource.getTime()).thenReturn(1L);
+        String sessionSettingsString = ""
+            + "[DEFAULT]\n"
+            + "\n"
+            + "[SESSION]\n"
+            + "BeginString=FIX.4.2\n"
+            + "SenderCompID=A\n"
+            + "TargetCompID=B\n"
+            + "StartTime=00:00:00\n"
+            + "EndTime=00:00:01\n";
+        SessionSettings sessionSettings = new SessionSettings(new ByteArrayInputStream(sessionSettingsString.getBytes()));
+        DefaultSessionSchedule schedule = new DefaultSessionSchedule(sessionSettings, sessionID);
+
+        assertEquals("daily, 00:00:00-UTC - 00:00:01-UTC", schedule.toString());
     }
 }

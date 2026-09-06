@@ -19,7 +19,7 @@
 
 package quickfix;
 
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 
 /**
  * Used to decide when to login and out of FIX sessions
@@ -27,12 +27,26 @@ import java.util.Calendar;
 public interface SessionSchedule {
 
     /**
+     * Predicate for determining if the two epoch-millisecond times are in the same session.
+     *
+     * @param time1 first time in epoch milliseconds
+     * @param time2 second time in epoch milliseconds
+     * @return true if in the same session
+     */
+    boolean isSameSession(long time1, long time2);
+
+    /**
      * Predicate for determining if the two times are in the same session
      * @param time1 test time 1
      * @param time2 test time 2
      * @return return true if in the same session
      */
-    boolean isSameSession(Calendar time1, Calendar time2);
+    default boolean isSameSession(ZonedDateTime time1, ZonedDateTime time2) {
+        if (time1 == null || time2 == null) {
+            return isNonStopSession();
+        }
+        return isSameSession(time1.toInstant().toEpochMilli(), time2.toInstant().toEpochMilli());
+    }
 
     boolean isNonStopSession();
 
