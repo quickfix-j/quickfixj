@@ -10,6 +10,7 @@ public class ValidationSettingsTest {
         final ValidationSettings validationSettings = new ValidationSettings();
 
         validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setAllowUnknownEnumValues(true);
         validationSettings.setCheckFieldsHaveValues(false);
         validationSettings.setCheckFieldsOutOfOrder(false);
         validationSettings.setCheckUnorderedGroupFields(false);
@@ -19,6 +20,7 @@ public class ValidationSettingsTest {
         ValidationSettings validationSettingsCopy = new ValidationSettings(validationSettings);
 
         assertEquals(validationSettingsCopy.isAllowUnknownMessageFields(), validationSettings.isAllowUnknownMessageFields());
+        assertEquals(validationSettingsCopy.isAllowUnknownEnumValues(), validationSettings.isAllowUnknownEnumValues());
         assertEquals(validationSettingsCopy.isCheckFieldsHaveValues(), validationSettings.isCheckFieldsHaveValues());
         assertEquals(validationSettingsCopy.isCheckFieldsOutOfOrder(), validationSettings.isCheckFieldsOutOfOrder());
         assertEquals(validationSettingsCopy.isCheckUnorderedGroupFields(), validationSettings.isCheckUnorderedGroupFields());
