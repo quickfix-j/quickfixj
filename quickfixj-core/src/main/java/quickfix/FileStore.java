@@ -124,7 +124,7 @@ public class FileStore implements MessageStore, Closeable {
                     new FileInputStream(sessionTimeFile)))) {
                 final Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter
                         .convert(sessionTimeInput.readUTF()));
-                cache.setCreationTime(c);
+                cache.setCreationTimeCalendar(c);
             } catch (final Exception e) {
                 throw new IOException(e.getMessage());
             }
@@ -137,7 +137,7 @@ public class FileStore implements MessageStore, Closeable {
         try (DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(sessionFileName, false)))) {
             final Date date = SystemTime.getDate();
-            cache.setCreationTime(SystemTime.getUtcCalendar(date));
+            cache.setCreationTimeCalendar(SystemTime.getUtcCalendar(date));
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(date, true));
         }
     }

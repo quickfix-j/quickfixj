@@ -160,7 +160,7 @@ class JdbcStore implements MessageStore {
             setSessionIdParameters(query, 1);
             rs = query.executeQuery();
             if (rs.next()) {
-                cache.setCreationTime(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
+                cache.setCreationTimeCalendar(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
                 cache.setNextTargetMsgSeqNum(rs.getInt(2));
                 cache.setNextSenderMsgSeqNum(rs.getInt(3));
             } else {
