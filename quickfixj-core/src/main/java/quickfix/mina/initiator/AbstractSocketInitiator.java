@@ -150,6 +150,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         String proxyDomain = null;
 
         int proxyPort = -1;
+        int retryCount = 1;
 
         if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_TYPE)) {
             proxyType = settings.getString(sessionID, Initiator.SETTING_PROXY_TYPE);
@@ -173,6 +174,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             proxyHost = settings.getString(sessionID, Initiator.SETTING_PROXY_HOST);
             proxyPort = (int) settings.getLong(sessionID, Initiator.SETTING_PROXY_PORT);
         }
+        if (getSettings().isSetting(sessionID, Initiator.SETTING_RECONNECT_ATTEMPT)){
+            retryCount = settings.getInt(sessionID, Initiator.SETTING_RECONNECT_ATTEMPT);
+        }
 
         ScheduledExecutorService scheduledExecutorService = (scheduledReconnectExecutor != null ? scheduledReconnectExecutor : getScheduledExecutorService());
         try {
@@ -180,7 +184,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     socketAddresses, localAddress, connectTimeout, reconnectingIntervals,
                     scheduledExecutorService, settings, networkingOptions,
                     getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
-                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
+                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, retryCount);
 
             initiators.add(ioSessionInitiator);
         } catch (ConfigError e) {
