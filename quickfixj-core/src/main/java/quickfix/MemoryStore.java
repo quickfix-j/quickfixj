@@ -37,7 +37,7 @@ public class MemoryStore implements MessageStore {
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
     private SessionID sessionID;
-    private Calendar creationTime = SystemTime.getUtcCalendar();
+    private Calendar creationTimeCalendar = SystemTime.getUtcCalendar();
 
     public MemoryStore() throws IOException {
         reset();
@@ -67,15 +67,15 @@ public class MemoryStore implements MessageStore {
     }
 
     public Date getCreationTime() throws IOException {
-        return creationTime.getTime();
+        return creationTimeCalendar.getTime();
     }
 
     public Calendar getCreationTimeCalendar() throws IOException {
-        return creationTime;
+        return creationTimeCalendar;
     }
 
-    void setCreationTime(Calendar creationTime) {
-        this.creationTime = creationTime;
+    void setCreationTimeCalendar(Calendar creationTimeCalendar) {
+        this.creationTimeCalendar = creationTimeCalendar;
     }
 
     public int getNextSenderMsgSeqNum() {
@@ -98,7 +98,7 @@ public class MemoryStore implements MessageStore {
         setNextSenderMsgSeqNum(1);
         setNextTargetMsgSeqNum(1);
         messages.clear();
-        creationTime = SystemTime.getUtcCalendar();
+        creationTimeCalendar = SystemTime.getUtcCalendar();
     }
 
     public boolean set(int sequence, String message) throws IOException {
