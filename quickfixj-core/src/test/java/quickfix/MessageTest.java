@@ -342,7 +342,7 @@ public class MessageTest {
         assertNotNull(sessDictionary);
         assertNotNull(appDictionary);
         mdsfr.fromString(data, sessDictionary, appDictionary, new ValidationSettings(), true);
-        DataDictionary.validate(mdsfr, sessDictionary, appDictionary, new ValidationSettings());
+        new DataDictionaryValidator(new ValidationSettings()).validate(mdsfr, sessDictionary, appDictionary);
     }
     
     @Test
@@ -357,7 +357,7 @@ public class MessageTest {
         assertNotNull(appDictionary);
         ValidationSettings dds = new ValidationSettings();
         mdsfr.fromString(data, sessDictionary, appDictionary, dds, true);
-        DataDictionary.validate(mdsfr, sessDictionary, appDictionary, dds);
+        new DataDictionaryValidator(dds).validate(mdsfr, sessDictionary, appDictionary);
     }
 
     @Test
@@ -370,7 +370,7 @@ public class MessageTest {
         assertNotNull(sessionDictionary);
         assertNotNull(appDictionary);
         logon.fromString(data, sessionDictionary, appDictionary, new ValidationSettings(), true);
-        DataDictionary.validate(logon, sessionDictionary, sessionDictionary, new ValidationSettings());
+        new DataDictionaryValidator(new ValidationSettings()).validate(logon, sessionDictionary, sessionDictionary);
     }
 
     @Test
@@ -1316,7 +1316,7 @@ public class MessageTest {
                 "10=129\u0001";
         final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
         tcrOrdered.fromString(orderedData, sessDictionary, appDictionary, dds, true);
-        DataDictionary.validate(tcrOrdered, sessDictionary, appDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrOrdered, sessDictionary, appDictionary);
         // As this is our reference message created with all validations switched on, make sure some message components
         // are as expected
         assertEquals(tcrOrdered.getHeader().getGroupCount(NoHops.FIELD), 2);
@@ -1335,7 +1335,7 @@ public class MessageTest {
                 "10=129\u0001";
         TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, appDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1350,7 +1350,7 @@ public class MessageTest {
                 "10=129\u0001";
         tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, appDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1367,7 +1367,7 @@ public class MessageTest {
                 "10=129\u0001";
         tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, appDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1390,7 +1390,7 @@ public class MessageTest {
                         + "10=191\u0001";
         final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
         tcrOrdered.fromString(orderedData, sessDictionary, dds, true);
-        DataDictionary.validate(tcrOrdered, sessDictionary, sessDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrOrdered, sessDictionary, sessDictionary);
 
         // As this is our reference message created with all validations switched on,
         // make sure some message components
@@ -1411,7 +1411,7 @@ public class MessageTest {
                 + "10=191\u0001";
         TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1427,7 +1427,7 @@ public class MessageTest {
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -1445,7 +1445,7 @@ public class MessageTest {
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
         tcrUnOrdered.fromString(unorderedData, sessDictionary, dds, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary, dds);
+        new DataDictionaryValidator(dds).validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
     }
