@@ -19,7 +19,6 @@ import quickfix.field.NextExpectedMsgSeqNum;
 import quickfix.field.OrigSendingTime;
 import quickfix.field.PossDupFlag;
 import quickfix.field.RefSeqNum;
-import quickfix.field.ResetSeqNumFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionStatus;
@@ -28,6 +27,7 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.field.ResetSeqNumFlag;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logout;
@@ -75,6 +75,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 /**
