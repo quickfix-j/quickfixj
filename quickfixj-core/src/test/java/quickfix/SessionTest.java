@@ -19,6 +19,7 @@ import quickfix.field.NextExpectedMsgSeqNum;
 import quickfix.field.OrigSendingTime;
 import quickfix.field.PossDupFlag;
 import quickfix.field.RefSeqNum;
+import quickfix.field.ResetSeqNumFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionStatus;
@@ -27,7 +28,6 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
-import quickfix.field.ResetSeqNumFlag;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logout;
@@ -52,7 +52,6 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -66,16 +65,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 /**
@@ -1821,6 +1820,58 @@ public class SessionTest {
             session.next(logon);
             assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
             assertTrue(session.isLoggedOn());
+        }
+    }
+
+    /**
+     * QFJ-1302: The Session's logonSent state should only be set to true
+     * if the Logon message was actually sent, i.e. if the underlying
+     * MessageStore successfully persisted it. Previously, logonSent was
+     * set unconditionally before checking the result of sendRaw().
+     */
+    @Test
+    // QFJ-1302
+    public void testLogonNotMarkedAsSentWhenMessageStorePersistFails() throws Exception {
+        final Application application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
+        final MessageStore mockMessageStore = mock(MessageStore.class);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
+        when(mockMessageStore.getNextSenderMsgSeqNum()).thenReturn(1);
+        when(mockMessageStore.getNextTargetMsgSeqNum()).thenReturn(1);
+        when(mockMessageStore.getCreationTime()).thenReturn(new Date());
+
+        // Simulate the persistence failure described in ticket QFJ-1302
+        doThrow(new IOException("Simulated persist failure"))
+                .when(mockMessageStore).set(anyInt(), anyString());
+
+        final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
+        final MessageQueue mockMessageQueue = mock(MessageQueue.class);
+        when(mockMessageQueueFactory.create(sessionID)).thenReturn(mockMessageQueue);
+
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
+
+        try (Session session = new Session(application,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, null, mockLogFactory,
+                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
+                false, false, false, false, true, false, 1.5, null, true,
+                new int[] { 5 }, false, false, false, false, true, false, true, false,
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+
+            session.logon();
+            session.next();
+
+            final SessionState state = getSessionState(session);
+            assertFalse(
+                    "logonSent should remain false when the MessageStore fails to persist the Logon",
+                    state.isLogonSent());
         }
     }
 
