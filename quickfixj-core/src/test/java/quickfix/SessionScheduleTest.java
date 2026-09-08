@@ -662,6 +662,13 @@ public class SessionScheduleTest {
         c.set(Calendar.HOUR_OF_DAY, 15);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
+        // Fix the millisecond to a non-zero value so that this test is not flaky:
+        // the session interval end computed by DefaultSessionSchedule always has
+        // MILLISECOND == 0, and the end of an interval is treated as inclusive, so if
+        // "now" happened to also land on MILLISECOND == 0 (which depends on the real
+        // wall-clock time when the test starts), the transition out of the session would
+        // be detected one timeIncrement late, causing a spurious "wrong end time" failure.
+        c.set(Calendar.MILLISECOND, 1);
         mockSystemTimeSource.setTime(c);
 
         assertFalse(schedule.isSessionTime());
@@ -690,6 +697,34 @@ public class SessionScheduleTest {
             }
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
+    }
+
+    @Test
+    public void testWeeklyIsSessionTimeInclusiveAtEndBoundary() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_START_TIME, "16:00:00");
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_END_TIME, "13:00:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new DefaultSessionSchedule(settings, sessionID);
+
+        Calendar end = SystemTime.getUtcCalendar();
+        end.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        end.set(Calendar.HOUR_OF_DAY, 13);
+        end.set(Calendar.MINUTE, 0);
+        end.set(Calendar.SECOND, 0);
+        end.set(Calendar.MILLISECOND, 0);
+
+        // DefaultSessionSchedule computes the interval end with MILLISECOND == 0 and
+        // treats it as inclusive, so "now" landing exactly on the end time must still
+        // be considered in session, while one millisecond later it must not be.
+        mockSystemTimeSource.setTime(end);
+        assertTrue("end time should be inclusive", schedule.isSessionTime());
+
+        mockSystemTimeSource.increment(1);
+        assertFalse("one millisecond past the inclusive end should be out of session",
+                schedule.isSessionTime());
     }
 
     @Test
