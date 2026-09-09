@@ -1,0 +1,4 @@
+coverage:
+  ignore:
+    # Ignore any generated sources that Maven places under target/ directories.
+    - "**/target/generated-sources/**"

@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'corretto'
           java-version: ${{ matrix.java }}
@@ -39,7 +39,7 @@ jobs:
         run: ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{github.workspace}}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
       - name: Upload coverage reports to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.java == 21 && github.repository == 'quickfix-j/quickfixj'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: quickfix-j/quickfixj
@@ -63,7 +63,7 @@ jobs:
           maximum-size: 16GB
           disk-root: "C:"
       - name: Set up Windows JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'corretto'
           java-version: ${{ matrix.java }}

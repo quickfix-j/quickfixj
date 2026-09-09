@@ -64,6 +64,21 @@ public class DefaultSessionFactoryTest {
     }
 
     @Test
+    public void testAllowUnknownEnumValuesSetting() throws Exception {
+        settings.setString(sessionID, Session.SETTING_ALLOW_UNKNOWN_ENUM_VALUES, "Y");
+        try (Session session = factory.create(sessionID, settings)) {
+            assertTrue(session.getValidationSettings().isAllowUnknownEnumValues());
+        }
+    }
+
+    @Test
+    public void testAllowUnknownEnumValuesDefaultsToFalse() throws Exception {
+        try (Session session = factory.create(sessionID, settings)) {
+            assertFalse(session.getValidationSettings().isAllowUnknownEnumValues());
+        }
+    }
+
+    @Test
     public void testFixTMinimalSettings() throws Exception {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
         setUpDefaultSettings(sessionID);
