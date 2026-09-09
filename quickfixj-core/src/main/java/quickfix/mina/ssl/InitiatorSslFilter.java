@@ -1,74 +1,31 @@
 package quickfix.mina.ssl;
 
-import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.ssl.SslFilter;
+import quickfix.mina.HostResolutionStrategy;
 
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
-import java.net.InetSocketAddress;
 import java.util.Collections;
 
-public final class InitiatorSslFilter extends SslFilter {
+/**
+ * This class is not part of the public API and may be removed or changed in future releases.
+ */
+public final class InitiatorSslFilter extends AbstractSslFilter {
 
     private final String sniHostName;
 
-    public InitiatorSslFilter(SSLContext sslContext, String sniHostName) {
-        super(sslContext, false);
+    public InitiatorSslFilter(SSLContext sslContext, String sniHostName, HostResolutionStrategy hostResolutionStrategy) {
+        super(sslContext, false, hostResolutionStrategy);
         this.sniHostName = sniHostName;
     }
 
     @Override
-    protected SSLEngine createEngine(IoSession session, InetSocketAddress addr) {
-        SSLEngine sslEngine;
-
-        if (addr != null) {
-            sslEngine = sslContext.createSSLEngine(addr.getHostName(), addr.getPort());
-        } else {
-            sslEngine = sslContext.createSSLEngine();
-        }
-
-        if (wantClientAuth) {
-            sslEngine.setWantClientAuth(true);
-        }
-
-        if (needClientAuth) {
-            sslEngine.setNeedClientAuth(true);
-        }
-
-        if (enabledCipherSuites != null) {
-            sslEngine.setEnabledCipherSuites(enabledCipherSuites);
-        }
-
-        if (enabledProtocols != null) {
-            sslEngine.setEnabledProtocols(enabledProtocols);
-        }
-
-        if (getEndpointIdentificationAlgorithm() != null) {
-            SSLParameters sslParameters = sslEngine.getSSLParameters();
-            sslParameters.setEndpointIdentificationAlgorithm(getEndpointIdentificationAlgorithm());
-            sslEngine.setSSLParameters(sslParameters);
-        }
-
+    protected void configureEngine(SSLEngine sslEngine) {
         if (sniHostName != null) {
             SSLParameters sslParameters = sslEngine.getSSLParameters();
             sslParameters.setServerNames(Collections.singletonList(new SNIHostName(sniHostName)));
             sslEngine.setSSLParameters(sslParameters);
         }
-
-        sslEngine.setUseClientMode(!session.isServer());
-
-        return sslEngine;
-    }
-
-    @Override
-    public void sessionClosed(NextFilter next, IoSession session) throws Exception {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("CLIENT: Session {} closed", session);
-        }
-
-        onClose(next, session, true);
-        next.sessionClosed(session);
     }
 }
