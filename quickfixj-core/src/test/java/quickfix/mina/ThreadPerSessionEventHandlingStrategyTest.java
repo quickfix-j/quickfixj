@@ -49,6 +49,7 @@ import quickfix.fix40.Logon;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -312,6 +313,68 @@ public class ThreadPerSessionEventHandlingStrategyTest {
                         .createDispatcherThread(quickfixSession),
                 "queueTracker",
                 QueueTracker.class) instanceof WatermarkTracker);
+    }
+
+    /**
+     * Regression test for GH-1128: stopDispatcherThreads() must block until each dispatcher
+     * thread has fully finished processing, not return as soon as stop has been requested.
+     */
+    @Test
+    public void testStopDispatcherThreadsIsBlocking() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        final CountDownLatch slowProcessingStarted = new CountDownLatch(1);
+        final AtomicInteger messagesProcessed = new AtomicInteger(0);
+
+        final UnitTestApplication application = new UnitTestApplication() {
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                messagesProcessed.incrementAndGet();
+                slowProcessingStarted.countDown();
+                try {
+                    // Simulate slow message processing so the queue is not drained before stop()
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        try (Session session = setUpSession(sessionID, application)) {
+            final Message message = new Logon();
+            message.getHeader().setString(SenderCompID.FIELD, "ISLD");
+            message.getHeader().setString(TargetCompID.FIELD, "TW");
+            message.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(new Date(), false));
+            message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+            message.setInt(HeartBtInt.FIELD, 30);
+
+            strategy.onMessage(session, message);
+
+            // Wait for the dispatcher to start processing (and be inside the slow handler)
+            assertTrue("Slow processing should have started", slowProcessingStarted.await(5, TimeUnit.SECONDS));
+
+            // Find the dispatcher thread before stopping
+            final Thread[] threads = new Thread[1024];
+            Thread.enumerate(threads);
+            Thread dispatcherThread = null;
+            for (final Thread thread : threads) {
+                if (thread != null && thread.getName().startsWith("QF/J Session dispatcher")) {
+                    dispatcherThread = thread;
+                    break;
+                }
+            }
+            assertNotNull("Dispatcher thread should exist", dispatcherThread);
+
+            // stopDispatcherThreads() must block until the dispatcher has fully terminated
+            strategy.stopDispatcherThreads();
+
+            // Immediately after stop returns the dispatcher thread must be dead (no polling needed)
+            assertFalse("Dispatcher thread must be dead after stopDispatcherThreads() returns",
+                    dispatcherThread.isAlive());
+            assertNull(strategy.getDispatcher(sessionID));
+        }
     }
 
     private Session setUpSession(SessionID sessionID) throws ConfigError {
