@@ -292,15 +292,19 @@ public class MessageUtils {
      */
     public static int checksum(Charset charset, String data, boolean isEntireMessage) {
         if (CharsetSupport.isStringEquivalent(charset)) { // optimization - skip charset encoding
-            int sum = 0;
             int end = isEntireMessage ? data.lastIndexOf("\00110=") : -1;
             int len = end > -1 ? end + 1 : data.length();
-            for (int i = 0; i < len; i++) {
-                sum += data.charAt(i);
-            }
-            return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
+            return checksum(data, 0, len);
         }
         return checksum(data.getBytes(charset), isEntireMessage);
+    }
+
+    static int checksum(CharSequence data, int start, int end) {
+        int sum = 0;
+        for (int i = start; i < end; i++) {
+            sum += data.charAt(i);
+        }
+        return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
     }
 
     /**
