@@ -16,3 +16,6 @@ nb-configuration.xml
 *.bak
 # ignore vim swap files
 *.swp
+# ignore jcstress test results
+jcstress-results-*.bin.gz
+results/
