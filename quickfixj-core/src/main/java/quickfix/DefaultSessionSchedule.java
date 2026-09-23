@@ -220,6 +220,8 @@ public class DefaultSessionSchedule implements SessionSchedule {
             }
 
         } else {
+            // Note that depending on locale, calling 'set(Calendar.DAY_OF_WEEK, ...)' could result in intervalStart being
+            // a date in the future.
             if (isSet(startTime.getDay())) {
                 intervalStart.set(Calendar.DAY_OF_WEEK, startTime.getDay());
                 if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
@@ -235,6 +237,11 @@ public class DefaultSessionSchedule implements SessionSchedule {
                 intervalEnd.set(Calendar.DAY_OF_WEEK, endTime.getDay());
                 if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
                     intervalEnd.add(Calendar.WEEK_OF_MONTH, 1);
+                }
+
+                // in some cases (certain locale), we could run into scenario where the interval end is before the interval start.
+                if (intervalEnd.getTimeInMillis() < intervalStart.getTimeInMillis()) {
+                    intervalEnd.add(Calendar.WEEK_OF_YEAR, 1);
                 }
             } else if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
                 intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
