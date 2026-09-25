@@ -82,12 +82,12 @@
 		<maven-assembly-plugin-version>3.8.0</maven-assembly-plugin-version>
 		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
 		<maven-gpg-plugin-version>3.2.8</maven-gpg-plugin-version>
-		<maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
+		<maven-deploy-plugin-version>3.2.0</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
-		<build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
+		<build-helper-maven-plugin-version>3.6.2</build-helper-maven-plugin-version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
-		<xml-maven-plugin-version>1.2.1</xml-maven-plugin-version>
+		<xml-maven-plugin-version>1.2.2</xml-maven-plugin-version>
 		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
 		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
@@ -101,7 +101,7 @@
     	<jmh.version>1.37</jmh.version>
     	<jcstress.version>0.16</jcstress.version>
     	<hsqldb.version>1.8.0.10</hsqldb.version>
-		<netty.version>4.2.17.Final</netty.version>
+		<netty.version>4.2.18.Final</netty.version>
 		<class-pruner-plugin.version>3.0.1</class-pruner-plugin.version>
 	</properties>
 
@@ -375,11 +375,11 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.15.2</version>
+					<version>3.16.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-install-plugin</artifactId>
-					<version>3.1.4</version>
+					<version>3.2.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>

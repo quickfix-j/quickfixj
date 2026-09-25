@@ -2107,7 +2107,6 @@ public class Session implements Closeable {
         }
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
         state.clearTestRequestCounter();
-        state.setLogonSent(true);
         logonAttempts++;
 
         if (enableNextExpectedMsgSeqNum) {
@@ -2117,7 +2116,9 @@ public class Session implements Closeable {
         }
 
         setLogonTags(logon);
-        return sendRaw(logon, 0);
+        final boolean result = sendRaw(logon, 0);
+        state.setLogonSent(result);
+        return result;
     }
 
     /**
@@ -2650,8 +2651,7 @@ public class Session implements Closeable {
         }
 
         setLogonTags(logon);
-        sendRaw(logon, 0);
-        state.setLogonSent(true);
+        state.setLogonSent(sendRaw(logon, 0));
     }
 
     private void persist(Header header, String messageString, int num) throws IOException, FieldNotFound {
