@@ -50,36 +50,66 @@ public final class IntConverter {
      * @see java.lang.Integer#parseInt(String)
      */
     public static int convert(String value) throws FieldConvertError {
-
-        if (!value.isEmpty()) {
-            final char firstChar = value.charAt(0);
-            boolean isNegative = (firstChar == '-');
-            if (!isDigit(firstChar) && !isNegative) {
-                throw new FieldConvertError("invalid integral value: " + value);
-            }
-            int minLength = (isNegative ? 2 : 1);
-            if (value.length() < minLength) {
-                throw new FieldConvertError("invalid integral value: " + value);
-            }
-
-            // Heuristic: since we have no range check in our parseInt() we only parse
-            // values which have at least one digit less than Integer.MAX_VALUE and
-            // leave longer Strings to Integer.parseInt().
-            // NB: we must not simply reject strings longer than MAX_VALUE since
-            // they could possibly include an arbitrary number of leading zeros.
-            int maxLength = (isNegative ? INT_MAX_STRING.length() : INT_MAX_STRING.length() - 1);
-            if (value.length() <= maxLength) {
-                return parseInt(value, isNegative);
-            } else {
-                try {
-                    return Integer.parseInt(value);
-                } catch (NumberFormatException e) {
-                    throw new FieldConvertError("invalid integral value: " + value + ": " + e);
-                }
-            }
-        } else {
+        return convert(value, 0, value.length());
+    }
+    
+    /**
+     * Convert a range of a String to an integer without allocating.
+     *
+     * Semantics are identical to convert(value.substring(offset, offset + length)),
+     * including error messages and edge cases.
+     *
+     * @param value  the String containing the number
+     * @param offset the start offset (inclusive)
+     * @param length the number of characters to convert
+     * @return the converted int
+     * @throws FieldConvertError if the range does not represent a valid FIX integer
+     */
+    public static int convert(String value, int offset, int length) throws FieldConvertError {
+        if (offset < 0 || length < 0 || value.length() - offset < length) {
+            throw new FieldConvertError("invalid integral value: offset=" + offset
+                    + ", length=" + length + ", value.length=" + value.length());
+        }
+        if (length == 0) {
             throw new FieldConvertError("invalid integral value: empty string");
         }
+        
+        final char firstChar = value.charAt(offset);
+        final boolean isNegative = (firstChar == '-');
+        if (!isDigit(firstChar) && !isNegative) {
+            throw new FieldConvertError("invalid integral value: " + window(value, offset, length));
+        }
+        final int minLength = (isNegative ? 2 : 1);
+        if (length < minLength) {
+            throw new FieldConvertError("invalid integral value: " + window(value, offset, length));
+        }
+        
+        // Heuristic: since we have no range check in our parseInt() we only parse
+        // values which have at least one digit less than Integer.MAX_VALUE and
+        // leave longer Strings to Integer.parseInt().
+        // NB: we must not simply reject strings longer than MAX_VALUE since
+        // they could possibly include an arbitrary number of leading zeros.
+        final int maxLength = (isNegative ? INT_MAX_STRING.length() : INT_MAX_STRING.length() - 1);
+        if (length > maxLength) {
+            final String s = window(value, offset, length);
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                throw new FieldConvertError("invalid integral value: " + s + ": " + e);
+            }
+        }
+        
+        for (int i = isNegative ? 1 : 0; i < length; i++) {
+            if (!isDigit(value.charAt(offset + i))) {
+                throw new FieldConvertError("invalid integral value: " + window(value, offset, length));
+            }
+        }
+        return parseInt(value, offset, length);
+    }
+    
+    /** The window as a String; avoids copying when the range is the whole value. */
+    private static String window(String value, int offset, int length) {
+        return (offset == 0 && length == value.length()) ? value : value.substring(offset, offset + length);
     }
 
     /**

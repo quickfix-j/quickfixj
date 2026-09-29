@@ -730,7 +730,7 @@ public class Message extends FieldMap {
         // QFJ-533
         int declaredGroupCount = 0;
         try {
-            declaredGroupCount = IntConverter.convert(field.getValue());
+            declaredGroupCount = field.convertToInt();
         } catch (final FieldConvertError e) {
             throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
         }
@@ -932,7 +932,7 @@ public class Message extends FieldMap {
 
         int tag;
         try {
-            tag = IntConverter.convert(messageData.substring(position, equalsOffset));
+            tag = IntConverter.convert(messageData, position, equalsOffset - position);
         } catch (final FieldConvertError e) {
             position = messageData.indexOf('\001', position + 1) + 1;
             throw MessageUtils.newInvalidMessageException("Bad tag format: " + e.getMessage() + " in " + messageData, this);
@@ -961,8 +961,11 @@ public class Message extends FieldMap {
             // we find the real field-ending SOH by checking the encoded bytes length
             // (we avoid re-encoding when the chars length equals the bytes length, e.g. ASCII text,
             // by assuming the chars length is always smaller than the encoded bytes length)
+            
+            final boolean singleByte = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+            
             while (sohOffset - equalsOffset - 1 < fieldLength
-                    && messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
+                    && encodedLength(messageData, equalsOffset + 1, sohOffset, singleByte) < fieldLength) {
                 sohOffset = messageData.indexOf('\001', sohOffset + 1);
                 if (sohOffset == -1) {
                     throw MessageUtils.newInvalidMessageException("SOH not found at end of field: " + tag + " in " + messageData, this);
@@ -971,8 +974,43 @@ public class Message extends FieldMap {
         }
 
         position = sohOffset + 1;
-        return new StringField(tag, messageData.substring(equalsOffset + 1, sohOffset));
+        return new StringField(tag, messageData, equalsOffset + 1, sohOffset - equalsOffset - 1);
     }
+    
+    /**
+     * Encoded byte length of messageData[from, to) without allocating.
+     * String-equivalent charsets (e.g. ISO-8859-1/US-ASCII): one byte per char.
+     * UTF-8: counted in chars, mirroring String.getBytes(UTF_8) replacement rules.
+     * Anything else falls back to the original measurement, so behavior is always identical.
+     */
+    private static int encodedLength(String messageData, int from, int to, boolean singleByte) {
+        if (singleByte) {
+            return to - from;
+        }
+        if (UTF8) {
+            int n = 0;
+            for (int i = from; i < to; i++) {
+                final char c = messageData.charAt(i);
+                if (c < 0x80) {
+                    n += 1;
+                } else if (c < 0x800) {
+                    n += 2;
+                } else if (Character.isHighSurrogate(c) && i + 1 < to
+                        && Character.isLowSurrogate(messageData.charAt(i + 1))) {
+                    n += 4;
+                    i++;
+                } else if (c >= 0xD800 && c <= 0xDFFF) {
+                    n += 1;
+                } else {
+                    n += 3;
+                }
+            }
+            return n;
+        }
+        return messageData.substring(from, to).getBytes(CharsetSupport.getCharsetInstance()).length;
+    }
+    
+    private static final boolean UTF8 = "UTF-8".equals(CharsetSupport.getCharsetInstance().name());
 
     /**
      * Queries message structural validity.
