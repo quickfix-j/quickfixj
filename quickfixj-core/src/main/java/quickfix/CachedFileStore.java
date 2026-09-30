@@ -73,6 +73,8 @@ public class CachedFileStore implements MessageStore {
 
     private final String sessionFileName;
 
+    private final String firstUnsentSeqNumFileName;
+
     private RandomAccessFile messageFileReader;
 
     private RandomAccessFile messageFileWriter;
@@ -80,6 +82,8 @@ public class CachedFileStore implements MessageStore {
     private DataOutputStream headerDataOutputStream;
 
     private RandomAccessFile sequenceNumberFile;
+
+    private RandomAccessFile firstUnsentSeqNumFile;
 
     private final boolean syncWrites;
 
@@ -98,6 +102,7 @@ public class CachedFileStore implements MessageStore {
         headerFileName = prefix + "header";
         seqNumFileName = prefix + "seqnums";
         sessionFileName = prefix + "session";
+        firstUnsentSeqNumFileName = prefix + "firstunsentseqnum";
 
         final File directory = new File(msgFileName).getParentFile();
         directory.mkdirs();
@@ -115,6 +120,7 @@ public class CachedFileStore implements MessageStore {
         messageFileWriter = new RandomAccessFile(msgFileName, getRandomAccessFileOptions());
         messageFileReader = new RandomAccessFile(msgFileName, READ_OPTION);
         sequenceNumberFile = new RandomAccessFile(seqNumFileName, getRandomAccessFileOptions());
+        firstUnsentSeqNumFile = new RandomAccessFile(firstUnsentSeqNumFileName, getRandomAccessFileOptions());
 
         initializeCache();
     }
@@ -180,6 +186,12 @@ public class CachedFileStore implements MessageStore {
             cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
             cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
         }
+
+        firstUnsentSeqNumFile.seek(0);
+        if (firstUnsentSeqNumFile.length() > 0) {
+            final String s = firstUnsentSeqNumFile.readUTF();
+            cache.setFirstUnsentSenderMsgSeqNum(Integer.parseInt(s));
+        }
     }
 
     private void initializeMessageIndex() throws IOException {
@@ -214,6 +226,7 @@ public class CachedFileStore implements MessageStore {
         closeFile(messageFileWriter);
         closeFile(messageFileReader);
         closeFile(sequenceNumberFile);
+        closeFile(firstUnsentSeqNumFile);
     }
 
     private void closeFile(RandomAccessFile file) throws IOException {
@@ -234,6 +247,7 @@ public class CachedFileStore implements MessageStore {
         deleteFile(msgFileName);
         deleteFile(seqNumFileName);
         deleteFile(sessionFileName);
+        deleteFile(firstUnsentSeqNumFileName);
     }
 
     private void deleteFile(String fileName) throws IOException {
@@ -293,6 +307,26 @@ public class CachedFileStore implements MessageStore {
     public void incrNextTargetMsgSeqNum() throws IOException {
         cache.incrNextTargetMsgSeqNum();
         storeSequenceNumbers();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#getFirstUnsentSenderMsgSeqNum()
+     */
+    @Override
+    public int getFirstUnsentSenderMsgSeqNum() throws IOException {
+        return cache.getFirstUnsentSenderMsgSeqNum();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#setFirstUnsentSenderMsgSeqNum(int)
+     */
+    @Override
+    public void setFirstUnsentSenderMsgSeqNum(int seqNum) throws IOException {
+        cache.setFirstUnsentSenderMsgSeqNum(seqNum);
+        firstUnsentSeqNumFile.seek(0);
+        firstUnsentSeqNumFile.writeUTF("" + seqNum);
     }
 
     /*
