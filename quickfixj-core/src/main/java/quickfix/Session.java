@@ -376,6 +376,16 @@ public class Session implements Closeable {
 
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
 
+    /**
+     * Session setting to keep the application messages that were stored but not sent
+     * when the session is reset by its schedule. Without it, these messages are lost.
+     * The kept messages get new sequence numbers in the new session. They are sent
+     * again (with PossDupFlag=Y) when the counterparty asks for them after the next logon.
+     * The message store must support it (MemoryStore, FileStore and CachedFileStore do).
+     * Valid values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_KEEP_UNSENT_MESSAGES_ON_RESET = "KeepUnsentMessagesOnReset";
+
     public static final String SETTING_ALLOWED_REMOTE_ADDRESSES = "AllowedRemoteAddresses";
 
     /**
@@ -448,6 +458,7 @@ public class Session implements Closeable {
     private boolean rejectMessageOnUnhandledException = false;
     private boolean requiresOrigSendingTime = false;
     private boolean forceResendWhenCorruptedStore = false;
+    private boolean keepUnsentMessagesOnReset = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
@@ -599,7 +610,13 @@ public class Session implements Closeable {
 
         getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
         try {
-            resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
+            if (sessionSchedule != null && messageStore.getFirstUnsentSenderMsgSeqNum() > 0) {
+                // The store has unsent messages. KeepUnsentMessagesOnReset is not set yet here,
+                // so the reset is done later by next() or before the logon.
+                getLog().onEvent("Message store has unsent messages; reset check is done later");
+            } else {
+                resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
+            }
         } catch (final IOException e) {
             LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
@@ -1975,8 +1992,8 @@ public class Session implements Closeable {
             if ((now - lastSessionTimeCheck) >= 1000L) {
                 lastSessionTimeCheck = now;
                 if (!isSessionTime()) {
-                    if (state.isResetNeeded() && !state.isResetStatePending()) {
-                        reset(); // only reset if seq nums are != 1 and not isResetStatePending is set
+                    if (isScheduledResetNeeded() && !state.isResetStatePending()) {
+                        scheduledReset(); // only reset if seq nums are != 1 and not isResetStatePending is set
                     } else if (state.isLogoutTimedOut()) {
                         disconnect("Timed out waiting for logout response", true);
                     }
@@ -2361,6 +2378,10 @@ public class Session implements Closeable {
             stateListener.onLogon(sessionID);
             lastSessionLogon = SystemTime.currentTimeMillis();
             logonAttempts = 0;
+            // messages not sent yet are now sent on resend request from the counterparty
+            if (state.getMessageStore().getFirstUnsentSenderMsgSeqNum() > 0) {
+                state.getMessageStore().setFirstUnsentSenderMsgSeqNum(0);
+            }
         }
     }
 
@@ -2730,6 +2751,9 @@ public class Session implements Closeable {
                     return false;
                 } catch (final Throwable t) {
                     logApplicationException("toApp()", t);
+                }
+                if (keepUnsentMessagesOnReset && num == 0 && !isLoggedOn()) {
+                    markFirstUnsentMessage(header.getInt(MsgSeqNum.FIELD));
                 }
                 messageString = message.toString();
                 persist(message.getHeader(), messageString, num);
@@ -3119,6 +3143,32 @@ public class Session implements Closeable {
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
     }
 
+    /**
+     * @param keepUnsentMessagesOnReset keep the unsent application messages when the session
+     *                                  is reset by its schedule
+     * @see #SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+     */
+    public void setKeepUnsentMessagesOnReset(boolean keepUnsentMessagesOnReset) {
+        this.keepUnsentMessagesOnReset = keepUnsentMessagesOnReset;
+        if (keepUnsentMessagesOnReset) {
+            try {
+                if (!persistMessages) {
+                    getLog().onWarnEvent(SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                            + " has no effect because PersistMessages=N");
+                } else if (state.getMessageStore().getFirstUnsentSenderMsgSeqNum() < 0) {
+                    getLog().onWarnEvent(SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                            + " has no effect because the message store does not support it");
+                }
+            } catch (final IOException e) {
+                logThrowable(getLog(), "Error reading from MessageStore", e);
+            }
+        }
+    }
+
+    public boolean isKeepUnsentMessagesOnReset() {
+        return keepUnsentMessagesOnReset;
+    }
+
     public boolean isAllowedForSession(InetAddress remoteInetAddress) {
         return allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()
                 || allowedRemoteAddresses.contains(remoteInetAddress);
@@ -3149,7 +3199,82 @@ public class Session implements Closeable {
     private void resetIfSessionNotCurrent(SessionID sessionID, long time) throws IOException {
         if (!isCurrentSession(time)) {
             getLog().onEvent("Session state is not current; resetting " + sessionID);
+            scheduledReset();
+        }
+    }
+
+    private boolean isScheduledResetNeeded() throws IOException {
+        if (keepUnsentMessagesOnReset && state.getNextTargetMsgSeqNum() == 1
+                && state.getMessageStore().getFirstUnsentSenderMsgSeqNum() == 1) {
+            // the store only has unsent messages, a reset would do nothing new
+            return false;
+        }
+        return state.isResetNeeded();
+    }
+
+    /**
+     * Reset done by the session schedule. With KeepUnsentMessagesOnReset=Y and when
+     * not logged on, the application messages that were not sent are kept.
+     */
+    private void scheduledReset() throws IOException {
+        if (keepUnsentMessagesOnReset && !isLoggedOn()) {
+            resetStateKeepingUnsentMessages();
+        } else {
             reset();
+        }
+    }
+
+    private void resetStateKeepingUnsentMessages() throws IOException {
+        state.lockSenderMsgSeqNum();
+        try {
+            final List<Message> unsentMessages = getUnsentApplicationMessages();
+            resetState();
+            for (final Message message : unsentMessages) {
+                final Message.Header header = message.getHeader();
+                final int msgSeqNum = getExpectedSenderNum();
+                header.setInt(MsgSeqNum.FIELD, msgSeqNum);
+                insertSendingTime(header);
+                header.removeField(PossDupFlag.FIELD);
+                header.removeField(OrigSendingTime.FIELD);
+                markFirstUnsentMessage(msgSeqNum);
+                persist(header, message.toString(), 0);
+            }
+            if (!unsentMessages.isEmpty()) {
+                getLog().onEvent("Kept " + unsentMessages.size() + " unsent message(s) after reset");
+            }
+        } catch (final FieldNotFound e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            state.unlockSenderMsgSeqNum();
+        }
+    }
+
+    private List<Message> getUnsentApplicationMessages() throws IOException {
+        final List<Message> unsentMessages = new ArrayList<>();
+        final int firstUnsent = state.getMessageStore().getFirstUnsentSenderMsgSeqNum();
+        if (firstUnsent <= 0) {
+            return unsentMessages;
+        }
+        final List<String> messages = new ArrayList<>();
+        state.get(firstUnsent, getExpectedSenderNum() - 1, messages);
+        for (final String messageData : messages) {
+            try {
+                final Message message = parseMessage(messageData);
+                if (!message.isAdmin()) {
+                    unsentMessages.add(message);
+                }
+            } catch (final InvalidMessage e) {
+                getLog().onErrorEvent("Unsent message is lost, it can not be parsed (" + e.getMessage()
+                        + "): " + messageData);
+            }
+        }
+        return unsentMessages;
+    }
+
+    private void markFirstUnsentMessage(int msgSeqNum) throws IOException {
+        final MessageStore messageStore = state.getMessageStore();
+        if (messageStore.getFirstUnsentSenderMsgSeqNum() == 0) {
+            messageStore.setFirstUnsentSenderMsgSeqNum(msgSeqNum);
         }
     }
 
