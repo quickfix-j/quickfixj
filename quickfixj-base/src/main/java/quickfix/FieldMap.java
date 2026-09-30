@@ -253,7 +253,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public boolean getBoolean(int field) throws FieldNotFound {
         try {
-            return BooleanConverter.convert(getString(field));
+            return getField(field).toBoolean();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -261,7 +261,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public char getChar(int field) throws FieldNotFound {
         try {
-            return CharConverter.convert(getString(field));
+            return getField(field).toChar();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -269,7 +269,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public char[] getChars(int field) throws FieldNotFound {
         try {
-            return CharArrayConverter.convert(getString(field));
+            return getField(field).toChars();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -277,7 +277,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public int getInt(int field) throws FieldNotFound {
         try {
-            return IntConverter.convert(getString(field));
+            return getField(field).toInt();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -285,18 +285,23 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public double getDouble(int field) throws FieldNotFound {
         try {
-            return DoubleConverter.convert(getString(field));
+            return getField(field).toDouble();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
     }
 
     public BigDecimal getDecimal(int field) throws FieldNotFound {
-        return getDecimalFromString(field, getString(field));
+        return getDecimalFromString(field, getField(field));
     }
 
     public Optional<BigDecimal> getOptionalDecimal(int field) {
-        return getOptionalString(field).map(s -> getDecimalFromString(field, s));
+        final StringField f = (StringField) fields.get(field);
+        if (f == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(getDecimalFromString(field, f));
+        }
     }
 
     private BigDecimal getDecimalFromString(int field, String s) {
@@ -306,10 +311,18 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
             throw newIncorrectDataException(e, field);
         }
     }
+    
+    private BigDecimal getDecimalFromString(int field, StringField s) {
+        try {
+            return s.toDecimal();
+        } catch (final FieldConvertError e) {
+            throw newIncorrectDataException(e, field);
+        }
+    }
 
     public LocalDateTime getUtcTimeStamp(int field) throws FieldNotFound {
         try {
-            return UtcTimestampConverter.convertToLocalDateTime(getString(field));
+            return getField(field).toUtcTimestamp();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -317,7 +330,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public LocalTime getUtcTimeOnly(int field) throws FieldNotFound {
         try {
-            return UtcTimeOnlyConverter.convertToLocalTime(getString(field));
+            return getField(field).toUtcTimeOnly();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -325,7 +338,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public LocalDate getUtcDateOnly(int field) throws FieldNotFound {
         try {
-            return UtcDateOnlyConverter.convertToLocalDate(getString(field));
+            return getField(field).toUtcDateOnly();
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }

@@ -19,9 +19,21 @@
 
 package quickfix;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharArrayConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DecimalConverter;
+import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 
 /**
  * A string-valued message field.
@@ -70,8 +82,40 @@ public class StringField extends Field<String> {
         return raw() == null;
     }
     
-    int convertToInt() throws FieldConvertError {
+    int toInt() throws FieldConvertError {
         return IntConverter.convert(raw(), offset, length);
+    }
+    
+    boolean toBoolean() throws FieldConvertError {
+        return BooleanConverter.convert(raw(), offset, length);
+    }
+    
+    char toChar() throws FieldConvertError {
+        return CharConverter.convert(raw(), offset, length);
+    }
+    
+    char[] toChars() throws FieldConvertError {
+        return CharArrayConverter.convert(raw(), offset, length);
+    }
+    
+    BigDecimal toDecimal() throws FieldConvertError {
+        return DecimalConverter.convert(raw(), offset, length);
+    }
+    
+    double toDouble() throws FieldConvertError {
+        return DoubleConverter.convert(raw(), offset, length);
+    }
+    
+    LocalDateTime toUtcTimestamp() throws FieldConvertError {
+        return UtcTimestampConverter.convertToLocalDateTime(getValue());
+    }
+    
+    LocalTime toUtcTimeOnly() throws FieldConvertError {
+        return UtcTimeOnlyConverter.convertToLocalTime(getValue());
+    }
+    
+    LocalDate toUtcDateOnly() throws FieldConvertError {
+        return UtcDateOnlyConverter.convertToLocalDate(getValue());
     }
     
     @Override
@@ -111,18 +155,14 @@ public class StringField extends Field<String> {
         if (hashed) {
             return hashcode;
         }
-        hashcode = rangeHash();
-        hashed = true;
-        return hashcode;
-    }
-    
-    private int rangeHash() {
         String s = raw();
         int h = 0;
         for (int i = offset, n = offset + length; i < n; i++) {
             h = 31 * h + s.charAt(i);
         }
-        return h;
+        hashcode = h;
+        hashed = true;
+        return hashcode;
     }
     
     public boolean valueEquals(String value) {

@@ -730,7 +730,7 @@ public class Message extends FieldMap {
         // QFJ-533
         int declaredGroupCount = 0;
         try {
-            declaredGroupCount = field.convertToInt();
+            declaredGroupCount = field.toInt();
         } catch (final FieldConvertError e) {
             throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
         }

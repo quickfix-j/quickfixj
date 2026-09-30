@@ -108,7 +108,7 @@ public final class IntConverter {
     }
     
     /** The window as a String; avoids copying when the range is the whole value. */
-    private static String window(String value, int offset, int length) {
+    static String window(String value, int offset, int length) {
         return (offset == 0 && length == value.length()) ? value : value.substring(offset, offset + length);
     }
 
