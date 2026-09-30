@@ -92,6 +92,32 @@ public interface MessageStore {
     void reset() throws IOException;
 
     /**
+     * Get the sequence number of the first outgoing message that was stored
+     * but not sent yet. It is used to keep these messages when the session
+     * is reset by its schedule.
+     *
+     * @return the sequence number, 0 if all messages were sent, or -1 if
+     *         this store does not support it.
+     * @throws IOException IO error
+     * @see Session#SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+     */
+    default int getFirstUnsentSenderMsgSeqNum() throws IOException {
+        return -1;
+    }
+
+    /**
+     * Set the sequence number of the first outgoing message that was stored
+     * but not sent yet. Use 0 when all messages were sent. The value is set
+     * back to 0 by {@link #reset()}. Stores that do not support it do nothing.
+     *
+     * @param seqNum the sequence number, or 0
+     * @throws IOException IO error
+     * @see #getFirstUnsentSenderMsgSeqNum()
+     */
+    default void setFirstUnsentSenderMsgSeqNum(int seqNum) throws IOException {
+    }
+
+    /**
      * Refresh session state from a <em>shared</em> state storage (e.g. database,
      * file, ...). Refresh will not work for message stores without shared state
      * (e.g., MemoryStore). These stores should log an session error, at a minimum,
