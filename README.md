@@ -43,17 +43,17 @@ Pull requests are always welcome! Best is if you added a unit test to show that 
 
 Fastest: clone the repo and issue the following command.
 ```
-$ mvnw clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
+$ mvnw clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
 ```
 
 Slower: if you only want to skip the acceptance test suite:
 ```
-$ mvnw clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin,minimal-fix-latest
+$ mvnw clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin
 ```
 
 Slow: if you want to run all tests:
 ```
-$ mvnw clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
+$ mvnw clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
@@ -63,7 +63,7 @@ When the project is first created, it will not have the generated message classe
 
 If the IDE reports some errors after the compilation with `mvnw clean package`, try to use `mvnw clean install`, like:
 ```
-$ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
+$ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
 ```
 
 ## configuration options
