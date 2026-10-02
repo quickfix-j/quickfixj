@@ -78,4 +78,14 @@ public class FieldMapTest {
         map.removeGroup(73);
         assertFalse(map.hasGroup(73));
     }
+
+    @Test
+    public void testGroupChecksumMatchesMessageUtils() {
+        FieldMap map = new Message();
+        Group group = new Group(73, 11);
+        group.setString(11, "A");
+        map.addGroup(group);
+
+        assertEquals(MessageUtils.checksum("73=1\00111=A\001"), map.calculateChecksum());
+    }
 }
