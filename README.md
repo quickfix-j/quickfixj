@@ -66,6 +66,15 @@ If the IDE reports some errors after the compilation with `mvnw clean package`, 
 $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
+Why: `quickfixj-base` generates sources (`quickfix.field.*`, FIXT/FIX Latest messages) in the `generate-sources` phase from `quickfixj-orchestration`, and the downstream modules (`quickfixj-messages-*`, `quickfixj-core`) depend on them. IDEs often do not run these plugins on import, and may resolve modules from the workspace instead of from `~/.m2`.
+
+Recommended steps:
+1. Run the `mvnw clean install` command above once (the generated output lands in `quickfixj-base/target/generated-sources`).
+2. Import the root `pom.xml` as a Maven project.
+   * IntelliJ IDEA: *Settings > Build Tools > Maven > Importing*: set "Generated sources folders" to "Detect automatically" and use "Reload project" (or *Generate Sources and Update Folders*) after a clean.
+   * Eclipse (m2e): import as "Existing Maven Projects", then run *Maven > Update Project...* (Alt+F5) after the command-line build.
+3. If a module still reports missing classes, run `mvnw generate-sources -PskipBundlePlugin,minimal-fix-latest` and refresh the project.
+
 ## configuration options
 
 https://quickfix-j.github.io/quickfixj/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
