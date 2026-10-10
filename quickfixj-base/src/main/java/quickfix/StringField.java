@@ -79,7 +79,7 @@ public class StringField extends Field<String> {
     }
     
     boolean hasValue() {
-        return raw() == null;
+        return raw() != null;
     }
     
     int toInt() throws FieldConvertError {
