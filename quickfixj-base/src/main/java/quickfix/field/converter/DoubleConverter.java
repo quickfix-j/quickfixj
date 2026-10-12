@@ -19,6 +19,8 @@
 
 package quickfix.field.converter;
 
+import static quickfix.field.converter.IntConverter.window;
+
 import quickfix.FieldConvertError;
 import quickfix.RuntimeError;
 
@@ -88,26 +90,39 @@ public class DoubleConverter {
      * @throws FieldConvertError if the String is not a valid double pattern.
      */
     public static double convert(String value) throws FieldConvertError {
+        return convert(value, 0, value == null ? 0 : value.length());
+    }
+    
+    public static double convert(String value, int off, int len) throws FieldConvertError {
         try {
-            return parseDouble(value);
+            return parseDouble(value, off, len);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid double value: " + value);
         }
     }
-
-    private static double parseDouble(String value) {
-        if(value.length() == 0) throw new NumberFormatException(value);
-        boolean dot = false; int i = 0;
-        char c = value.charAt(i);
-        switch (c) {
-            case '-': i++; break;
-            case '+': throw new NumberFormatException(value);
+    
+    private static double parseDouble(String v, int off, int len) {
+        if (len == 0) {
+            throw new NumberFormatException();
         }
-        for (; i < value.length(); i++) {
-            c = value.charAt(i);
-            if (!dot && c == '.') dot = true;
-            else if (c < '0' || c > '9') throw new NumberFormatException(value);
+        boolean dot = false;
+        int i = 0;
+        switch (v.charAt(off)) {
+            case '-':
+                i = 1;
+                break;
+            case '+':
+                throw new NumberFormatException();
         }
-        return Double.parseDouble(value);
+        for (; i < len; i++) {
+            final char c = v.charAt(off + i);
+            if (!dot && c == '.') {
+                dot = true;
+            } else if (c < '0' || c > '9') {
+                throw new NumberFormatException();
+            }
+        }
+        return Double.parseDouble(window(v, off, len));
     }
+
 }

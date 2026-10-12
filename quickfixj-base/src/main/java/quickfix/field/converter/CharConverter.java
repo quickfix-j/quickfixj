@@ -19,6 +19,8 @@
 
 package quickfix.field.converter;
 
+import static quickfix.field.converter.IntConverter.window;
+
 import quickfix.FieldConvertError;
 
 /**
@@ -45,9 +47,26 @@ public class CharConverter {
      * @throws FieldConvertError if String length != 1
      */
     public static char convert(String value) throws FieldConvertError {
-        if (value.length() != 1) {
-            throw new FieldConvertError("invalid character value: " + value);
+        return convert(value, 0, value == null ? 0 : value.length());
+    }
+    
+    /**
+     * Converts a range of a String to a character without allocating.
+     *
+     * Semantics are identical to convert(value.substring(offset, offset + length)),
+     * including error messages.
+     */
+    public static char convert(String value, int offset, int length) throws FieldConvertError {
+        if (value == null) {
+            throw new NullPointerException();
         }
-        return value.charAt(0);
+        if (offset < 0 || length < 0 || value.length() - offset < length) {
+            throw new FieldConvertError("invalid character value: offset=" + offset
+                    + ", length=" + length + ", value.length=" + value.length());
+        }
+        if (length != 1) {
+            throw new FieldConvertError("invalid character value: " + window(value, offset, length));
+        }
+        return value.charAt(offset);
     }
 }
