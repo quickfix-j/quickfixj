@@ -64,7 +64,9 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
         @Override
         protected SocketInitiator doBuild() throws ConfigError {
-            return new SocketInitiator(this);
+            SocketInitiator socketInitiator = new SocketInitiator(this);
+            socketInitiator.setSSLContextProvider(sslContextProvider);
+            return socketInitiator;
         }
     }
 

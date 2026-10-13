@@ -48,7 +48,6 @@ import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.AcceptorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
-import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
 
 import javax.net.ssl.SSLContext;
@@ -135,7 +134,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                             CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
         log.info("Installing SSL filter for {}", descriptor.getAddress());
         SSLConfig sslConfig = descriptor.getSslConfig();
-        SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
+        SSLContext sslContext = getSSLContextProvider().getSSLContext(sslConfig);
         HostResolutionStrategy hostResolutionStrategy = HostResolutionStrategy.fromReverseDnsEnabled(
                 descriptor.isReverseDnsEnabled());
         SslFilter sslFilter = new AcceptorSslFilter(sslContext, hostResolutionStrategy);

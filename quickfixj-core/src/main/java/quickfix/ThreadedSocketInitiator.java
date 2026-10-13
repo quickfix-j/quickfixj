@@ -61,7 +61,9 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
 
         @Override
         protected ThreadedSocketInitiator doBuild() throws ConfigError {
-            return new ThreadedSocketInitiator(this);
+            ThreadedSocketInitiator threadedSocketInitiator = new ThreadedSocketInitiator(this);
+            threadedSocketInitiator.setSSLContextProvider(sslContextProvider);
+            return threadedSocketInitiator;
         }
     }
 

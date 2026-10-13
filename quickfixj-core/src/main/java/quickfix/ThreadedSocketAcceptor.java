@@ -53,7 +53,9 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
 
         @Override
         protected ThreadedSocketAcceptor doBuild() throws ConfigError {
-            return new ThreadedSocketAcceptor(this);
+            ThreadedSocketAcceptor threadedSocketAcceptor = new ThreadedSocketAcceptor(this);
+            threadedSocketAcceptor.setSSLContextProvider(sslContextProvider);
+            return threadedSocketAcceptor;
         }
     }
 

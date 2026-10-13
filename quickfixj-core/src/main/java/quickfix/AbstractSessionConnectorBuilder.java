@@ -1,5 +1,7 @@
 package quickfix;
 
+import quickfix.mina.ssl.SSLContextProvider;
+
 public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
     private final Class<Derived> derived;
     Application application;
@@ -7,6 +9,7 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
     SessionSettings settings;
     LogFactory logFactory;
     MessageFactory messageFactory;
+    SSLContextProvider sslContextProvider;
 
     int queueCapacity = -1;
     int queueLowerWatermark = -1;
@@ -38,6 +41,11 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
 
     public Derived withMessageFactory(MessageFactory val) throws ConfigError {
         messageFactory = val;
+        return derived.cast(this);
+    }
+
+    public Derived withSSLContextProvider(SSLContextProvider val) {
+        sslContextProvider = val;
         return derived.cast(this);
     }
 

@@ -113,5 +113,55 @@ SenderCompID=ZULU1
 
 Also see the tests in <code>quickfix.mina.ssl.SecureSocketTest</code> and <code>quickfix.mina.ssl.SSLCertificateTest</code>.
 
+<h3>Supplying SSL contexts from the application</h3>
+
+<p>By default, QuickFIX/J loads the key and trust stores named in the settings from the file system or
+classpath. An application can instead supply the <code>SSLContext</code> itself through an
+<code>SSLContextProvider</code>, e.g. when the stores come from a secrets manager and should stay in
+memory. For example, with stores provided as Base64-encoded environment variables:</p>
+
+<pre class="code">
+char[] password = System.getenv("FIX_KEYSTORE_PASSWORD").toCharArray();
+KeyStore keyStore = KeyStore.getInstance("PKCS12");
+keyStore.load(new ByteArrayInputStream(Base64.getMimeDecoder().decode(System.getenv("FIX_KEYSTORE_B64"))), password);
+KeyStore trustStore = KeyStore.getInstance("PKCS12");
+trustStore.load(new ByteArrayInputStream(Base64.getMimeDecoder().decode(System.getenv("FIX_TRUSTSTORE_B64"))), null);
+
+KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+kmf.init(keyStore, password);
+TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+tmf.init(trustStore);
+SSLContext sslContext = SSLContext.getInstance("TLS");
+sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+SocketInitiator initiator = SocketInitiator.newBuilder()
+        // ... application, store factory, settings
+        .withSSLContextProvider(sslConfig -&gt; sslContext)
+        .build();
+</pre>
+
+<p>Connectors created with a constructor can call <code>setSSLContextProvider</code> before
+<code>start()</code>. Passing <code>null</code> restores the default behaviour. The provider receives the
+<code>SSLConfig</code> of the session or acceptor address, so it can return different contexts, e.g. a
+different client certificate per counterparty, and delegate to
+<code>SSLContextFactory.getInstance(sslConfig)</code> for stores that should still be loaded from files.</p>
+
+<ul>
+<li><code>SocketUseSSL=Y</code> is still required. Only the context comes from the provider; protocols,
+cipher suites, <code>NeedClientAuth</code>, SNI and endpoint identification are still applied from the
+settings, while store settings are not used.</li>
+<li>If the provider throws or returns <code>null</code>, the session (initiator) or listening address
+(acceptor) fails to initialize, subject to <code>ContinueInitializationOnError</code>. There is no
+implicit fallback to the default behaviour.</li>
+<li>The provider is called whenever an SSL filter is set up: once per listening address when an
+acceptor starts, and once per session when an initiator starts (and again if its I/O connector is
+reset). Return a new context to pick up rotated credentials on the next start, or supply a key or
+trust manager that reloads its material to rotate without restarting.</li>
+<li>Contexts created by <code>SSLContextFactory</code> have their trust managers wrapped so that a
+<code>RuntimeException</code> thrown during certificate validation is reported as a
+<code>CertificateException</code>. A supplied context is used as is; wrap its trust managers with
+<code>X509TrustManagerWrapper.wrap(...)</code> to get the same behaviour.</li>
+</ul>
+
 </body>
 </html>
