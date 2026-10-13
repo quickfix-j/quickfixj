@@ -106,7 +106,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean rejectInvalidMessage = true;
         private final boolean rejectMessageOnUnhandledException = false;
         private final boolean requiresOrigSendingTime = true;
-        private final boolean forceResendWhenCorruptedStore = false;
+        private boolean forceResendWhenCorruptedStore = false;
         private final Set<InetAddress> allowedRemoteAddresses = null;
         private final boolean validateIncomingMessage = true;
         private final int resendRequestChunkSize = 0;
@@ -243,6 +243,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setEnableNextExpectedMsgSeqNum(final boolean enableNextExpectedMsgSeqNum) {
             this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
+            return this;
+        }
+
+        public Builder setForceResendWhenCorruptedStore(final boolean forceResendWhenCorruptedStore) {
+            this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
             return this;
         }
     }
