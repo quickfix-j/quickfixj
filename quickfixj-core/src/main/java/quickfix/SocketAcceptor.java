@@ -56,7 +56,9 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
         @Override
         protected SocketAcceptor doBuild() throws ConfigError {
-            return new SocketAcceptor(this);
+            SocketAcceptor socketAcceptor = new SocketAcceptor(this);
+            socketAcceptor.setSSLContextProvider(sslContextProvider);
+            return socketAcceptor;
         }
     }
 

@@ -33,10 +33,14 @@ import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.field.converter.IntConverter;
+import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLContextProvider;
 
+import javax.net.ssl.SSLContext;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -76,6 +80,7 @@ public abstract class SessionConnector implements Connector {
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
+    private SSLContextProvider sslContextProvider = SSLContextFactory::getInstance;
 
     protected Executor longLivedExecutor;
     protected Executor shortLivedExecutor;
@@ -422,6 +427,30 @@ public abstract class SessionConnector implements Connector {
 
     protected IoFilterChainBuilder getIoFilterChainBuilder() {
         return ioFilterChainBuilder;
+    }
+
+    /**
+     * Sets the provider of SSL contexts, or null for the default. Must be set before the connector is started.
+     */
+    public void setSSLContextProvider(SSLContextProvider sslContextProvider) {
+        this.sslContextProvider = sslContextProvider != null ? sslContextProvider : SSLContextFactory::getInstance;
+    }
+
+    // Reports provider failures and missing contexts as GeneralSecurityException
+    protected SSLContextProvider getSSLContextProvider() {
+        final SSLContextProvider provider = sslContextProvider;
+        return sslConfig -> {
+            final SSLContext sslContext;
+            try {
+                sslContext = provider.getSSLContext(sslConfig);
+            } catch (RuntimeException e) {
+                throw new GeneralSecurityException("SSLContextProvider failed", e);
+            }
+            if (sslContext == null) {
+                throw new GeneralSecurityException("SSLContextProvider returned no SSL context");
+            }
+            return sslContext;
+        };
     }
 
     /**

@@ -184,7 +184,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                     socketAddresses, localAddress, hostResolutionStrategy, connectTimeout, reconnectingIntervals,
                     scheduledExecutorService, settings, networkingOptions,
-                    getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
+                    getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig, getSSLContextProvider(),
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 
             initiators.add(ioSessionInitiator);
