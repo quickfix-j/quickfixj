@@ -31,7 +31,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
 
     private ThreadedSocketInitiator(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory, builder.numReconnectThreads);
+                builder.logFactory, builder.messageFactory, builder.numReconnectThreads, builder.sslContextProvider);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -61,9 +61,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
 
         @Override
         protected ThreadedSocketInitiator doBuild() throws ConfigError {
-            ThreadedSocketInitiator threadedSocketInitiator = new ThreadedSocketInitiator(this);
-            threadedSocketInitiator.setSSLContextProvider(sslContextProvider);
-            return threadedSocketInitiator;
+            return new ThreadedSocketInitiator(this);
         }
     }
 

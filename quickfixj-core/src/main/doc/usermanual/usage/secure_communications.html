@@ -140,8 +140,9 @@ SocketInitiator initiator = SocketInitiator.newBuilder()
         .build();
 </pre>
 
-<p>Connectors created with a constructor can call <code>setSSLContextProvider</code> before
-<code>start()</code>. Passing <code>null</code> restores the default behaviour. The provider receives the
+<p>The provider is set with <code>withSSLContextProvider</code> on the builders of
+<code>SocketInitiator</code>, <code>SocketAcceptor</code> and their threaded variants; without it, the
+configured stores are loaded as before. The provider receives the
 <code>SSLConfig</code> of the session or acceptor address, so it can return different contexts, e.g. a
 different client certificate per counterparty, and delegate to
 <code>SSLContextFactory.getInstance(sslConfig)</code> for stores that should still be loaded from files.</p>
@@ -150,9 +151,9 @@ different client certificate per counterparty, and delegate to
 <li><code>SocketUseSSL=Y</code> is still required. Only the context comes from the provider; protocols,
 cipher suites, <code>NeedClientAuth</code>, SNI and endpoint identification are still applied from the
 settings, while store settings are not used.</li>
-<li>If the provider throws or returns <code>null</code>, the session (initiator) or listening address
-(acceptor) fails to initialize, subject to <code>ContinueInitializationOnError</code>. There is no
-implicit fallback to the default behaviour.</li>
+<li>If the provider throws a <code>GeneralSecurityException</code>, the session (initiator) or listening
+address (acceptor) fails to initialize, subject to <code>ContinueInitializationOnError</code>. There is no
+implicit fallback to the default behaviour. The provider must not return <code>null</code>.</li>
 <li>The provider is called whenever an SSL filter is set up: once per listening address when an
 acceptor starts, and once per session when an initiator starts (and again if its I/O connector is
 reset). Return a new context to pick up rotated credentials on the next start, or supply a key or

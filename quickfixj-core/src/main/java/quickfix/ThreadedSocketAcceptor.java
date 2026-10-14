@@ -31,7 +31,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
 
     private ThreadedSocketAcceptor(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory);
+                builder.logFactory, builder.messageFactory, builder.sslContextProvider);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -53,9 +53,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
 
         @Override
         protected ThreadedSocketAcceptor doBuild() throws ConfigError {
-            ThreadedSocketAcceptor threadedSocketAcceptor = new ThreadedSocketAcceptor(this);
-            threadedSocketAcceptor.setSSLContextProvider(sslContextProvider);
-            return threadedSocketAcceptor;
+            return new ThreadedSocketAcceptor(this);
         }
     }
 

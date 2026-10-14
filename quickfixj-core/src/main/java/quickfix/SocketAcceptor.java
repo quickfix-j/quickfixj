@@ -34,7 +34,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     private SocketAcceptor(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory);
+                builder.logFactory, builder.messageFactory, builder.sslContextProvider);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -56,9 +56,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
         @Override
         protected SocketAcceptor doBuild() throws ConfigError {
-            SocketAcceptor socketAcceptor = new SocketAcceptor(this);
-            socketAcceptor.setSSLContextProvider(sslContextProvider);
-            return socketAcceptor;
+            return new SocketAcceptor(this);
         }
     }
 
