@@ -36,6 +36,8 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.SocketInitiator;
+import quickfix.ThreadedSocketAcceptor;
+import quickfix.ThreadedSocketInitiator;
 import quickfix.test.util.SSLUtil;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -47,6 +49,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.KeyStore;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -100,6 +103,61 @@ public class SSLContextProviderTest {
             SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
         } finally {
             initiator.stop(true);
+            acceptor.stop(true);
+        }
+    }
+
+    @Test
+    public void shouldAuthenticateBothSidesWithThreadedConnectorsBuiltWithProvider() throws Exception {
+        SSLContext serverContext = createContext("server-pkcs12.keystore", "PKCS12",
+                "server-jceks.truststore", "JCEKS");
+        SSLContext clientContext = createContext("client-jceks.keystore", "JCEKS",
+                "client-jceks.keystore", "JCEKS");
+
+        int port = AvailablePortFinder.getNextAvailable();
+        SessionSettings acceptorSettings = settings("acceptor", ACCEPTOR_SESSION, port);
+        acceptorSettings.setString(SSLSupport.SETTING_NEED_CLIENT_AUTH, "Y");
+        ThreadedSocketAcceptor acceptor = ThreadedSocketAcceptor.newBuilder()
+                .withApplication(new ApplicationAdapter())
+                .withMessageStoreFactory(new MemoryStoreFactory())
+                .withSettings(acceptorSettings)
+                .withLogFactory(new ScreenLogFactory(false, false, false))
+                .withSSLContextProvider(sslConfig -> serverContext)
+                .build();
+        ThreadedSocketInitiator initiator = ThreadedSocketInitiator.newBuilder()
+                .withApplication(new ApplicationAdapter())
+                .withMessageStoreFactory(new MemoryStoreFactory())
+                .withSettings(settings("initiator", INITIATOR_SESSION, port))
+                .withLogFactory(new ScreenLogFactory(false, false, false))
+                .withSSLContextProvider(sslConfig -> clientContext)
+                .build();
+        try {
+            acceptor.start();
+            initiator.start();
+            SSLUtil.assertAuthenticated(initiator, INITIATOR_SESSION, SERVER_SERIAL);
+            SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
+        } finally {
+            initiator.stop(true);
+            acceptor.stop(true);
+        }
+    }
+
+    @Test
+    public void shouldLoadConfiguredStoresWhenProviderIsResetToNull() throws Exception {
+        SessionSettings settings = settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable());
+        settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "single-session/server.keystore");
+        settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "password");
+        SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(),
+                settings, new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
+        acceptor.setSSLContextProvider(sslConfig -> {
+            throw new AssertionError("provider must not be used after reset");
+        });
+        acceptor.setSSLContextProvider(null);
+        try {
+            acceptor.start();
+            assertEquals(1, acceptor.getEndpoints().size());
+            assertTrue(acceptor.getEndpoints().iterator().next().isActive());
+        } finally {
             acceptor.stop(true);
         }
     }
