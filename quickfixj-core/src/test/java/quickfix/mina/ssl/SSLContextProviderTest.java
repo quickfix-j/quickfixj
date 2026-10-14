@@ -25,7 +25,6 @@ import org.junit.After;
 import org.junit.Test;
 import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
-import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.RuntimeError;
@@ -47,11 +46,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -143,16 +144,11 @@ public class SSLContextProviderTest {
     }
 
     @Test
-    public void shouldLoadConfiguredStoresWhenProviderIsResetToNull() throws Exception {
+    public void shouldLoadConfiguredStoresWhenNoProviderIsSet() throws Exception {
         SessionSettings settings = settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable());
         settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "single-session/server.keystore");
         settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "password");
-        SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(),
-                settings, new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
-        acceptor.setSSLContextProvider(sslConfig -> {
-            throw new AssertionError("provider must not be used after reset");
-        });
-        acceptor.setSSLContextProvider(null);
+        SocketAcceptor acceptor = acceptor(settings, null);
         try {
             acceptor.start();
             assertEquals(1, acceptor.getEndpoints().size());
@@ -163,16 +159,17 @@ public class SSLContextProviderTest {
     }
 
     @Test
-    public void shouldFailInitiatorWithoutFallbackWhenNoContextIsProvided() throws Exception {
-        SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(),
-                settings("initiator", INITIATOR_SESSION, AvailablePortFinder.getNextAvailable()),
-                new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
-        initiator.setSSLContextProvider(sslConfig -> null);
+    public void shouldFailInitiatorWhenProviderThrows() throws Exception {
+        GeneralSecurityException failure = new GeneralSecurityException("secret unavailable");
+        SocketInitiator initiator = initiator(
+                settings("initiator", INITIATOR_SESSION, AvailablePortFinder.getNextAvailable()), sslConfig -> {
+                    throw failure;
+                });
         try {
             initiator.start();
             fail("Expected initiator start to fail");
         } catch (ConfigError e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("SSLContextProvider returned no SSL context"));
+            assertSame(failure, e.getCause());
         } finally {
             initiator.stop(true);
         }
@@ -180,17 +177,16 @@ public class SSLContextProviderTest {
 
     @Test
     public void shouldFailAcceptorWhenProviderThrows() throws Exception {
-        SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(),
-                settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable()),
-                new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
-        acceptor.setSSLContextProvider(sslConfig -> {
-            throw new IllegalStateException("secret unavailable");
-        });
+        GeneralSecurityException failure = new GeneralSecurityException("secret unavailable");
+        SocketAcceptor acceptor = acceptor(
+                settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable()), sslConfig -> {
+                    throw failure;
+                });
         try {
             acceptor.start();
             fail("Expected acceptor start to fail");
         } catch (RuntimeError e) {
-            assertTrue(String.valueOf(e.getCause()), e.getCause().getMessage().contains("SSLContextProvider failed"));
+            assertSame(failure, e.getCause());
         } finally {
             acceptor.stop(true);
         }
@@ -200,10 +196,8 @@ public class SSLContextProviderTest {
     public void shouldSkipAcceptorAddressWhenProviderThrowsAndContinuingInitialization() throws Exception {
         SessionSettings settings = settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable());
         settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
-        SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(),
-                settings, new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
-        acceptor.setSSLContextProvider(sslConfig -> {
-            throw new IllegalStateException("secret unavailable");
+        SocketAcceptor acceptor = acceptor(settings, sslConfig -> {
+            throw new GeneralSecurityException("secret unavailable");
         });
         try {
             acceptor.start();
@@ -220,10 +214,8 @@ public class SSLContextProviderTest {
     public void shouldSkipInitiatorSessionWhenProviderThrowsAndContinuingInitialization() throws Exception {
         SessionSettings settings = settings("initiator", INITIATOR_SESSION, AvailablePortFinder.getNextAvailable());
         settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
-        SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(),
-                settings, new ScreenLogFactory(false, false, false), new DefaultMessageFactory());
-        initiator.setSSLContextProvider(sslConfig -> {
-            throw new IllegalStateException("secret unavailable");
+        SocketInitiator initiator = initiator(settings, sslConfig -> {
+            throw new GeneralSecurityException("secret unavailable");
         });
         try {
             initiator.start();
@@ -231,6 +223,26 @@ public class SSLContextProviderTest {
         } finally {
             initiator.stop(true);
         }
+    }
+
+    private static SocketAcceptor acceptor(SessionSettings settings, SSLContextProvider provider) throws ConfigError {
+        return SocketAcceptor.newBuilder()
+                .withApplication(new ApplicationAdapter())
+                .withMessageStoreFactory(new MemoryStoreFactory())
+                .withSettings(settings)
+                .withLogFactory(new ScreenLogFactory(false, false, false))
+                .withSSLContextProvider(provider)
+                .build();
+    }
+
+    private static SocketInitiator initiator(SessionSettings settings, SSLContextProvider provider) throws ConfigError {
+        return SocketInitiator.newBuilder()
+                .withApplication(new ApplicationAdapter())
+                .withMessageStoreFactory(new MemoryStoreFactory())
+                .withSettings(settings)
+                .withLogFactory(new ScreenLogFactory(false, false, false))
+                .withSSLContextProvider(provider)
+                .build();
     }
 
     private static SessionSettings settings(String connectionType, SessionID sessionID, int port) {

@@ -1,5 +1,6 @@
 package quickfix;
 
+import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLContextProvider;
 
 public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
@@ -76,6 +77,9 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
         }
         if (messageFactory == null) {
             messageFactory = new DefaultMessageFactory();
+        }
+        if (sslContextProvider == null) {
+            sslContextProvider = SSLContextFactory::getInstance;
         }
         return doBuild();
     }

@@ -29,5 +29,10 @@ import java.security.GeneralSecurityException;
 @FunctionalInterface
 public interface SSLContextProvider {
 
+    /**
+     * @param sslConfig the SSL configuration of the session or acceptor address
+     * @return an initialized SSL context, never null
+     * @throws GeneralSecurityException if the context cannot be created
+     */
     SSLContext getSSLContext(SSLConfig sslConfig) throws GeneralSecurityException;
 }

@@ -34,7 +34,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     private SocketInitiator(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory, builder.numReconnectThreads);
+                builder.logFactory, builder.messageFactory, builder.numReconnectThreads, builder.sslContextProvider);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -64,9 +64,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
         @Override
         protected SocketInitiator doBuild() throws ConfigError {
-            SocketInitiator socketInitiator = new SocketInitiator(this);
-            socketInitiator.setSSLContextProvider(sslContextProvider);
-            return socketInitiator;
+            return new SocketInitiator(this);
         }
     }
 
