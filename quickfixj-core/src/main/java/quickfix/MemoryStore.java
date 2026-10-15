@@ -36,6 +36,7 @@ public class MemoryStore implements MessageStore {
     private final HashMap<Integer, String> messages = new HashMap<>();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
+    private int firstUnsentSenderMsgSeqNum;
     private SessionID sessionID;
     private Calendar creationTimeCalendar = SystemTime.getUtcCalendar();
 
@@ -97,6 +98,7 @@ public class MemoryStore implements MessageStore {
     public void reset() throws IOException {
         setNextSenderMsgSeqNum(1);
         setNextTargetMsgSeqNum(1);
+        firstUnsentSenderMsgSeqNum = 0;
         messages.clear();
         creationTimeCalendar = SystemTime.getUtcCalendar();
     }
@@ -111,6 +113,16 @@ public class MemoryStore implements MessageStore {
 
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         nextTargetMsgSeqNum = next;
+    }
+
+    @Override
+    public int getFirstUnsentSenderMsgSeqNum() {
+        return firstUnsentSenderMsgSeqNum;
+    }
+
+    @Override
+    public void setFirstUnsentSenderMsgSeqNum(int seqNum) throws IOException {
+        firstUnsentSenderMsgSeqNum = seqNum;
     }
 
     public void refresh() throws IOException {

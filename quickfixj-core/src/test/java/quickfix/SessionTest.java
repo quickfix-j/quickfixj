@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -3465,6 +3466,364 @@ public class SessionTest {
             assertEquals(1, application.sessionResets);
             assertFalse(session.isEnabled());
             assertFalse(session.isLoggedOn());
+        }
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/463
+     * https://github.com/quickfix-j/quickfixj/issues/986
+     * Default behaviour: a message sent outside of the session time is lost
+     * when the session is reset by its schedule.
+     */
+    @Test
+    public void testUnsentMessageIsLostOnScheduledResetByDefault() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            final SessionState state = getSessionState(session);
+            assertFalse(session.isKeepUnsentMessagesOnReset());
+            // messages of the previous session
+            session.setNextTargetMsgSeqNum(3);
+
+            assertFalse(session.send(new News(new Headline("Unsent"))));
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(0, getStoredMessages(session).size());
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y the unsent application messages are kept
+     * with new sequence numbers when the session is reset by its schedule.
+     * Admin messages are not kept.
+     */
+    @Test
+    public void testUnsentMessageIsKeptOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final MockSystemTimeSource systemTimeSource = setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+
+            assertFalse(session.send(new News(new Headline("Unsent"))));
+            assertEquals(5, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            // an admin message in the unsent range is not kept
+            final Heartbeat heartbeat = new Heartbeat();
+            setUpHeader(session.getSessionID(), heartbeat, false, 6);
+            session.getStore().set(6, heartbeat.toString());
+            session.getStore().incrNextSenderMsgSeqNum();
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(1, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(1, stored.size());
+            final Message kept = new Message(stored.get(0));
+            assertEquals(News.MSGTYPE, kept.getHeader().getString(MsgType.FIELD));
+            assertEquals("Unsent", kept.getString(Headline.FIELD));
+            assertEquals(1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+            assertFalse(kept.getHeader().isSetField(PossDupFlag.FIELD));
+            assertEquals(1, application.toAppMessages.size());
+
+            // the store has only unsent messages: no new reset outside of the session time
+            systemTimeSource.increment(1000L);
+            session.next();
+            assertEquals(1, application.sessionResets);
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y the kept message survives the reset done when the
+     * session time starts, and it is resent when the counterparty asks for it after logon.
+     */
+    @Test
+    public void testUnsentMessageIsResentAfterLogon() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final MockSystemTimeSource systemTimeSource = setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        final RecordingResponder responder = new RecordingResponder();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            session.setResponder(responder);
+            final SessionState state = getSessionState(session);
+
+            assertFalse(session.send(new News(new Headline("Unsent"))));
+            assertTrue(responder.sentMessages.isEmpty());
+
+            // start of the session time: the store is not current and is reset
+            systemTimeSource.increment(3601000L);
+            session.next();
+            assertEquals(1, application.sessionResets);
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+
+            logonTo(session);
+            assertTrue(session.isLoggedOn());
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            final Message logonResponse = new Message(responder.getLastMessage());
+            assertEquals(MsgType.LOGON, logonResponse.getHeader().getString(MsgType.FIELD));
+            assertEquals(2, logonResponse.getHeader().getInt(MsgSeqNum.FIELD));
+
+            responder.sentMessages.clear();
+            processMessage(session, createResendRequest(2, 1));
+
+            // the News message, then a SequenceReset for the Logon response
+            final Message resent = new Message(responder.sentMessages.get(0));
+            assertEquals(News.MSGTYPE, resent.getHeader().getString(MsgType.FIELD));
+            assertEquals("Unsent", resent.getString(Headline.FIELD));
+            assertEquals(1, resent.getHeader().getInt(MsgSeqNum.FIELD));
+            assertTrue(resent.getHeader().getBoolean(PossDupFlag.FIELD));
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y the messages that were sent while logged on
+     * are not kept, so they are not sent two times.
+     */
+    @Test
+    public void testSentMessageIsNotKeptOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final MockSystemTimeSource systemTimeSource = setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        final RecordingResponder responder = new RecordingResponder();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, -3600000L, 3600000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            session.setResponder(responder);
+
+            logonTo(session);
+            assertTrue(session.isLoggedOn());
+            assertTrue(session.send(new News(new Headline("Sent"))));
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            session.disconnect("test", false);
+
+            // end of the session time
+            systemTimeSource.increment(3601000L);
+            assertFalse(session.send(new News(new Headline("Unsent"))));
+            assertEquals(3, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(1, stored.size());
+            final Message kept = new Message(stored.get(0));
+            assertEquals("Unsent", kept.getString(Headline.FIELD));
+            assertEquals(1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y and a FileStore the unsent messages are
+     * not lost when the application is restarted.
+     */
+    @Test
+    public void testUnsentMessageIsKeptAfterRestart() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final MockSystemTimeSource systemTimeSource = setUpMockSystemTime(now);
+        final SessionSettings storeSettings = new SessionSettings();
+        final File storeDir = Files.createTempDirectory("qfj-unsent").toFile();
+        storeSettings.setString(FileStoreFactory.SETTING_FILE_STORE_PATH, storeDir.getAbsolutePath());
+        final FileStoreFactory storeFactory = new FileStoreFactory(storeSettings);
+        try {
+            try (Session session = createScheduledAcceptorSession(new UnitTestApplication(), storeFactory, now, 3600000L, 7200000L)) {
+                session.setKeepUnsentMessagesOnReset(true);
+                assertFalse(session.send(new News(new Headline("Unsent"))));
+                assertEquals(1, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            }
+
+            // restart at the start of the session time
+            systemTimeSource.increment(3601000L);
+            final UnitTestApplication application = new UnitTestApplication();
+            try (Session session = createScheduledAcceptorSession(application, storeFactory, now, 3600000L, 7200000L)) {
+                session.setKeepUnsentMessagesOnReset(true);
+                // the reset is not done in the constructor
+                assertEquals(2, getSessionState(session).getNextSenderMsgSeqNum());
+
+                session.next();
+
+                assertEquals(1, application.sessionResets);
+                final List<String> stored = getStoredMessages(session);
+                assertEquals(1, stored.size());
+                assertEquals("Unsent", new Message(stored.get(0)).getString(Headline.FIELD));
+                ((FileStore) session.getStore()).closeAndDeleteFiles();
+            }
+        } finally {
+            final File[] files = storeDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    file.delete();
+                }
+            }
+            storeDir.delete();
+        }
+    }
+
+    private MockSystemTimeSource setUpMockSystemTime(LocalDateTime now) {
+        final ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+        return systemTimeSource;
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y all the unsent messages are kept, in the same order.
+     */
+    @Test
+    public void testSeveralUnsentMessagesAreKeptInOrderOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+
+            assertFalse(session.send(new News(new Headline("Unsent1"))));
+            assertFalse(session.send(new News(new Headline("Unsent2"))));
+            assertFalse(session.send(new News(new Headline("Unsent3"))));
+            // the first unsent message does not change
+            assertEquals(5, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+            assertEquals(1, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(3, stored.size());
+            for (int i = 0; i < 3; i++) {
+                final Message kept = new Message(stored.get(i));
+                assertEquals("Unsent" + (i + 1), kept.getString(Headline.FIELD));
+                assertEquals(i + 1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+            }
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y and no unsent message, the scheduled reset
+     * works the same as before.
+     */
+    @Test
+    public void testScheduledResetWithoutUnsentMessages() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session, all sent
+            for (int seqNum = 1; seqNum <= 4; seqNum++) {
+                final News news = new News(new Headline("Sent" + seqNum));
+                setUpHeader(session.getSessionID(), news, false, seqNum);
+                session.getStore().set(seqNum, news.toString());
+            }
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+            assertEquals(4, getStoredMessages(session).size());
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            assertEquals(0, getStoredMessages(session).size());
+        }
+    }
+
+    /**
+     * KeepUnsentMessagesOnReset=Y logs a warning when it can not work.
+     */
+    @Test
+    public void testKeepUnsentMessagesOnResetWarnsWhenItHasNoEffect() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
+
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setLogFactory(mockLogFactory)
+                .setPersistMessages(false)
+                .build()) {
+            session.setKeepUnsentMessagesOnReset(true);
+        }
+        verify(mockLog).onWarnEvent(Session.SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                + " has no effect because PersistMessages=N");
+
+        // NoopStore does not support it
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setLogFactory(mockLogFactory)
+                .setMessageStoreFactory(new NoopStoreFactory())
+                .setPersistMessages(true)
+                .build()) {
+            session.setKeepUnsentMessagesOnReset(true);
+        }
+        verify(mockLog).onWarnEvent(Session.SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                + " has no effect because the message store does not support it");
+    }
+
+    private Session createScheduledAcceptorSession(UnitTestApplication application, MessageStoreFactory storeFactory,
+            LocalDateTime now, long startOffsetMillis, long endOffsetMillis) throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(startOffsetMillis, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(endOffsetMillis, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+
+        final Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setApplication(application)
+                .setMessageStoreFactory(storeFactory)
+                .setSessionSchedule(new DefaultSessionSchedule(settings, sessionID))
+                .setIsInitiator(false)
+                .setPersistMessages(true)
+                .build();
+        session.addStateListener(application);
+        return session;
+    }
+
+    private List<String> getStoredMessages(Session session) throws IOException {
+        final List<String> messages = new ArrayList<>();
+        session.getStore().get(1, 100, messages);
+        return messages;
+    }
+
+    private static class RecordingResponder implements Responder {
+        final List<String> sentMessages = new ArrayList<>();
+
+        @Override
+        public boolean send(String data) {
+            sentMessages.add(data);
+            return true;
+        }
+
+        String getLastMessage() {
+            return sentMessages.get(sentMessages.size() - 1);
+        }
+
+        @Override
+        public String getRemoteAddress() {
+            return null;
+        }
+
+        @Override
+        public void disconnect() {
         }
     }
 
