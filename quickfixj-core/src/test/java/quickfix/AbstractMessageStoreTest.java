@@ -98,7 +98,8 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         if (!testEnabled) {
             return;
         }
-        if (!(store instanceof MemoryStore || store instanceof FileStore || store instanceof CachedFileStore)) {
+        if (!(store instanceof MemoryStore || store instanceof FileStore || store instanceof CachedFileStore
+                || store instanceof JdbcStore)) {
             // this store does not support it
             assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
             return;

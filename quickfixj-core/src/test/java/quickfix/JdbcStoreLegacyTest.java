@@ -40,6 +40,9 @@ public class JdbcStoreLegacyTest extends JdbcStoreTest {
             JdbcTestSupport.loadSQL(connection,
                     "config/sql/hsqldb/sessions_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(sessionsTableName));
+            JdbcTestSupport.loadSQL(connection,
+                    "config/sql/hsqldb/unsent_seqnums_table.sql",
+                    new JdbcTestSupport.HypersonicLegacyPreprocessor(null));
         } finally {
             JdbcUtil.close(null, connection);
         }
