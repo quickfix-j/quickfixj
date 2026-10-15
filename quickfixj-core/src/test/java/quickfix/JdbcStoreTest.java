@@ -165,9 +165,31 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
             }
             loadSQL(connection, "config/sql/hsqldb/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
+            loadSQL(connection, "config/sql/hsqldb/unsent_seqnums_table.sql",
+                    new JdbcTestSupport.HypersonicPreprocessor(null));
         } finally {
             close(null, connection);
         }
+    }
+
+    public void testFirstUnsentSenderMsgSeqNumWithoutTable() throws Exception {
+        Connection connection = null;
+        try {
+            connection = getTestDataSource().getConnection();
+            dropTable(connection, "unsent_seqnums");
+        } finally {
+            close(null, connection);
+        }
+        SessionSettings settings = new SessionSettings();
+        settings.setString(SETTING_JDBC_DS_NAME, "TestDataSource");
+        JdbcStore store = (JdbcStore) new JdbcStoreFactory(settings).create(getSessionID());
+
+        // the table is optional: the store works, but does not support it
+        assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
+        store.setFirstUnsentSenderMsgSeqNum(5);
+        assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
+        store.reset();
+        assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
     }
 
     protected DataSource getTestDataSource() {
