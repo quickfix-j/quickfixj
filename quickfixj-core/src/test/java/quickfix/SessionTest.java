@@ -3676,6 +3676,108 @@ public class SessionTest {
         return systemTimeSource;
     }
 
+    /**
+     * With KeepUnsentMessagesOnReset=Y all the unsent messages are kept, in the same order.
+     */
+    @Test
+    public void testSeveralUnsentMessagesAreKeptInOrderOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+
+            assertFalse(session.send(new News(new Headline("Unsent1"))));
+            assertFalse(session.send(new News(new Headline("Unsent2"))));
+            assertFalse(session.send(new News(new Headline("Unsent3"))));
+            // the first unsent message does not change
+            assertEquals(5, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+            assertEquals(1, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(3, stored.size());
+            for (int i = 0; i < 3; i++) {
+                final Message kept = new Message(stored.get(i));
+                assertEquals("Unsent" + (i + 1), kept.getString(Headline.FIELD));
+                assertEquals(i + 1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+            }
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y and no unsent message, the scheduled reset
+     * works the same as before.
+     */
+    @Test
+    public void testScheduledResetWithoutUnsentMessages() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session, all sent
+            for (int seqNum = 1; seqNum <= 4; seqNum++) {
+                final News news = new News(new Headline("Sent" + seqNum));
+                setUpHeader(session.getSessionID(), news, false, seqNum);
+                session.getStore().set(seqNum, news.toString());
+            }
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+            assertEquals(4, getStoredMessages(session).size());
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(0, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            assertEquals(0, getStoredMessages(session).size());
+        }
+    }
+
+    /**
+     * KeepUnsentMessagesOnReset=Y logs a warning when it can not work.
+     */
+    @Test
+    public void testKeepUnsentMessagesOnResetWarnsWhenItHasNoEffect() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
+
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setLogFactory(mockLogFactory)
+                .setPersistMessages(false)
+                .build()) {
+            session.setKeepUnsentMessagesOnReset(true);
+        }
+        verify(mockLog).onWarnEvent(Session.SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                + " has no effect because PersistMessages=N");
+
+        // NoopStore does not support it
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setLogFactory(mockLogFactory)
+                .setMessageStoreFactory(new NoopStoreFactory())
+                .setPersistMessages(true)
+                .build()) {
+            session.setKeepUnsentMessagesOnReset(true);
+        }
+        verify(mockLog).onWarnEvent(Session.SETTING_KEEP_UNSENT_MESSAGES_ON_RESET
+                + " has no effect because the message store does not support it");
+    }
+
     private Session createScheduledAcceptorSession(UnitTestApplication application, MessageStoreFactory storeFactory,
             LocalDateTime now, long startOffsetMillis, long endOffsetMillis) throws Exception {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
