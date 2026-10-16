@@ -97,13 +97,16 @@ public class SSLContextProviderTest {
                 .withLogFactory(new ScreenLogFactory(false, false, false))
                 .withSSLContextProvider(sslConfig -> clientContext)
                 .build();
+        acceptor.start();
         try {
-            acceptor.start();
             initiator.start();
-            SSLUtil.assertAuthenticated(initiator, INITIATOR_SESSION, SERVER_SERIAL);
-            SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
+            try {
+                SSLUtil.assertAuthenticated(initiator, INITIATOR_SESSION, SERVER_SERIAL);
+                SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
+            } finally {
+                initiator.stop(true);
+            }
         } finally {
-            initiator.stop(true);
             acceptor.stop(true);
         }
     }
@@ -132,13 +135,16 @@ public class SSLContextProviderTest {
                 .withLogFactory(new ScreenLogFactory(false, false, false))
                 .withSSLContextProvider(sslConfig -> clientContext)
                 .build();
+        acceptor.start();
         try {
-            acceptor.start();
             initiator.start();
-            SSLUtil.assertAuthenticated(initiator, INITIATOR_SESSION, SERVER_SERIAL);
-            SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
+            try {
+                SSLUtil.assertAuthenticated(initiator, INITIATOR_SESSION, SERVER_SERIAL);
+                SSLUtil.assertAuthenticated(acceptor, ACCEPTOR_SESSION, CLIENT_SERIAL);
+            } finally {
+                initiator.stop(true);
+            }
         } finally {
-            initiator.stop(true);
             acceptor.stop(true);
         }
     }

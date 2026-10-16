@@ -125,7 +125,8 @@ char[] password = System.getenv("FIX_KEYSTORE_PASSWORD").toCharArray();
 KeyStore keyStore = KeyStore.getInstance("PKCS12");
 keyStore.load(new ByteArrayInputStream(Base64.getMimeDecoder().decode(System.getenv("FIX_KEYSTORE_B64"))), password);
 KeyStore trustStore = KeyStore.getInstance("PKCS12");
-trustStore.load(new ByteArrayInputStream(Base64.getMimeDecoder().decode(System.getenv("FIX_TRUSTSTORE_B64"))), null);
+trustStore.load(new ByteArrayInputStream(Base64.getMimeDecoder().decode(System.getenv("FIX_TRUSTSTORE_B64"))),
+        System.getenv("FIX_TRUSTSTORE_PASSWORD").toCharArray());
 
 KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 kmf.init(keyStore, password);
