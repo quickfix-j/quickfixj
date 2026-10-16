@@ -43,6 +43,8 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.ssl.SSLConfig;
+import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLContextProvider;
 import quickfix.mina.ssl.SSLSupport;
 
 import java.net.SocketAddress;
@@ -51,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -67,6 +70,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService scheduledReconnectExecutor;
+    private final SSLContextProvider sslContextProvider;
     public static final String QFJ_RECONNECT_THREAD_PREFIX = "QFJ Reconnect Thread-";
 
     protected AbstractSocketInitiator(Application application,
@@ -84,13 +88,27 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(Application application,
                                       MessageStoreFactory messageStoreFactory, SessionSettings settings,
                                       LogFactory logFactory, MessageFactory messageFactory, int numReconnectThreads) throws ConfigError {
+        this(application, messageStoreFactory, settings, logFactory, messageFactory, numReconnectThreads,
+                SSLContextFactory::getInstance);
+    }
+
+    protected AbstractSocketInitiator(Application application,
+                                      MessageStoreFactory messageStoreFactory, SessionSettings settings,
+                                      LogFactory logFactory, MessageFactory messageFactory, int numReconnectThreads,
+                                      SSLContextProvider sslContextProvider) throws ConfigError {
         this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
-                messageFactory), numReconnectThreads);
+                messageFactory), numReconnectThreads, sslContextProvider);
     }
 
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory, int numReconnectThreads)
             throws ConfigError {
+        this(settings, sessionFactory, numReconnectThreads, SSLContextFactory::getInstance);
+    }
+
+    protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory, int numReconnectThreads,
+                                      SSLContextProvider sslContextProvider) throws ConfigError {
         super(settings, sessionFactory);
+        this.sslContextProvider = Objects.requireNonNull(sslContextProvider, "sslContextProvider");
         IoBuffer.setAllocator(new SimpleBufferAllocator());
         IoBuffer.setUseDirectBuffer(false);
         if (numReconnectThreads > 0) {
@@ -184,7 +202,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                     socketAddresses, localAddress, hostResolutionStrategy, connectTimeout, reconnectingIntervals,
                     scheduledExecutorService, settings, networkingOptions,
-                    getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
+                    getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig, sslContextProvider,
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 
             initiators.add(ioSessionInitiator);
