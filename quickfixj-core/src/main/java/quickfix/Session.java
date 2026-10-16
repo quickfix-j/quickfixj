@@ -940,10 +940,10 @@ public class Session implements Closeable {
             return;
         }
         try {
+            if (application instanceof ApplicationExtended) {
+                ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
+            }
             if (hasResponder() && isLoggedOn()) {
-                if (application instanceof ApplicationExtended) {
-                    ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
-                }
                 state.setResetStatePending(true);
                 generateLogout("Session reset");
                 getLog().onEvent("Initiated logout request");
