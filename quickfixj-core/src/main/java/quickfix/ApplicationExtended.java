@@ -35,10 +35,12 @@ public interface ApplicationExtended extends Application {
     boolean canLogon(SessionID sessionID);
 
     /**
-     * This method is called before reset a session to allow business application to do some
-     * actions(typically sending notification message to client before end of day)
+     * Called by {@link Session#reset()} before resetting the session, including when the
+     * session is not logged on. The message store has not yet been reset, allowing the
+     * application to inspect its contents. If logged on, this callback runs before the
+     * Logout request is sent.
      *
-     * @param sessionID
+     * @param sessionID the session being reset
      */
     void onBeforeSessionReset(SessionID sessionID);
 }

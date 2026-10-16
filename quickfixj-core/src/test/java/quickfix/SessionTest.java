@@ -89,6 +89,72 @@ public class SessionTest {
     }
 
     @Test
+    public void testBeforeSessionResetWithoutResponder() throws Exception {
+        assertBeforeSessionReset(false, false);
+    }
+
+    @Test
+    public void testBeforeSessionResetBeforeLogon() throws Exception {
+        assertBeforeSessionReset(true, false);
+    }
+
+    @Test
+    public void testBeforeSessionResetWhileLoggedOn() throws Exception {
+        assertBeforeSessionReset(true, true);
+    }
+
+    private void assertBeforeSessionReset(boolean connected, boolean loggedOn) throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final List<String> messagesBeforeReset = new ArrayList<>();
+        final List<SessionID> resets = new ArrayList<>();
+        final ApplicationExtendedFunctionalAdapter application = new ApplicationExtendedFunctionalAdapter();
+        try (Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID).setApplication(application).setIsInitiator(false).build()) {
+            final UnitTestResponder responder = new UnitTestResponder();
+            if (connected) {
+                session.setResponder(responder);
+            }
+            if (loggedOn) {
+                logonTo(session);
+            }
+            assertEquals(loggedOn, session.isLoggedOn());
+            final MessageStore store = session.getStore();
+            store.set(10, "message available before reset");
+            session.setNextSenderMsgSeqNum(11);
+            application.addOnBeforeSessionResetListener(id -> {
+                resets.add(id);
+                try {
+                    store.get(10, 10, messagesBeforeReset);
+                } catch (IOException e) {
+                    throw new AssertionError(e);
+                }
+            });
+
+            session.reset();
+
+            assertEquals(1, resets.size());
+            assertEquals(sessionID, resets.get(0));
+            assertEquals(1, messagesBeforeReset.size());
+            assertEquals("message available before reset", messagesBeforeReset.get(0));
+            if (loggedOn) {
+                // A connected session must still finish the Logout exchange before resetting.
+                assertEquals(MsgType.LOGOUT, new Message(responder.sentMessageData).getHeader().getString(MsgType.FIELD));
+                final List<String> pending = new ArrayList<>();
+                store.get(10, 10, pending);
+                assertEquals(messagesBeforeReset, pending);
+                logoutFrom(session, store.getNextTargetMsgSeqNum());
+                assertFalse(session.isLoggedOn());
+            }
+            final List<String> remaining = new ArrayList<>();
+            store.get(10, 10, remaining);
+            assertTrue(remaining.isEmpty());
+            assertEquals(1, store.getNextSenderMsgSeqNum());
+            assertEquals(1, store.getNextTargetMsgSeqNum());
+            assertEquals(1, resets.size());
+        }
+    }
+
+    @Test
     public void testDisposalOfFileResources() throws Exception {
         final Application application = new UnitTestApplication();
 
