@@ -19,7 +19,6 @@
 
 package quickfix.mina.ssl;
 
-import org.apache.mina.filter.ssl.BogusTrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.FileUtil;
