@@ -18,7 +18,7 @@ abstract class AbstractSslFilter extends SslFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSslFilter.class);
 
     private final HostResolutionStrategy hostResolutionStrategy;
-    private boolean nonBlockingPipeline;
+    private boolean nonBlockingPipeline = true;
 
     AbstractSslFilter(SSLContext sslContext, boolean autoStart,
             HostResolutionStrategy hostResolutionStrategy) {
