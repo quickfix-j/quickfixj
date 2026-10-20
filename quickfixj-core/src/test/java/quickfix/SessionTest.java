@@ -3713,6 +3713,39 @@ public class SessionTest {
     }
 
     /**
+     * With KeepUnsentMessagesOnReset=Y an unsent XMLnonFIX message is kept.
+     * It is a session level message, but it is not an admin message for QFJ.
+     */
+    @Test
+    public void testUnsentXmlNonFixMessageIsKeptOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            final SessionState state = getSessionState(session);
+            // messages of the previous session
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+
+            final Message xmlNonFix = new Message();
+            xmlNonFix.getHeader().setString(MsgType.FIELD, MsgType.XMLNON_FIX);
+            assertFalse(session.send(xmlNonFix));
+            assertEquals(5, session.getStore().getFirstUnsentSenderMsgSeqNum());
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(1, stored.size());
+            final Message kept = new Message(stored.get(0));
+            assertEquals(MsgType.XMLNON_FIX, kept.getHeader().getString(MsgType.FIELD));
+            assertEquals(1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+        }
+    }
+
+    /**
      * With KeepUnsentMessagesOnReset=Y and no unsent message, the scheduled reset
      * works the same as before.
      */
