@@ -14,6 +14,7 @@ import quickfix.fix44.TestRequest;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
@@ -75,13 +76,36 @@ public class SessionResetTest {
             
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             long[] threadIds = bean.findDeadlockedThreads();
-            assertNull("no threads should be deadlocked", threadIds);
+            assertNull("no threads should be deadlocked: " + describeThreads(bean, threadIds), threadIds);
             assertTrue("session should have been reset", responder.onResetCalled);
             
             ptpe.shutdownNow();
         }
     }
 
+    private static String describeThreads(ThreadMXBean bean, long[] threadIds) {
+        if (threadIds == null) {
+            return "none";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ThreadInfo threadInfo : bean.getThreadInfo(threadIds, true, true)) {
+            if (threadInfo == null) {
+                continue;
+            }
+            sb.append(System.lineSeparator())
+                    .append('"').append(threadInfo.getThreadName()).append("\" id=").append(threadInfo.getThreadId())
+                    .append(' ').append(threadInfo.getThreadState())
+                    .append(" waiting on ").append(threadInfo.getLockName())
+                    .append(" owned by \"").append(threadInfo.getLockOwnerName())
+                    .append("\" id=").append(threadInfo.getLockOwnerId())
+                    .append(System.lineSeparator());
+            for (StackTraceElement element : threadInfo.getStackTrace()) {
+                sb.append("\tat ").append(element).append(System.lineSeparator());
+            }
+        }
+        return sb.toString();
+    }
+    
     private Message createAdminMessage(int sequence) {
         final TestRequest msg = new TestRequest(new TestReqID("SessionResetTest"));
         msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
