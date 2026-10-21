@@ -63,7 +63,6 @@ public abstract class SessionConnector implements Connector {
     protected static final int DEFAULT_QUEUE_CAPACITY = 10000;
     public static final String SESSIONS_PROPERTY = "sessions";
     public static final String QF_SESSION = "QF_SESSION";
-    public static final String QFJ_RESET_IO_CONNECTOR = "QFJ_RESET_IO_CONNECTOR";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 

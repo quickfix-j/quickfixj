@@ -102,15 +102,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             reason = cause.toString();
         }
         if (disconnectNeeded) {
-            try {
-                if (quickFixSession != null) {
-                    quickFixSession.disconnect(reason, true);
-                } else {
-                    log.error(reason, cause);
-                    ioSession.closeOnFlush();
-                }
-            } finally {
-                ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
+            if (quickFixSession != null) {
+                quickFixSession.disconnect(reason, true);
+            } else {
+                log.error(reason, cause);
+                ioSession.closeOnFlush();
             }
         } else {
             if (quickFixSession != null) {

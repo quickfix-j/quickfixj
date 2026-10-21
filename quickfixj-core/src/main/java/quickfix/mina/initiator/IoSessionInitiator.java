@@ -225,7 +225,6 @@ public class IoSessionInitiator {
 
         @Override
         public void run() {
-            resetIoConnector();
             try {
                 if (connectFuture == null) {
                     if (shouldReconnect()) {
@@ -352,23 +351,6 @@ public class IoSessionInitiator {
             return fixSession;
         }
 
-        private void resetIoConnector() {
-            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR))) {
-                try {
-                    setupIoConnector();
-                    if (connectFuture != null) {
-                        connectFuture.cancel();
-                    }
-                    connectFuture = null;
-                    if (!ioSession.isClosing()) {
-                        ioSession.closeNow();
-                    }
-                    ioSession = null;
-                } catch (Throwable e) {
-                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
-                }
-            }
-        }
     }
 
     synchronized void start() {
