@@ -66,6 +66,15 @@ If the IDE reports some errors after the compilation with `mvnw clean package`, 
 $ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
+### IntelliJ IDEA
+
+For IntelliJ IDEA there are additional steps necessary:
+
+1. Open the Maven tool window. Select `quickfixj-messages-all`, all the `quickfixj-messages-fix*` modules, and optionally `quickfixj-orchestration`. Right-click and choose **Ignore Projects**.
+2. Click **Reload All Maven Projects**.
+3. IntelliJ now resolves those dependencies to the jars in `~/.m2`, which `mvn install` already built. It also stops compiling the generated sources, which sometimes leads to an out-of-memory error.
+4. If you change the message generation or dictionaries, run `./mvnw install` again, then reload.
+
 ## configuration options
 
 https://quickfix-j.github.io/quickfixj/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
