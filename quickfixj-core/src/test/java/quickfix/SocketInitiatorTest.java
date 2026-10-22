@@ -47,9 +47,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -139,6 +137,8 @@ public class SocketInitiatorTest {
     @Test
     public void testReconnectAfterServerDisconnectReusesIoConnector() throws Exception {
         final int reconnects = 3;
+        int connectorThreadsBefore = getNioSocketConnectorThreadCount();
+        log.info("NioSocketConnector threads before test: {}", connectorThreadsBefore);
         DisconnectingServer server = new DisconnectingServer(reconnects);
         server.start();
 
@@ -149,21 +149,17 @@ public class SocketInitiatorTest {
         settings.setString(clientSessionID, "ReconnectInterval", "1");
         Initiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
                 new DefaultMessageFactory());
-        ConnectorThreadMonitor connectorThreadMonitor = new ConnectorThreadMonitor();
-        connectorThreadMonitor.start();
 
         try {
             initiator.start();
             assertTrue("Initiator did not reconnect after server disconnects",
                     server.awaitConnections(15, TimeUnit.SECONDS));
+            assertEquals("Direct initiator reconnects should reuse the same IoConnector",
+                    connectorThreadsBefore + 1, getNioSocketConnectorThreadCount());
         } finally {
             initiator.stop();
-            connectorThreadMonitor.stop();
             server.stop();
         }
-
-        assertEquals("Direct initiator reconnects should reuse the same IoConnector", 1,
-                connectorThreadMonitor.getConnectorThreadNames().size());
     }
 
     @Test
@@ -686,43 +682,14 @@ public class SocketInitiatorTest {
         }
     }
 
-    private static class ConnectorThreadMonitor {
-        private static final String CONNECTOR_THREAD_PREFIX = "NioSocketConnector-";
-
-        private final Set<String> connectorThreadNames = ConcurrentHashMap.newKeySet();
-        private final AtomicBoolean running = new AtomicBoolean();
-        private Thread thread;
-
-        public void start() {
-            running.set(true);
-            thread = new Thread(() -> {
-                while (running.get()) {
-                    for (Thread activeThread : Thread.getAllStackTraces().keySet()) {
-                        String threadName = activeThread.getName();
-                        if (threadName.startsWith(CONNECTOR_THREAD_PREFIX)) {
-                            connectorThreadNames.add(threadName);
-                        }
-                    }
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-            });
-            thread.start();
+    private int getNioSocketConnectorThreadCount() {
+        int count = 0;
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.getName().startsWith("NioSocketConnector-")) {
+                count++;
+            }
         }
-
-        public void stop() throws InterruptedException {
-            running.set(false);
-            thread.interrupt();
-            thread.join();
-        }
-
-        public Set<String> getConnectorThreadNames() {
-            return connectorThreadNames;
-        }
+        return count;
     }
 
     private static class DisconnectingServer {
