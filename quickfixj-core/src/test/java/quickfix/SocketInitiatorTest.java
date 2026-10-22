@@ -47,7 +47,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -132,6 +134,36 @@ public class SocketInitiatorTest {
         assertTrue("Initiator sessionCreated not called",
                 initiatorWriteCounter.wasSessionCreatedCalled());
         assertTrue("Acceptor sessionCreated not called", serverThread.wasSessionCreatedCalled());
+    }
+
+    @Test
+    public void testReconnectAfterServerDisconnectReusesIoConnector() throws Exception {
+        final int reconnects = 3;
+        DisconnectingServer server = new DisconnectingServer(reconnects);
+        server.start();
+
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID, server.getPort());
+        settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(clientSessionID, "SocketConnectHost", "127.0.0.1");
+        settings.setString(clientSessionID, "ReconnectInterval", "1");
+        Initiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new DefaultMessageFactory());
+        ConnectorThreadMonitor connectorThreadMonitor = new ConnectorThreadMonitor();
+        connectorThreadMonitor.start();
+
+        try {
+            initiator.start();
+            assertTrue("Initiator did not reconnect after server disconnects",
+                    server.awaitConnections(15, TimeUnit.SECONDS));
+        } finally {
+            initiator.stop();
+            connectorThreadMonitor.stop();
+            server.stop();
+        }
+
+        assertEquals("Direct initiator reconnects should reuse the same IoConnector", 1,
+                connectorThreadMonitor.getConnectorThreadNames().size());
     }
 
     @Test
@@ -651,6 +683,88 @@ public class SocketInitiatorTest {
 
         public String toString() {
             return getClass().getName() + "[" + name + "]@" + System.identityHashCode(this);
+        }
+    }
+
+    private static class ConnectorThreadMonitor {
+        private static final String CONNECTOR_THREAD_PREFIX = "NioSocketConnector-";
+
+        private final Set<String> connectorThreadNames = ConcurrentHashMap.newKeySet();
+        private final AtomicBoolean running = new AtomicBoolean();
+        private Thread thread;
+
+        public void start() {
+            running.set(true);
+            thread = new Thread(() -> {
+                while (running.get()) {
+                    for (Thread activeThread : Thread.getAllStackTraces().keySet()) {
+                        String threadName = activeThread.getName();
+                        if (threadName.startsWith(CONNECTOR_THREAD_PREFIX)) {
+                            connectorThreadNames.add(threadName);
+                        }
+                    }
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            });
+            thread.start();
+        }
+
+        public void stop() throws InterruptedException {
+            running.set(false);
+            thread.interrupt();
+            thread.join();
+        }
+
+        public Set<String> getConnectorThreadNames() {
+            return connectorThreadNames;
+        }
+    }
+
+    private static class DisconnectingServer {
+        private final ServerSocket serverSocket;
+        private final CountDownLatch connections;
+        private final AtomicBoolean running = new AtomicBoolean();
+        private Thread thread;
+
+        DisconnectingServer(int expectedConnections) throws IOException {
+            serverSocket = new ServerSocket(0);
+            connections = new CountDownLatch(expectedConnections);
+        }
+
+        public void start() {
+            running.set(true);
+            thread = new Thread(() -> {
+                while (running.get()) {
+                    try (Socket socket = serverSocket.accept()) {
+                        socket.getInputStream().read();
+                        connections.countDown();
+                    } catch (IOException e) {
+                        if (running.get()) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }
+
+        public int getPort() {
+            return serverSocket.getLocalPort();
+        }
+
+        public boolean awaitConnections(long timeout, TimeUnit unit) throws InterruptedException {
+            return connections.await(timeout, unit);
+        }
+
+        public void stop() throws IOException, InterruptedException {
+            running.set(false);
+            serverSocket.close();
+            thread.join();
         }
     }
 
