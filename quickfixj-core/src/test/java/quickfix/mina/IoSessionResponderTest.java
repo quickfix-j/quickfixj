@@ -135,6 +135,7 @@ public class IoSessionResponderTest {
         responder.disconnect();
 
         verify(mockProtocolSession).closeOnFlush();
+        verify(mockProtocolSession).setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
 
         verifyNoMoreInteractions(mockProtocolSession);
     }
