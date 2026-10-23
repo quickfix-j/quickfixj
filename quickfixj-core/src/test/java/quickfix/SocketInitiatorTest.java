@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.initiator.AbstractSocketInitiator;
 import quickfix.mina.initiator.ConnectException;
+import quickfix.mina.initiator.IoSessionInitiator;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.StackTraceUtil;
@@ -39,6 +41,7 @@ import quickfix.test.util.StackTraceUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -47,6 +50,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +63,7 @@ import java.util.logging.Level;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 
@@ -137,8 +142,6 @@ public class SocketInitiatorTest {
     @Test
     public void testReconnectAfterServerDisconnectReusesIoConnector() throws Exception {
         final int reconnects = 3;
-        int connectorThreadsBefore = getNioSocketConnectorThreadCount();
-        log.info("NioSocketConnector threads before test: {}", connectorThreadsBefore);
         DisconnectingServer server = new DisconnectingServer(reconnects);
         server.start();
 
@@ -152,10 +155,11 @@ public class SocketInitiatorTest {
 
         try {
             initiator.start();
+            Object connectorBeforeReconnects = getIoConnector((AbstractSocketInitiator) initiator);
             assertTrue("Initiator did not reconnect after server disconnects",
                     server.awaitConnections(15, TimeUnit.SECONDS));
-            assertEquals("Direct initiator reconnects should reuse the same IoConnector",
-                    connectorThreadsBefore + 1, getNioSocketConnectorThreadCount());
+            assertSame("Direct initiator reconnects should reuse the same IoConnector",
+                    connectorBeforeReconnects, getIoConnector((AbstractSocketInitiator) initiator));
         } finally {
             initiator.stop();
             server.stop();
@@ -682,14 +686,20 @@ public class SocketInitiatorTest {
         }
     }
 
-    private int getNioSocketConnectorThreadCount() {
-        int count = 0;
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (thread.getName().startsWith("NioSocketConnector-")) {
-                count++;
-            }
-        }
-        return count;
+    @SuppressWarnings("unchecked")
+    private Object getIoConnector(AbstractSocketInitiator initiator) throws ReflectiveOperationException {
+        Field initiatorsField = AbstractSocketInitiator.class.getDeclaredField("initiators");
+        initiatorsField.setAccessible(true);
+        Set<IoSessionInitiator> initiators = (Set<IoSessionInitiator>) initiatorsField.get(initiator);
+        assertEquals(1, initiators.size());
+
+        Field reconnectTaskField = IoSessionInitiator.class.getDeclaredField("reconnectTask");
+        reconnectTaskField.setAccessible(true);
+        Object reconnectTask = reconnectTaskField.get(initiators.iterator().next());
+
+        Field ioConnectorField = reconnectTask.getClass().getDeclaredField("ioConnector");
+        ioConnectorField.setAccessible(true);
+        return ioConnectorField.get(reconnectTask);
     }
 
     private static class DisconnectingServer {
