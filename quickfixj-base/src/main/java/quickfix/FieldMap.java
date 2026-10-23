@@ -572,11 +572,9 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
             if (!groupList.isEmpty()) {
                 if(IS_STRING_EQUIVALENT) {
                     String value = NumbersCache.get(entry.getKey());
-                    for (int i = value.length(); i-- != 0;)
-                        result += value.charAt(i);
+                    result += MessageUtils.checksum(value, 0, value.length());
                     value = NumbersCache.get(groupList.size());
-                    for (int i = value.length(); i-- != 0;)
-                        result += value.charAt(i);
+                    result += MessageUtils.checksum(value, 0, value.length());
                     result += '=' + 1;
                 } else {
                     final IntField groupField = new IntField(entry.getKey());
