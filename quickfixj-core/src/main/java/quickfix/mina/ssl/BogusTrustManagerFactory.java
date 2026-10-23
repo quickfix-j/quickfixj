@@ -34,7 +34,7 @@ import javax.net.ssl.X509TrustManager;
 
 /**
  * Bogus {@link TrustManagerFactory} which creates {@link X509TrustManager}
- * accepting all certificates. Copied from Apache MINA (removed in MINA 2.2.x).
+ * accepting all certificates. Copied from Apache MINA (removed in MINA 2.2.10).
  * Only used when no trust store is configured.
  */
 class BogusTrustManagerFactory extends TrustManagerFactory {
