@@ -49,6 +49,7 @@ import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.AcceptorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLContextProvider;
 import quickfix.mina.ssl.SSLSupport;
 
 import javax.net.ssl.SSLContext;
@@ -60,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -71,13 +73,20 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private final SessionFactory sessionFactory;
     private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<>();
     private final ConcurrentMap<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new ConcurrentHashMap<>();
+    private final SSLContextProvider sslContextProvider;
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
+        this(settings, sessionFactory, SSLContextFactory::getInstance);
+    }
+
+    protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory,
+                                     SSLContextProvider sslContextProvider) throws ConfigError {
         super(settings, sessionFactory);
         IoBuffer.setAllocator(new SimpleBufferAllocator());
         IoBuffer.setUseDirectBuffer(false);
         this.sessionFactory = sessionFactory;
+        this.sslContextProvider = Objects.requireNonNull(sslContextProvider, "sslContextProvider");
     }
 
     protected AbstractSocketAcceptor(Application application,
@@ -90,8 +99,15 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     protected AbstractSocketAcceptor(Application application,
                                      MessageStoreFactory messageStoreFactory, SessionSettings settings,
                                      LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+        this(application, messageStoreFactory, settings, logFactory, messageFactory, SSLContextFactory::getInstance);
+    }
+
+    protected AbstractSocketAcceptor(Application application,
+                                     MessageStoreFactory messageStoreFactory, SessionSettings settings,
+                                     LogFactory logFactory, MessageFactory messageFactory,
+                                     SSLContextProvider sslContextProvider) throws ConfigError {
         this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
-                messageFactory));
+                messageFactory), sslContextProvider);
     }
 
     // TODO SYNC Does this method really need synchronization?
@@ -135,7 +151,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                             CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
         log.info("Installing SSL filter for {}", descriptor.getAddress());
         SSLConfig sslConfig = descriptor.getSslConfig();
-        SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
+        SSLContext sslContext = sslContextProvider.getSSLContext(sslConfig);
         HostResolutionStrategy hostResolutionStrategy = HostResolutionStrategy.fromReverseDnsEnabled(
                 descriptor.isReverseDnsEnabled());
         SslFilter sslFilter = new AcceptorSslFilter(sslContext, hostResolutionStrategy);
