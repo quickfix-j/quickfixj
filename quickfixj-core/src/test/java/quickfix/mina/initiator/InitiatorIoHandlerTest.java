@@ -1,7 +1,9 @@
 package quickfix.mina.initiator;
 
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import quickfix.FixVersions;
 import quickfix.Message;
 import quickfix.Responder;
@@ -33,10 +35,39 @@ import java.time.ZoneOffset;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class InitiatorIoHandlerTest {
+
+    @Test
+    public void testLogonIsSentBeforeSslSessionIsSecured() throws Exception {
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final IoSession ioSession = mock(IoSession.class);
+        final EventHandlingStrategy eventHandlingStrategy = mock(EventHandlingStrategy.class);
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER", "TARGET");
+
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID,
+                new UnitTestApplication(), true)) {
+            final InitiatorIoHandler handler = new InitiatorIoHandler(session, settings,
+                    new NetworkingOptions(new Properties()), eventHandlingStrategy);
+
+            handler.sessionCreated(ioSession);
+
+            assertNull(ioSession.getAttribute(SslFilter.SSL_SECURED));
+
+            session.logon();
+            session.next();
+
+            final ArgumentCaptor<Object> message = forClass(Object.class);
+            verify(ioSession).write(message.capture());
+            assertTrue(message.getValue().toString().contains("35=A\u0001"));
+        }
+    }
 
     // QFJ-976
     @Test
