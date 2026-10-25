@@ -19,6 +19,9 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,6 +34,16 @@ import java.net.URLConnection;
 
 
 public class FileUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(FileUtil.class);
+
+    /**
+     * System property that, when set to {@code "true"}, permits loading resources from plain
+     * HTTP URLs.  Plain HTTP connections are unencrypted and susceptible to man-in-the-middle
+     * attacks; by default they are refused.  Set this property only when you are certain the
+     * network path is trusted.
+     */
+    public static final String ALLOW_HTTP_URLS_PROPERTY = "quickfixj.fileutil.allowHttpUrls";
+
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
         return pathPrefix + (pathPrefix.endsWith(File.separator) ? "" : File.separator)
                 + pathSuffix;
@@ -146,6 +159,15 @@ public class FileUtil {
             case URL:
                 try {
                     URL url = new URL(name);
+                    if ("http".equalsIgnoreCase(url.getProtocol())) {
+                        if (!Boolean.getBoolean(ALLOW_HTTP_URLS_PROPERTY)) {
+                            LOG.warn("Refusing to load resource over plain HTTP (potential MITM risk): {}. "
+                                    + "Use HTTPS, or set system property -D{}=true to override.",
+                                    name, ALLOW_HTTP_URLS_PROPERTY);
+                            break;
+                        }
+                        LOG.warn("Loading resource over plain HTTP (unencrypted): {}", name);
+                    }
                     URLConnection urlConnection = url.openConnection();
                     if (urlConnection instanceof HttpURLConnection) {
                         HttpURLConnection httpURLConnection = (HttpURLConnection)urlConnection;
