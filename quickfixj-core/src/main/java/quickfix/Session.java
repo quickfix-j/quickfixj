@@ -428,6 +428,7 @@ public class Session implements Closeable {
 
     private final DataDictionaryProvider dataDictionaryProvider;
     private final ValidationSettings validationSettings;
+    private final DataDictionaryValidator dataDictionaryValidator;
     private final boolean checkLatency;
     private final int maxLatency;
     private int resendRequestChunkSize = 0;
@@ -552,6 +553,7 @@ public class Session implements Closeable {
         this.refreshOnLogon = refreshOnLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
         this.validationSettings = validationSettings;
+        this.dataDictionaryValidator = new DataDictionaryValidator(validationSettings);
         this.messageFactory = messageFactory;
         this.checkCompID = checkCompID;
         this.redundantResentRequestsAllowed = redundantResentRequestsAllowed;
@@ -1074,8 +1076,8 @@ public class Session implements Closeable {
 
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
-                    DataDictionary.validate(message, sessionDataDictionary,
-                            applicationDataDictionary, validationSettings);
+                    dataDictionaryValidator.validate(message,
+                            sessionDataDictionary, applicationDataDictionary);
                 } catch (final IncorrectTagValue e) {
                     if (rejectInvalidMessage) {
                         throw e;
