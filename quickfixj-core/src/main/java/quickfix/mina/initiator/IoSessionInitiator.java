@@ -44,6 +44,7 @@ import quickfix.mina.ssl.InitiatorSslFilter;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
+import quickfix.SessionStateListener;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -61,6 +62,7 @@ public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
     private final ScheduledExecutorService executor;
     private final ConnectTask reconnectTask;
+    private final SessionStateListener stateListener;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Future<?> reconnectFuture;
@@ -90,6 +92,13 @@ public class IoSessionInitiator {
             throw new ConfigError(e);
         }
 
+        stateListener = new SessionStateListener() {
+            @Override
+            public void onLogon(SessionID sessionID) {
+                reconnectTask.resetSocketAddressIndex();
+            }
+        };
+
         fixSession.getLog().onEvent("Configured socket addresses for session: " + Arrays.asList(socketAddresses));
     }
 
@@ -113,6 +122,7 @@ public class IoSessionInitiator {
         private long lastReconnectAttemptTime;
         private long lastConnectTime;
         private int nextSocketAddressIndex;
+        private volatile boolean socketAddressIndexResetRequested;
         private int connectionFailureCount;
         private ConnectFuture connectFuture;
 
@@ -225,6 +235,10 @@ public class IoSessionInitiator {
 
         @Override
         public void run() {
+            if (socketAddressIndexResetRequested) {
+                nextSocketAddressIndex = 0;
+                socketAddressIndexResetRequested = false;
+            }
             resetIoConnector();
             try {
                 if (connectFuture == null) {
@@ -261,7 +275,6 @@ public class IoSessionInitiator {
                 if (connectFuture.getSession() != null) {
                     ioSession = connectFuture.getSession();
                     connectionFailureCount = 0;
-                    nextSocketAddressIndex = 0;
                     lastConnectTime = System.currentTimeMillis();
                     connectFuture = null;
                 } else {
@@ -369,6 +382,10 @@ public class IoSessionInitiator {
                 }
             }
         }
+
+        private void resetSocketAddressIndex() {
+            socketAddressIndexResetRequested = true;
+        }
     }
 
     synchronized void start() {
@@ -376,8 +393,8 @@ public class IoSessionInitiator {
             // The following logon reenabled the session. The actual logon will take
             // place as a side-effect of the session timer task (not the reconnect task).
             reconnectTask.getFixSession().logon(); // only enables the session
-            reconnectFuture = executor
-                    .scheduleWithFixedDelay(reconnectTask, 0, 1, TimeUnit.SECONDS);
+            reconnectTask.getFixSession().addStateListener(stateListener);
+            reconnectFuture = executor.scheduleWithFixedDelay(reconnectTask, 0, 1, TimeUnit.SECONDS);
         }
     }
 
@@ -385,6 +402,7 @@ public class IoSessionInitiator {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
             reconnectFuture = null;
+            reconnectTask.getFixSession().removeStateListener(stateListener);
         }
         SessionConnector.closeManagedSessionsAndDispose(reconnectTask.ioConnector, true, log);
     }
