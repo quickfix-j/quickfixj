@@ -231,6 +231,65 @@ public class SSLContextProviderTest {
         }
     }
 
+    @Test
+    public void shouldFailInitiatorWhenProviderReturnsNull() throws Exception {
+        SocketInitiator initiator = initiator(
+                settings("initiator", INITIATOR_SESSION, AvailablePortFinder.getNextAvailable()), sslConfig -> null);
+        try {
+            initiator.start();
+            fail("Expected initiator start to fail");
+        } catch (ConfigError e) {
+            assertTrue(String.valueOf(e.getCause()), e.getCause() instanceof GeneralSecurityException);
+            assertEquals("SSLContextProvider returned null for " + INITIATOR_SESSION, e.getCause().getMessage());
+        } finally {
+            initiator.stop(true);
+        }
+    }
+
+    @Test
+    public void shouldFailAcceptorWhenProviderReturnsNull() throws Exception {
+        SocketAcceptor acceptor = acceptor(
+                settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable()), sslConfig -> null);
+        try {
+            acceptor.start();
+            fail("Expected acceptor start to fail");
+        } catch (RuntimeError e) {
+            assertTrue(String.valueOf(e.getCause()), e.getCause() instanceof GeneralSecurityException);
+            assertTrue(e.getCause().getMessage(), e.getCause().getMessage().startsWith("SSLContextProvider returned null for "));
+        } finally {
+            acceptor.stop(true);
+        }
+    }
+
+    @Test
+    public void shouldSkipAcceptorAddressWhenProviderReturnsNullAndContinuingInitialization() throws Exception {
+        SessionSettings settings = settings("acceptor", ACCEPTOR_SESSION, AvailablePortFinder.getNextAvailable());
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        SocketAcceptor acceptor = acceptor(settings, sslConfig -> null);
+        try {
+            acceptor.start();
+            // The endpoint is registered before SSL is installed, but its address must not be bound.
+            for (IoAcceptor endpoint : acceptor.getEndpoints()) {
+                assertFalse(endpoint.isActive());
+            }
+        } finally {
+            acceptor.stop(true);
+        }
+    }
+
+    @Test
+    public void shouldSkipInitiatorSessionWhenProviderReturnsNullAndContinuingInitialization() throws Exception {
+        SessionSettings settings = settings("initiator", INITIATOR_SESSION, AvailablePortFinder.getNextAvailable());
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        SocketInitiator initiator = initiator(settings, sslConfig -> null);
+        try {
+            initiator.start();
+            assertTrue(initiator.getInitiators().isEmpty());
+        } finally {
+            initiator.stop(true);
+        }
+    }
+
     private static SocketAcceptor acceptor(SessionSettings settings, SSLContextProvider provider) throws ConfigError {
         return SocketAcceptor.newBuilder()
                 .withApplication(new ApplicationAdapter())

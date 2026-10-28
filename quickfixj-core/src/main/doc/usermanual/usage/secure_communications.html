@@ -154,7 +154,7 @@ cipher suites, <code>NeedClientAuth</code>, SNI and endpoint identification are 
 settings, while store settings are not used.</li>
 <li>If the provider throws a <code>GeneralSecurityException</code>, the session (initiator) or listening
 address (acceptor) fails to initialize, subject to <code>ContinueInitializationOnError</code>. There is no
-implicit fallback to the default behaviour. The provider must not return <code>null</code>.</li>
+implicit fallback to the default behaviour. Returning <code>null</code> is treated the same way.</li>
 <li>The provider is called whenever an SSL filter is set up: once per listening address when an
 acceptor starts, and once per session when an initiator starts (and again if its I/O connector is
 reset). Return a new context to pick up rotated credentials on the next start, or supply a key or

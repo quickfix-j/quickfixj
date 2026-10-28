@@ -152,6 +152,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         log.info("Installing SSL filter for {}", descriptor.getAddress());
         SSLConfig sslConfig = descriptor.getSslConfig();
         SSLContext sslContext = sslContextProvider.getSSLContext(sslConfig);
+        if (sslContext == null) {
+            throw new GeneralSecurityException("SSLContextProvider returned null for " + descriptor.getAddress());
+        }
         HostResolutionStrategy hostResolutionStrategy = HostResolutionStrategy.fromReverseDnsEnabled(
                 descriptor.isReverseDnsEnabled());
         SslFilter sslFilter = new AcceptorSslFilter(sslContext, hostResolutionStrategy);

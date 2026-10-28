@@ -215,6 +215,9 @@ public class IoSessionInitiator {
         private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = sslContextProvider.getSSLContext(sslConfig);
+            if (sslContext == null) {
+                throw new GeneralSecurityException("SSLContextProvider returned null for " + fixSession.getSessionID());
+            }
             final SslFilter sslFilter = new InitiatorSslFilter(sslContext, getSniHostName(sslConfig), hostResolutionStrategy);
             sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
