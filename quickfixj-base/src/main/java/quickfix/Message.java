@@ -732,7 +732,10 @@ public class Message extends FieldMap {
         try {
             declaredGroupCount = IntConverter.convert(field.getValue());
         } catch (final FieldConvertError e) {
-            throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
+            throw new FieldException(
+                    SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE,
+                    "Repeating group count requires an Integer but found '" + field.getValue() + "'",
+                    groupCountTag);
         }
         parent.setField(groupCountTag, field);
         int firstField = dds.isFirstFieldInGroupIsDelimiter() ? -1 : rg.getDelimiterField();
