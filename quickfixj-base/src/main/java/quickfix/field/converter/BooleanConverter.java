@@ -19,6 +19,8 @@
 
 package quickfix.field.converter;
 
+import static quickfix.field.converter.IntConverter.window;
+
 import quickfix.FieldConvertError;
 
 /**
@@ -46,12 +48,28 @@ public class BooleanConverter {
      * @throws FieldConvertError raised for any value other than "Y" or "N".
      */
     public static boolean convert(String value) throws FieldConvertError {
-        if (YES.equals(value)) {
-            return true;
-        } else if (NO.equals(value)) {
-            return false;
-        } else {
+        return convert(value, 0, value == null ? 0 : value.length());
+    }
+    
+    /**
+     * Converts a range of a String to a boolean without allocating.
+     *
+     * Semantics are identical to convert(value.substring(offset, offset + length)),
+     * including error messages.
+     */
+    public static boolean convert(String value, int offset, int length) throws FieldConvertError {
+        if (value == null) {
             throw new FieldConvertError("invalid boolean value: " + value);
         }
+        if (offset < 0 || length < 0 || value.length() - offset < length) {
+            throw new FieldConvertError("invalid boolean value: offset=" + offset
+                    + ", length=" + length + ", value.length=" + value.length());
+        }
+        if (length == 1) {
+            final char c = value.charAt(offset);
+            if (c == 'Y') return true;
+            if (c == 'N') return false;
+        }
+        throw new FieldConvertError("invalid boolean value: " + window(value, offset, length));
     }
 }
