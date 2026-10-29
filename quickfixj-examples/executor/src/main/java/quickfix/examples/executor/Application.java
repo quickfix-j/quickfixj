@@ -249,7 +249,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         if (isOrderExecutable(order, price)) {
             int lastShares = (int) orderQty.getValue();
             quickfix.fix41.ExecutionReport executionReport = new quickfix.fix41.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(
+                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType('2'), new OrdStatus(
                             OrdStatus.FILLED), order.getSymbol(), order.getSide(), orderQty, new LastShares(lastShares),
                     new LastPx(price.getValue()), new LeavesQty(0), new CumQty(orderQty
                             .getValue()), new AvgPx(price.getValue()));
@@ -281,7 +281,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         if (isOrderExecutable(order, price)) {
             int lastShares = (int) orderQty.getValue();
             quickfix.fix42.ExecutionReport executionReport = new quickfix.fix42.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(
+                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType('2'), new OrdStatus(
                             OrdStatus.FILLED), order.getSymbol(), order.getSide(), new LeavesQty(0), new CumQty(
                             orderQty.getValue()), new AvgPx(price.getValue()));
 
