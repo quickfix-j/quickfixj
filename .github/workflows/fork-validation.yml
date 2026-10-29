@@ -1,0 +1,29 @@
+name: QuickFIX/J fork validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Java ${{ matrix.java }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        java: [8, 11, 21]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Run upstream Maven suite
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ./mvnw.cmd install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{ github.workspace }}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+          else
+            ./mvnw install -B -V -D"maven.javadoc.skip"="true" -P"skipBundlePlugin,minimal-fix-latest" -D"java.util.logging.config.file"="${{ github.workspace }}/quickfixj-core/src/test/resources/logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+          fi
