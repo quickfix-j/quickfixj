@@ -245,7 +245,7 @@ public class IoSessionInitiator {
 
         @Override
         public void run() {
-            resetIoConnector();
+            resetProxyConnector();
             try {
                 if (connectFuture == null) {
                     if (shouldReconnect()) {
@@ -372,8 +372,9 @@ public class IoSessionInitiator {
             return fixSession;
         }
 
-        private void resetIoConnector() {
-            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR))) {
+        private void resetProxyConnector() {
+            if (ioConnector instanceof ProxyConnector && ioSession != null
+                    && Boolean.TRUE.equals(ioSession.getAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR))) {
                 try {
                     setupIoConnector();
                     if (connectFuture != null) {
@@ -385,10 +386,11 @@ public class IoSessionInitiator {
                     }
                     ioSession = null;
                 } catch (Throwable e) {
-                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
+                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetProxyConnector call", e);
                 }
             }
         }
+
     }
 
     synchronized void start() {
