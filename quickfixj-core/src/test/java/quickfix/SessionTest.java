@@ -57,6 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -3608,6 +3609,53 @@ public class SessionTest {
             session.next();
             assertEquals(1, application.sessionResets);
             assertEquals(2, state.getNextSenderMsgSeqNum());
+        }
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/327
+     * With KeepUnsentMessagesOnReset=Y, onBeforeSessionReset is still called on a scheduled
+     * reset when the session is not logged on, and the store is not reset yet.
+     */
+    @Test
+    public void testBeforeSessionResetIsCalledWhenUnsentMessagesAreKept() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        setUpMockSystemTime(now);
+        final List<String> messagesBeforeReset = new ArrayList<>();
+        final List<SessionID> beforeResets = new ArrayList<>();
+        final AtomicReference<MessageStore> storeRef = new AtomicReference<>();
+        final UnitTestApplication application = new UnitTestApplication() {
+            @Override
+            public void onBeforeSessionReset(SessionID sessionId) {
+                final MessageStore store = storeRef.get();
+                if (store == null) {
+                    // reset done by the Session constructor, not by this test
+                    return;
+                }
+                beforeResets.add(sessionId);
+                try {
+                    store.get(5, 5, messagesBeforeReset);
+                } catch (IOException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        };
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, 3600000L, 7200000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            storeRef.set(session.getStore());
+            // messages of the previous session
+            session.setNextSenderMsgSeqNum(5);
+            session.setNextTargetMsgSeqNum(3);
+            assertFalse(session.send(new News(new Headline("Unsent"))));
+
+            session.next();
+
+            assertEquals(1, application.sessionResets);
+            assertEquals(1, beforeResets.size());
+            assertEquals(session.getSessionID(), beforeResets.get(0));
+            assertEquals(1, messagesBeforeReset.size());
+            assertEquals("Unsent", new Message(messagesBeforeReset.get(0)).getString(Headline.FIELD));
+            assertEquals(1, getStoredMessages(session).size());
         }
     }
 

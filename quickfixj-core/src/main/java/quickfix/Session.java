@@ -3225,6 +3225,10 @@ public class Session implements Closeable {
     }
 
     private void resetStateKeepingUnsentMessages() throws IOException {
+        // same callback as in reset(), called before the store is reset
+        if (application instanceof ApplicationExtended) {
+            ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
+        }
         state.lockSenderMsgSeqNum();
         try {
             final List<Message> unsentMessages = getUnsentApplicationMessages();
