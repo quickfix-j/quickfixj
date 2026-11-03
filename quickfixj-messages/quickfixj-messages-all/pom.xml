@@ -246,7 +246,7 @@
 			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>3.0.2</version>
+				<version>3.0.3</version>
 				<executions>
 					<execution>
 						<id>fix40</id>
