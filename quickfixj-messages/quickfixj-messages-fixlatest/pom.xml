@@ -66,8 +66,11 @@
 	<profiles>
 		<profile>
 			<id>full-fix-latest</id>
-			<!-- This profile builds the full fix latest specification to testing that a new version of the full specification
-					 does not introduce issues in the core QuickFIX/J build -->
+			<!-- This profile builds the full fix latest specification. It is active by default. When minimal-fix-latest
+			     is explicitly activated (e.g. for CodeQL), this profile is automatically deactivated. -->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
