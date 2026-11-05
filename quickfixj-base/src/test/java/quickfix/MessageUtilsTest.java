@@ -26,6 +26,9 @@ import quickfix.field.SenderCompID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+
+import java.nio.charset.StandardCharsets;
+
 import org.junit.Test;
 
 /**
@@ -110,6 +113,24 @@ public class MessageUtilsTest {
         String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223";
         assertNull(MessageUtils.getStringField(messageString, 10));
+    }
+
+    @Test
+    public void testStringEquivalentChecksumMatchesStringBuilderFastPath() {
+        String messageString = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
+        int checksumFieldIndex = messageString.lastIndexOf("\00110=");
+        StringBuilder messageBuilder = new StringBuilder(messageString);
+
+        assertEquals(MessageUtils.checksum(messageString), MessageUtils.checksum(messageBuilder, 0,
+                checksumFieldIndex + 1));
+    }
+
+    @Test
+    public void testMultibyteChecksumUsesEncodedBytes() {
+        String messageString = "8=FIX.4.2\0019=18\00135=X\00158=\u6D4B\u9A8C\00110=000\001";
+
+        assertEquals(MessageUtils.checksum(messageString.getBytes(StandardCharsets.UTF_8), true),
+                MessageUtils.checksum(StandardCharsets.UTF_8, messageString, true));
     }
 
 }

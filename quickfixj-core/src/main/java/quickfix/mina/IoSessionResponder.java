@@ -64,6 +64,9 @@ public class IoSessionResponder implements Responder {
                     getQFJSession().getLog().onErrorEvent("Synchronous write timed out after " + synchronousWriteTimeout + "ms.");
                     return false;
                 }
+                if (!future.isWritten()) {
+                    return false;
+                }
             } catch (RuntimeException e) {
                 LogUtil.logThrowable(getQFJSession().getSessionID(), "Synchronous write failed.", e);
                 return false;

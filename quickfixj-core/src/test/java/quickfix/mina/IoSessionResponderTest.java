@@ -65,6 +65,7 @@ public class IoSessionResponderTest {
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
         when(mockWriteFuture.awaitUninterruptibly(timeout)).thenReturn(true);
+        when(mockWriteFuture.isWritten()).thenReturn(true);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
@@ -72,6 +73,25 @@ public class IoSessionResponderTest {
         assertTrue(result);
         verify(mockIoSession).write("abcd");
         verify(mockWriteFuture).awaitUninterruptibly(timeout);
+        verify(mockWriteFuture).isWritten();
+        verifyNoMoreInteractions(mockWriteFuture);
+        verifyNoMoreInteractions(mockIoSession);
+    }
+
+    @Test
+    public void testSynchronousSendWithCompletedFailedWrite() throws Exception {
+        int timeout = 123;
+        IoSession mockIoSession = mock(IoSession.class);
+        WriteFuture mockWriteFuture = mock(WriteFuture.class);
+        when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
+        when(mockWriteFuture.awaitUninterruptibly(timeout)).thenReturn(true);
+        when(mockWriteFuture.isWritten()).thenReturn(false);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
+
+        assertFalse(responder.send("abcd"));
+        verify(mockIoSession).write("abcd");
+        verify(mockWriteFuture).awaitUninterruptibly(timeout);
+        verify(mockWriteFuture).isWritten();
         verifyNoMoreInteractions(mockWriteFuture);
         verifyNoMoreInteractions(mockIoSession);
     }

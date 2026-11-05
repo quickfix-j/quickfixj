@@ -1,5 +1,8 @@
 package quickfix;
 
+import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLContextProvider;
+
 public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
     private final Class<Derived> derived;
     Application application;
@@ -7,6 +10,7 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
     SessionSettings settings;
     LogFactory logFactory;
     MessageFactory messageFactory;
+    SSLContextProvider sslContextProvider;
 
     int queueCapacity = -1;
     int queueLowerWatermark = -1;
@@ -41,6 +45,11 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
         return derived.cast(this);
     }
 
+    public Derived withSSLContextProvider(SSLContextProvider val) {
+        sslContextProvider = val;
+        return derived.cast(this);
+    }
+
     public Derived withQueueCapacity(int val) throws ConfigError {
         if (queueLowerWatermark >= 0) {
             throw new ConfigError("queue capacity and watermarks may not be configured together");
@@ -68,6 +77,9 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
         }
         if (messageFactory == null) {
             messageFactory = new DefaultMessageFactory();
+        }
+        if (sslContextProvider == null) {
+            sslContextProvider = SSLContextFactory::getInstance;
         }
         return doBuild();
     }

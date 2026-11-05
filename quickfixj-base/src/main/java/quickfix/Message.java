@@ -213,10 +213,7 @@ public class Message extends FieldMap {
 
     private static void setChecksum(StringBuilder stringBuilder) {
         int checkSumIndex = stringBuilder.lastIndexOf(CHECKSUM_FIELD);
-        int checkSum = 0;
-        for(int i = checkSumIndex; i-- != 0;)
-            checkSum += stringBuilder.charAt(i);
-        String checkSumValue = NumbersCache.get((checkSum + 1) & 0xFF); // better than sum % 256 since it avoids overflow issues
+        String checkSumValue = NumbersCache.get(MessageUtils.checksum(stringBuilder, 0, checkSumIndex + 1));
         checkSumIndex += CHECKSUM_FIELD.length();
         stringBuilder.replace(checkSumIndex + (3 - checkSumValue.length()), checkSumIndex + 3, checkSumValue);
     }
