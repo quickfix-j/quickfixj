@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.initiator.AbstractSocketInitiator;
 import quickfix.mina.initiator.ConnectException;
+import quickfix.mina.initiator.IoSessionInitiator;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.StackTraceUtil;
@@ -39,6 +41,7 @@ import quickfix.test.util.StackTraceUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -47,6 +50,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +63,7 @@ import java.util.logging.Level;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 
@@ -132,6 +137,33 @@ public class SocketInitiatorTest {
         assertTrue("Initiator sessionCreated not called",
                 initiatorWriteCounter.wasSessionCreatedCalled());
         assertTrue("Acceptor sessionCreated not called", serverThread.wasSessionCreatedCalled());
+    }
+
+    @Test
+    public void testReconnectAfterServerDisconnectReusesIoConnector() throws Exception {
+        final int reconnects = 3;
+        DisconnectingServer server = new DisconnectingServer(reconnects);
+        server.start();
+
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID, server.getPort());
+        settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(clientSessionID, "SocketConnectHost", "127.0.0.1");
+        settings.setString(clientSessionID, "ReconnectInterval", "1");
+        Initiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new DefaultMessageFactory());
+
+        try {
+            initiator.start();
+            Object connectorBeforeReconnects = getIoConnector((AbstractSocketInitiator) initiator);
+            assertTrue("Initiator did not reconnect after server disconnects",
+                    server.awaitConnections(15, TimeUnit.SECONDS));
+            assertSame("Direct initiator reconnects should reuse the same IoConnector",
+                    connectorBeforeReconnects, getIoConnector((AbstractSocketInitiator) initiator));
+        } finally {
+            initiator.stop();
+            server.stop();
+        }
     }
 
     @Test
@@ -651,6 +683,65 @@ public class SocketInitiatorTest {
 
         public String toString() {
             return getClass().getName() + "[" + name + "]@" + System.identityHashCode(this);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object getIoConnector(AbstractSocketInitiator initiator) throws ReflectiveOperationException {
+        Field initiatorsField = AbstractSocketInitiator.class.getDeclaredField("initiators");
+        initiatorsField.setAccessible(true);
+        Set<IoSessionInitiator> initiators = (Set<IoSessionInitiator>) initiatorsField.get(initiator);
+        assertEquals(1, initiators.size());
+
+        Field reconnectTaskField = IoSessionInitiator.class.getDeclaredField("reconnectTask");
+        reconnectTaskField.setAccessible(true);
+        Object reconnectTask = reconnectTaskField.get(initiators.iterator().next());
+
+        Field ioConnectorField = reconnectTask.getClass().getDeclaredField("ioConnector");
+        ioConnectorField.setAccessible(true);
+        return ioConnectorField.get(reconnectTask);
+    }
+
+    private static class DisconnectingServer {
+        private final ServerSocket serverSocket;
+        private final CountDownLatch connections;
+        private final AtomicBoolean running = new AtomicBoolean();
+        private Thread thread;
+
+        DisconnectingServer(int expectedConnections) throws IOException {
+            serverSocket = new ServerSocket(0);
+            connections = new CountDownLatch(expectedConnections);
+        }
+
+        public void start() {
+            running.set(true);
+            thread = new Thread(() -> {
+                while (running.get()) {
+                    try (Socket socket = serverSocket.accept()) {
+                        socket.getInputStream().read();
+                        connections.countDown();
+                    } catch (IOException e) {
+                        if (running.get()) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }
+
+        public int getPort() {
+            return serverSocket.getLocalPort();
+        }
+
+        public boolean awaitConnections(long timeout, TimeUnit unit) throws InterruptedException {
+            return connections.await(timeout, unit);
+        }
+
+        public void stop() throws IOException, InterruptedException {
+            running.set(false);
+            serverSocket.close();
+            thread.join();
         }
     }
 
