@@ -1,5 +1,7 @@
 package quickfix.field.converter;
 
+import static quickfix.field.converter.IntConverter.window;
+
 import quickfix.FieldConvertError;
 
 import java.util.Arrays;
@@ -8,8 +10,6 @@ import java.util.Arrays;
  * Converts between character array and string.
  */
 public class CharArrayConverter {
-
-    private static final String CHAR_ARRAY_REGEX = "\\S( \\S)*";
 
     public static String convert(char... chars) {
         if (chars.length == 0) {
@@ -31,16 +31,41 @@ public class CharArrayConverter {
     }
 
     public static char[] convert(String value) throws FieldConvertError {
-        if (!value.matches(CHAR_ARRAY_REGEX)) {
-            throw new FieldConvertError("invalid char array: " + Arrays.toString(value.getBytes()));
+        return convert(value, 0, value == null ? 0 : value.length());
+    }
+    
+    public static char[] convert(String value, int offset, int length) throws FieldConvertError {
+        if (value == null) {
+            throw new NullPointerException();
         }
-
-        String[] split = value.split(" ");
-        char[] chars = new char[split.length];
-
-        for (int i = 0; i < split.length; i++) {
-            chars[i] = split[i].charAt(0);
+        if (offset < 0 || length < 0 || value.length() - offset < length) {
+            throw new FieldConvertError("invalid char array: offset=" + offset
+                    + ", length=" + length + ", value.length=" + value.length());
+        }
+        
+        if (length == 0 || (length & 1) == 0) {
+            throw error(value, offset, length);
+        }
+        
+        final char[] chars = new char[(length + 1) >>> 1];
+        for (int i = 0, p = offset, end = offset + length; p < end; i++, p += 2) {
+            final char c = value.charAt(p);
+            if (!isTokenChar(c)) {
+                throw error(value, offset, length);
+            }
+            chars[i] = c;
+            if (p + 1 < end && value.charAt(p + 1) != ' ') {
+                throw error(value, offset, length);
+            }
         }
         return chars;
+    }
+    
+    private static FieldConvertError error(String value, int offset, int length) {
+        return new FieldConvertError("invalid char array: " + Arrays.toString(window(value, offset, length).getBytes()));
+    }
+    
+    private static boolean isTokenChar(char c) {
+        return c != ' ' && c != '\t' && c != '\n' && c != '\u000B' && c != '\f' && c != '\r';
     }
 }
