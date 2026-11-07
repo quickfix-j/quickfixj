@@ -64,6 +64,14 @@ public class JdbcSetting {
     public static final String SETTING_JDBC_STORE_SESSIONS_TABLE_NAME = "JdbcStoreSessionsTableName";
 
     /**
+     * Defines the table name for the table that keeps the first unsent sequence
+     * number. Default is "unsent_seqnums". This table is optional. It is only
+     * needed for {@link Session#SETTING_KEEP_UNSENT_MESSAGES_ON_RESET}.
+     * If you use a different name, you must set up your database accordingly.
+     */
+    public static final String SETTING_JDBC_STORE_UNSENT_SEQNUMS_TABLE_NAME = "JdbcStoreUnsentSeqNumsTableName";
+
+    /**
      * The JNDI name used to lookup a DataSource for the JDBC plugins.
      */
     public static final String SETTING_JDBC_DS_NAME = "JdbcDataSourceName";

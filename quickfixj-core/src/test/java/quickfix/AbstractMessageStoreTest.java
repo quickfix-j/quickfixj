@@ -94,6 +94,31 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
     }
 
+    public void testFirstUnsentSenderMsgSeqNum() throws Exception {
+        if (!testEnabled) {
+            return;
+        }
+        if (!(store instanceof MemoryStore || store instanceof FileStore || store instanceof CachedFileStore
+                || store instanceof JdbcStore)) {
+            // this store does not support it
+            assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
+            return;
+        }
+
+        store.reset();
+        assertEquals("wrong value", 0, store.getFirstUnsentSenderMsgSeqNum());
+
+        store.setFirstUnsentSenderMsgSeqNum(5);
+        assertEquals("wrong value", 5, store.getFirstUnsentSenderMsgSeqNum());
+
+        // the value must be read again from the storage
+        store.refresh();
+        assertEquals("wrong value", 5, store.getFirstUnsentSenderMsgSeqNum());
+
+        store.reset();
+        assertEquals("wrong value", 0, store.getFirstUnsentSenderMsgSeqNum());
+    }
+
     protected SessionID getSessionID() {
         return sessionID;
     }

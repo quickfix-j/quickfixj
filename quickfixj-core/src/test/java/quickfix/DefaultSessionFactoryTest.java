@@ -79,6 +79,21 @@ public class DefaultSessionFactoryTest {
     }
 
     @Test
+    public void testKeepUnsentMessagesOnResetSetting() throws Exception {
+        settings.setString(sessionID, Session.SETTING_KEEP_UNSENT_MESSAGES_ON_RESET, "Y");
+        try (Session session = factory.create(sessionID, settings)) {
+            assertTrue(session.isKeepUnsentMessagesOnReset());
+        }
+    }
+
+    @Test
+    public void testKeepUnsentMessagesOnResetDefaultsToFalse() throws Exception {
+        try (Session session = factory.create(sessionID, settings)) {
+            assertFalse(session.isKeepUnsentMessagesOnReset());
+        }
+    }
+
+    @Test
     public void testFixTMinimalSettings() throws Exception {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
         setUpDefaultSettings(sessionID);
