@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 class JdbcStore implements MessageStore {
     private final static String DEFAULT_SESSION_TABLE_NAME = "sessions";
     private final static String DEFAULT_MESSAGE_TABLE_NAME = "messages";
+    private final static String DEFAULT_UNSENT_SEQNUMS_TABLE_NAME = "unsent_seqnums";
 
     private final MemoryStore cache = new MemoryStore();
     private final boolean extendedSessionIdSupported;
@@ -40,8 +41,10 @@ class JdbcStore implements MessageStore {
     private final SessionID sessionID;
     private final String sessionTableName;
     private final String messageTableName;
+    private final String unsentSeqNumsTableName;
     private final String defaultSessionIdPropertyValue;
     private final boolean persistMessages;
+    private final boolean firstUnsentSeqNumSupported;
 
     private String SQL_UPDATE_INCOMING_SEQNUM;
     private String SQL_UPDATE_OUTGOING_SEQNUM;
@@ -52,12 +55,16 @@ class JdbcStore implements MessageStore {
     private String SQL_GET_MESSAGES;
     private String SQL_UPDATE_SESSION;
     private String SQL_DELETE_MESSAGES;
+    private String SQL_GET_FIRST_UNSENT_SEQNUM;
+    private String SQL_UPDATE_FIRST_UNSENT_SEQNUM;
+    private String SQL_INSERT_FIRST_UNSENT_SEQNUM;
 
     public JdbcStore(SessionSettings settings, SessionID sessionID, DataSource ds) throws Exception {
         this.sessionID = sessionID;
 
         sessionTableName = getSessionTableName(settings, sessionID);
         messageTableName = getMessageTableName(settings, sessionID);
+        unsentSeqNumsTableName = getUnsentSeqNumsTableName(settings, sessionID);
 
         if (settings.isSetting(sessionID, SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE)) {
             defaultSessionIdPropertyValue = settings.getString(sessionID,
@@ -75,6 +82,11 @@ class JdbcStore implements MessageStore {
         // that all tables are extended if you extend any of them.
         extendedSessionIdSupported = JdbcUtil.determineSessionIdSupport(dataSource,
                 sessionTableName);
+
+        // The unsent sequence number table is optional. Without it, the store
+        // does not support KeepUnsentMessagesOnReset.
+        firstUnsentSeqNumSupported = JdbcUtil.determineFirstUnsentSeqNumSupport(dataSource,
+                unsentSeqNumsTableName);
 
         setSqlStrings();
 
@@ -94,6 +106,14 @@ class JdbcStore implements MessageStore {
             return settings.getString(sessionID, SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
         } else {
             return DEFAULT_MESSAGE_TABLE_NAME;
+        }
+    }
+
+    public static String getUnsentSeqNumsTableName(SessionSettings settings, SessionID sessionID) throws ConfigError {
+        if (settings.isSetting(sessionID, SETTING_JDBC_STORE_UNSENT_SEQNUMS_TABLE_NAME)) {
+            return settings.getString(sessionID, SETTING_JDBC_STORE_UNSENT_SEQNUMS_TABLE_NAME);
+        } else {
+            return DEFAULT_UNSENT_SEQNUMS_TABLE_NAME;
         }
     }
 
@@ -133,6 +153,18 @@ class JdbcStore implements MessageStore {
         return "DELETE FROM " + messageTableName + " WHERE " + idWhereClause;
     }
 
+    public static String getFirstUnsentSequenceNumSql(String unsentSeqNumsTableName, String idWhereClause) {
+        return "SELECT first_unsent_seqnum FROM " + unsentSeqNumsTableName + " WHERE " + idWhereClause;
+    }
+
+    public static String getUpdateFirstUnsentSequenceNumSql(String unsentSeqNumsTableName, String idWhereClause) {
+        return "UPDATE " + unsentSeqNumsTableName + " SET first_unsent_seqnum=? WHERE " + idWhereClause;
+    }
+
+    public static String getInsertFirstUnsentSequenceNumSql(String unsentSeqNumsTableName, String idColumns, String idPlaceholders) {
+        return "INSERT INTO " + unsentSeqNumsTableName + " (" + idColumns + ", first_unsent_seqnum) VALUES (" + idPlaceholders + ",?)";
+    }
+
     private void setSqlStrings() {
         String idWhereClause = JdbcUtil.getIDWhereClause(extendedSessionIdSupported);
         String idColumns = JdbcUtil.getIDColumns(extendedSessionIdSupported);
@@ -147,13 +179,18 @@ class JdbcStore implements MessageStore {
         SQL_GET_MESSAGES = getMessagesSql(messageTableName, idWhereClause);
         SQL_UPDATE_SESSION = getUpdateSessionSql(sessionTableName, idWhereClause);
         SQL_DELETE_MESSAGES = getDeleteMessagesSql(messageTableName, idWhereClause);
+        SQL_GET_FIRST_UNSENT_SEQNUM = getFirstUnsentSequenceNumSql(unsentSeqNumsTableName, idWhereClause);
+        SQL_UPDATE_FIRST_UNSENT_SEQNUM = getUpdateFirstUnsentSequenceNumSql(unsentSeqNumsTableName, idWhereClause);
+        SQL_INSERT_FIRST_UNSENT_SEQNUM = getInsertFirstUnsentSequenceNumSql(unsentSeqNumsTableName, idColumns, idPlaceholders);
     }
 
     private void loadCache() throws SQLException, IOException {
         Connection connection = null;
         PreparedStatement query = null;
         PreparedStatement insert = null;
+        PreparedStatement unsentQuery = null;
         ResultSet rs = null;
+        ResultSet unsentRs = null;
         try {
             connection = dataSource.getConnection();
             query = connection.prepareStatement(SQL_GET_SEQNUMS);
@@ -171,7 +208,16 @@ class JdbcStore implements MessageStore {
                 insert.setInt(offset, cache.getNextSenderMsgSeqNum());
                 insert.execute();
             }
+            if (firstUnsentSeqNumSupported) {
+                unsentQuery = connection.prepareStatement(SQL_GET_FIRST_UNSENT_SEQNUM);
+                setSessionIdParameters(unsentQuery, 1);
+                unsentRs = unsentQuery.executeQuery();
+                // no row means that all messages were sent
+                cache.setFirstUnsentSenderMsgSeqNum(unsentRs.next() ? unsentRs.getInt(1) : 0);
+            }
         } finally {
+            JdbcUtil.close(sessionID, unsentRs);
+            JdbcUtil.close(sessionID, unsentQuery);
             JdbcUtil.close(sessionID, rs);
             JdbcUtil.close(sessionID, query);
             JdbcUtil.close(sessionID, insert);
@@ -215,6 +261,7 @@ class JdbcStore implements MessageStore {
         Connection connection = null;
         PreparedStatement deleteMessages = null;
         PreparedStatement updateTime = null;
+        PreparedStatement updateFirstUnsent = null;
         try {
             connection = dataSource.getConnection();
             if (persistMessages) {
@@ -230,11 +277,19 @@ class JdbcStore implements MessageStore {
             updateTime.setInt(3, getNextSenderMsgSeqNum());
             setSessionIdParameters(updateTime, 4);
             updateTime.execute();
+
+            if (firstUnsentSeqNumSupported) {
+                updateFirstUnsent = connection.prepareStatement(SQL_UPDATE_FIRST_UNSENT_SEQNUM);
+                updateFirstUnsent.setInt(1, 0);
+                setSessionIdParameters(updateFirstUnsent, 2);
+                updateFirstUnsent.execute();
+            }
         } catch (SQLException e) {
             throw new IOException(e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
+            JdbcUtil.close(sessionID, updateFirstUnsent);
             JdbcUtil.close(sessionID, connection);
         }
     }
@@ -305,6 +360,50 @@ class JdbcStore implements MessageStore {
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         cache.setNextTargetMsgSeqNum(next);
         storeSequenceNumber(SQL_UPDATE_INCOMING_SEQNUM, next);
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.MessageStore#getFirstUnsentSenderMsgSeqNum()
+     */
+    @Override
+    public int getFirstUnsentSenderMsgSeqNum() throws IOException {
+        if (!firstUnsentSeqNumSupported) {
+            return -1;
+        }
+        return cache.getFirstUnsentSenderMsgSeqNum();
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.MessageStore#setFirstUnsentSenderMsgSeqNum(int)
+     */
+    @Override
+    public void setFirstUnsentSenderMsgSeqNum(int seqNum) throws IOException {
+        if (!firstUnsentSeqNumSupported) {
+            return;
+        }
+        cache.setFirstUnsentSenderMsgSeqNum(seqNum);
+        Connection connection = null;
+        PreparedStatement update = null;
+        PreparedStatement insert = null;
+        try {
+            connection = dataSource.getConnection();
+            update = connection.prepareStatement(SQL_UPDATE_FIRST_UNSENT_SEQNUM);
+            update.setInt(1, seqNum);
+            setSessionIdParameters(update, 2);
+            if (update.executeUpdate() == 0) {
+                // first value for this session
+                insert = connection.prepareStatement(SQL_INSERT_FIRST_UNSENT_SEQNUM);
+                int offset = setSessionIdParameters(insert, 1);
+                insert.setInt(offset, seqNum);
+                insert.execute();
+            }
+        } catch (SQLException e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            JdbcUtil.close(sessionID, update);
+            JdbcUtil.close(sessionID, insert);
+            JdbcUtil.close(sessionID, connection);
+        }
     }
 
     private void storeSequenceNumber(String sequenceUpdateSql, int sequence) throws IOException {
