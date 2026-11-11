@@ -20,7 +20,10 @@
 package quickfix.mina.ssl;
 
 import org.apache.mina.core.filterchain.IoFilterAdapter;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,6 +45,7 @@ import quickfix.test.util.ExpectedTestFailure;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -99,6 +103,72 @@ public class SecureSocketTest {
     @Test
     public void testLogonWithCustomCertificate() throws Exception {
         doLogonTest("test.keystore", "quickfixjtestpw");
+    }
+
+    @Test
+    public void testLogonIsSentBeforeTlsHandshakeCompletes() throws Exception {
+        CountDownLatch clientHelloReceived = new CountDownLatch(1);
+        CountDownLatch releaseServerHandshake = new CountDownLatch(1);
+        CountDownLatch logonWrittenBeforeTlsSecured = new CountDownLatch(1);
+        AtomicBoolean firstEncryptedMessage = new AtomicBoolean(true);
+
+        IoFilterChainBuilder pauseTlsHandshake = chain -> chain.addFirst("pause TLS handshake", new IoFilterAdapter() {
+            @Override
+            public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception {
+                if (firstEncryptedMessage.compareAndSet(true, false)) {
+                    clientHelloReceived.countDown();
+                    if (!releaseServerHandshake.await(10, TimeUnit.SECONDS)) {
+                        throw new AssertionError("Timed out waiting to resume TLS handshake");
+                    }
+                }
+                nextFilter.messageReceived(session, message);
+            }
+        });
+        ServerThread serverThread = new ServerThread(null, null, pauseTlsHandshake);
+
+        try {
+            serverThread.setDaemon(true);
+            serverThread.start();
+            serverThread.waitForInitialization();
+
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            ClientApplication clientApplication = new ClientApplication();
+            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
+                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+            initiator.setIoFilterChainBuilder(chain -> chain.addLast("observe Logon write", new IoFilterAdapter() {
+                @Override
+                public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest writeRequest)
+                        throws Exception {
+                    Object message = writeRequest.getMessage();
+                    if (message instanceof String && ((String) message).contains("35=A\u0001")
+                            && session.getAttribute(SslFilter.SSL_SECURED) == null) {
+                        logonWrittenBeforeTlsSecured.countDown();
+                    }
+                    nextFilter.filterWrite(session, writeRequest);
+                }
+            }));
+
+            try {
+                clientApplication.setUpLogonExpectation();
+                initiator.start();
+
+                assertTrue("acceptor did not receive ClientHello",
+                        clientHelloReceived.await(10, TimeUnit.SECONDS));
+                assertTrue("initiator did not write Logon before TLS was secured",
+                        logonWrittenBeforeTlsSecured.await(10, TimeUnit.SECONDS));
+
+                releaseServerHandshake.countDown();
+                assertLoggedOn(clientApplication, Session.lookupSession(clientSessionID));
+            } finally {
+                releaseServerHandshake.countDown();
+                initiator.stop();
+            }
+        } finally {
+            releaseServerHandshake.countDown();
+            serverThread.interrupt();
+            serverThread.join();
+        }
     }
 
     /**
@@ -206,11 +276,16 @@ public class SecureSocketTest {
         private final ATServer server;
 
         public ServerThread(String keyStoreName, String keyStorePassword) {
+            this(keyStoreName, keyStorePassword, null);
+        }
+
+        public ServerThread(String keyStoreName, String keyStorePassword, IoFilterChainBuilder ioFilterChainBuilder) {
             super("test server");
             server = new ATServer();
             server.setUseSSL(true);
             server.setKeyStoreName(keyStoreName);
             server.setKeyStorePassword(keyStorePassword);
+            server.setIoFilterChainBuilder(ioFilterChainBuilder);
         }
 
         public void run() {
