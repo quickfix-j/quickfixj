@@ -33,6 +33,7 @@ import java.util.List;
 import static quickfix.JdbcSetting.SETTING_JDBC_DS_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME;
+import static quickfix.JdbcSetting.SETTING_JDBC_STORE_UNSENT_SEQNUMS_TABLE_NAME;
 import static quickfix.JdbcTestSupport.HSQL_CONNECTION_URL;
 import static quickfix.JdbcTestSupport.HSQL_DRIVER;
 import static quickfix.JdbcTestSupport.HSQL_USER;
@@ -165,9 +166,78 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
             }
             loadSQL(connection, "config/sql/hsqldb/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
+            loadSQL(connection, "config/sql/hsqldb/unsent_seqnums_table.sql",
+                    new JdbcTestSupport.HypersonicPreprocessor(null));
         } finally {
             close(null, connection);
         }
+    }
+
+    public void testFirstUnsentSenderMsgSeqNumIsUpdated() throws Exception {
+        JdbcStore store = (JdbcStore) getStore();
+        store.reset();
+
+        store.setFirstUnsentSenderMsgSeqNum(5);
+        // the row exists now, so it is updated
+        store.setFirstUnsentSenderMsgSeqNum(7);
+
+        // a new store reads the value from the database
+        JdbcStore newStore = (JdbcStore) createStore();
+        assertEquals("wrong value", 7, newStore.getFirstUnsentSenderMsgSeqNum());
+
+        store.setFirstUnsentSenderMsgSeqNum(0);
+        newStore.refresh();
+        assertEquals("wrong value", 0, newStore.getFirstUnsentSenderMsgSeqNum());
+    }
+
+    public void testFirstUnsentSenderMsgSeqNumWithCustomTableName() throws Exception {
+        Connection connection = null;
+        try {
+            connection = getTestDataSource().getConnection();
+            dropTable(connection, "xunsent");
+            JdbcTestSupport.execSQL(connection, "ALTER TABLE unsent_seqnums RENAME TO xunsent");
+        } finally {
+            close(null, connection);
+        }
+        try {
+            SessionSettings settings = new SessionSettings();
+            settings.setString(SETTING_JDBC_DS_NAME, "TestDataSource");
+            settings.setString(SETTING_JDBC_STORE_UNSENT_SEQNUMS_TABLE_NAME, "xunsent");
+            JdbcStore store = (JdbcStore) new JdbcStoreFactory(settings).create(getSessionID());
+            store.reset();
+            assertEquals("wrong value", 0, store.getFirstUnsentSenderMsgSeqNum());
+
+            store.setFirstUnsentSenderMsgSeqNum(5);
+            store.refresh();
+            assertEquals("wrong value", 5, store.getFirstUnsentSenderMsgSeqNum());
+        } finally {
+            try {
+                connection = getTestDataSource().getConnection();
+                dropTable(connection, "xunsent");
+            } finally {
+                close(null, connection);
+            }
+        }
+    }
+
+    public void testFirstUnsentSenderMsgSeqNumWithoutTable() throws Exception {
+        Connection connection = null;
+        try {
+            connection = getTestDataSource().getConnection();
+            dropTable(connection, "unsent_seqnums");
+        } finally {
+            close(null, connection);
+        }
+        SessionSettings settings = new SessionSettings();
+        settings.setString(SETTING_JDBC_DS_NAME, "TestDataSource");
+        JdbcStore store = (JdbcStore) new JdbcStoreFactory(settings).create(getSessionID());
+
+        // the table is optional: the store works, but does not support it
+        assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
+        store.setFirstUnsentSenderMsgSeqNum(5);
+        assertEquals("wrong value", -1, store.getFirstUnsentSenderMsgSeqNum());
+        store.reset();
+        assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
     }
 
     protected DataSource getTestDataSource() {
