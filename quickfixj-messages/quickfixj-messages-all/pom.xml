@@ -34,10 +34,8 @@
 				of the core module. This is to reduce the size and complexity of the FIX Latest package so that processes such as CodeQL
 				do not use unreasonable heap size and can successfully run as part of the pull request workflow.
 				This profile does not produce a coherent orchestration nor a FIX Latest package representing a sensible Rules of Engagement.
+				It is used only by the CodeQL analysis workflow. For all other builds, the full-fix-latest profile is the default.
 			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -89,8 +87,11 @@
 		</profile>
 		<profile>
 			<id>full-fix-latest</id>
-			<!-- This profile builds the full fix latest specification to testing that a new version of the full specification
-			     does not introduce issues in the core QuickFIX/J build -->
+			<!-- This profile builds the full fix latest specification to test that a new version of the full specification
+			     does not introduce issues in the core QuickFIX/J build. This is the default profile. -->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
