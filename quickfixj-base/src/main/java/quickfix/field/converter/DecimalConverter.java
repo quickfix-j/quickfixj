@@ -19,6 +19,8 @@
 
 package quickfix.field.converter;
 
+import static quickfix.field.converter.IntConverter.window;
+
 import java.math.BigDecimal;
 
 import quickfix.FieldConvertError;
@@ -55,10 +57,67 @@ public class DecimalConverter {
      * @throws FieldConvertError if the String is not a valid decimal pattern.
      */
     public static BigDecimal convert(String value) throws FieldConvertError {
-        try {
-            return new BigDecimal(value);
-        } catch (NumberFormatException e) {
-            throw new FieldConvertError("invalid double value: " + value);
+        return convert(value, 0, value == null ? 0 : value.length());
+    }
+    
+    public static BigDecimal convert(String value, int offset, int length) throws FieldConvertError {
+        if (value == null) {
+            throw new NullPointerException();
         }
+        if (offset < 0 || length < 0 || value.length() - offset < length) {
+            throw new FieldConvertError("invalid double value: offset=" + offset
+                    + ", length=" + length + ", value.length=" + value.length());
+        }
+        try {
+            return parseDecimal(value, offset, length);
+        } catch (NumberFormatException e) {
+            throw new FieldConvertError("invalid double value: " + window(value, offset, length));
+        }
+    }
+    
+    private static BigDecimal parseDecimal(String v, int off, int len) {
+        final int end = off + len;
+        int i = off;
+        boolean negative = false;
+        if (i < end) {
+            final char c = v.charAt(i);
+            if (c == '-') {
+                negative = true;
+                i++;
+            } else if (c == '+') {
+                i++;
+            }
+        }
+        long m = 0;
+        boolean overflow = false, digit = false, dot = false;
+        int frac = 0;
+        for (; i < end; i++) {
+            final char c = v.charAt(i);
+            if (c == '.') {
+                if (dot) {
+                    return new BigDecimal(window(v, off, len));
+                }
+                dot = true;
+            } else if (c >= '0' && c <= '9') {
+                digit = true;
+                if (dot) {
+                    frac++;
+                }
+                if (!overflow) {
+                    final long next = m * 10 + (c - '0');
+                    if (next < 0 || m > (Long.MAX_VALUE - 9) / 10) {
+                        overflow = true;
+                    } else {
+                        m = next;
+                    }
+                }
+            } else {
+                return new BigDecimal(window(v, off, len));
+            }
+        }
+        if (!digit || overflow) {
+            return new BigDecimal(window(v, off, len));
+        }
+        return BigDecimal.valueOf(negative ? -m : m, frac);
     }
 }
