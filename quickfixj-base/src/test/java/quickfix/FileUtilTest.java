@@ -21,6 +21,7 @@ package quickfix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
@@ -59,12 +60,18 @@ public class FileUtilTest {
     public void testURLLocation() throws Exception {
         // Assumption: Internet access
         if (isInternetAccessible()) {
-            InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+            InputStream in = FileUtil.open(Message.class, "https://www.quickfixj.org/");
             if (in != null) {
                 in.close();
             }
             assertNotNull("Resource not found", in);
         }
+    }
+
+    @Test
+    public void testInsecureURLLocationRejected() {
+        InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+        assertNull("Insecure URL protocol should be rejected", in);
     }
 
     @Test
@@ -92,7 +99,7 @@ public class FileUtilTest {
 
     private boolean isInternetAccessible() {
         try {
-            Socket socket = new Socket("www.quickfixj.org", 80);
+            Socket socket = new Socket("www.quickfixj.org", 443);
             socket.close();
             return true;
         } catch (Exception e) {
