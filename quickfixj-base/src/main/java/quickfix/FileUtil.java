@@ -187,10 +187,6 @@ public class FileUtil {
 
     private static boolean isAllowedProtocol(URL url) {
         String protocol = url.getProtocol();
-        if (protocol == null) {
-            return false;
-        }
-
         String normalizedProtocol = protocol.toLowerCase(Locale.ROOT);
         return HTTPS_PROTOCOL.equals(normalizedProtocol)
                 || FILE_PROTOCOL.equals(normalizedProtocol)

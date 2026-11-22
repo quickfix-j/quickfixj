@@ -87,6 +87,12 @@ public class FileUtilTest {
     }
 
     @Test
+    public void testHttpsURLLocationWithoutInternetAccess() {
+        InputStream in = FileUtil.open(Message.class, "https://127.0.0.1:1/");
+        assertNull("No resource should be available on the unused loopback port", in);
+    }
+
+    @Test
     public void testUnsupportedURLLocationRejected() {
         InputStream in = FileUtil.open(Message.class, "ftp://example.com/resource");
         assertNull("Unsupported URL protocol should be rejected", in);
