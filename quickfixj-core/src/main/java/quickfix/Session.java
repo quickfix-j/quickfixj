@@ -2760,6 +2760,10 @@ public class Session implements Closeable {
                 if (isLoggedOn()) {
                     result = send(messageString);
                 }
+                if (keepUnsentMessagesOnReset && num == 0 && !result) {
+                    // logged on, but the message could not be sent
+                    markFirstUnsentMessage(header.getInt(MsgSeqNum.FIELD));
+                }
             }
 
             return result;

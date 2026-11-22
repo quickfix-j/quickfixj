@@ -57,6 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
@@ -3733,6 +3734,45 @@ public class SessionTest {
             assertEquals(1, stored.size());
             final Message kept = new Message(stored.get(0));
             assertEquals("Unsent", kept.getString(Headline.FIELD));
+            assertEquals(1, kept.getHeader().getInt(MsgSeqNum.FIELD));
+        }
+    }
+
+    /**
+     * With KeepUnsentMessagesOnReset=Y a message that could not be sent while logged on
+     * (the responder returns false) is kept when the session is reset by its schedule.
+     */
+    @Test
+    public void testMessageNotSentWhileLoggedOnIsKeptOnScheduledReset() throws Exception {
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        final MockSystemTimeSource systemTimeSource = setUpMockSystemTime(now);
+        final UnitTestApplication application = new UnitTestApplication();
+        final AtomicBoolean sendFails = new AtomicBoolean(false);
+        final RecordingResponder responder = new RecordingResponder() {
+            @Override
+            public boolean send(String data) {
+                return !sendFails.get() && super.send(data);
+            }
+        };
+        try (Session session = createScheduledAcceptorSession(application, new MemoryStoreFactory(), now, -3600000L, 3600000L)) {
+            session.setKeepUnsentMessagesOnReset(true);
+            session.setResponder(responder);
+
+            logonTo(session);
+            assertTrue(session.isLoggedOn());
+            sendFails.set(true);
+            assertFalse(session.send(new News(new Headline("NotSent"))));
+            assertEquals(2, session.getStore().getFirstUnsentSenderMsgSeqNum());
+            session.disconnect("test", false);
+
+            // end of the session time
+            systemTimeSource.increment(3601000L);
+            session.next();
+
+            final List<String> stored = getStoredMessages(session);
+            assertEquals(1, stored.size());
+            final Message kept = new Message(stored.get(0));
+            assertEquals("NotSent", kept.getString(Headline.FIELD));
             assertEquals(1, kept.getHeader().getInt(MsgSeqNum.FIELD));
         }
     }
