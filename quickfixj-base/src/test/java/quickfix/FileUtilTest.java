@@ -25,14 +25,24 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
+import com.sun.net.httpserver.HttpServer;
+import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @After
+    public void clearHttpResourceLoadingProperty() {
+        System.clearProperty(FileUtil.ALLOW_HTTP_URL_FOR_RESOURCE_LOADING);
+    }
 
     @Test
     public void testFileLocation() throws Exception {
@@ -70,8 +80,28 @@ public class FileUtilTest {
 
     @Test
     public void testInsecureURLLocationRejected() {
-        InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
-        assertNull("Insecure URL protocol should be rejected", in);
+        HttpServer server = createLocalHttpServer();
+        try {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
+            InputStream in = FileUtil.open(Message.class, url);
+            assertNull("Insecure URL protocol should be rejected", in);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    public void testInsecureURLLocationEnabledViaProperty() throws Exception {
+        HttpServer server = createLocalHttpServer();
+        try {
+            System.setProperty(FileUtil.ALLOW_HTTP_URL_FOR_RESOURCE_LOADING, "true");
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
+            InputStream in = FileUtil.open(Message.class, url);
+            assertNotNull("Insecure URL protocol should be accepted when explicitly enabled", in);
+            in.close();
+        } finally {
+            server.stop(0);
+        }
     }
 
     @Test
@@ -106,5 +136,22 @@ public class FileUtilTest {
             log.warn("No internet access");
         }
         return false;
+    }
+
+    private HttpServer createLocalHttpServer() {
+        try {
+            HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+            server.createContext("/", exchange -> {
+                byte[] response = "<fix major=\"4\" minor=\"2\"/>".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream responseBody = exchange.getResponseBody()) {
+                    responseBody.write(response);
+                }
+            });
+            server.start();
+            return server;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not start local HTTP server for test", e);
+        }
     }
 }
