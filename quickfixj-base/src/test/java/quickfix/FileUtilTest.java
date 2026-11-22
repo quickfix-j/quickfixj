@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -76,6 +77,19 @@ public class FileUtilTest {
             }
             assertNotNull("Resource not found", in);
         }
+    }
+
+    @Test
+    public void testFileURLLocation() throws Exception {
+        InputStream in = FileUtil.open(Message.class, new File("../LICENSE").toURI().toString());
+        assertNotNull("File URL resource not found", in);
+        in.close();
+    }
+
+    @Test
+    public void testUnsupportedURLLocationRejected() {
+        InputStream in = FileUtil.open(Message.class, "ftp://example.com/resource");
+        assertNull("Unsupported URL protocol should be rejected", in);
     }
 
     @Test
