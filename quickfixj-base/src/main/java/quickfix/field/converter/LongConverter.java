@@ -39,7 +39,7 @@ public final class LongConverter {
      * @see NumbersCache#get(long)
      */
     public static String convert(long l) {
-        return l >= 0 ? NumbersCache.get(l) : Long.toUnsignedString(l);
+        return NumbersCache.getUnsigned(l);
     }
 
     /**

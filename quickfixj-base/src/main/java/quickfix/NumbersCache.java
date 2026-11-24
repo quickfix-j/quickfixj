@@ -63,6 +63,19 @@ public final class NumbersCache {
         return String.valueOf(l);
     }
 
+    /**
+     * Get the String representing the given unsigned long value.
+     *
+     * @param l the long to convert as unsigned
+     * @return the String representing the unsigned long
+     */
+    public static String getUnsigned(long l) {
+        if (l < LITTLE_NUMBERS_LENGTH && l >= 0) {
+            return LITTLE_NUMBERS.get((int) l);
+        }
+        return Long.toUnsignedString(l);
+    }
+
      /**
       * Get the string representing the given double if it's an integer
       *

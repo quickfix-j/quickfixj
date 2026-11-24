@@ -125,6 +125,8 @@ public class FieldConvertersTest {
         String longLargeValue = "999999999999999999";
         String unsignedLongMax = "18446744073709551615";
         String unsignedLongOverflow = "18446744073709551616";
+        assertEquals("123", NumbersCache.getUnsigned(123L));
+        assertEquals(unsignedLongMax, NumbersCache.getUnsigned(-1L));
         assertEquals(String.valueOf(Long.MAX_VALUE), LongConverter.convert(Long.MAX_VALUE));
         assertEquals(unsignedLongMax, LongConverter.convert(-1L));
         assertEquals("0", LongConverter.convert(0L));
