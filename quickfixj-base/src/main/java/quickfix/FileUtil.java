@@ -27,10 +27,22 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Locale;
 
 
 
 public class FileUtil {
+    /**
+     * Set to {@code true} to allow loading resources over plain HTTP when using {@link Location#URL}.
+     * By default, HTTP is disabled.
+     */
+    public static final String ALLOW_HTTP_URL_FOR_RESOURCE_LOADING = "quickfixj.fileutil.url.allowHttp";
+
+    private static final String HTTP_PROTOCOL = "http";
+    private static final String HTTPS_PROTOCOL = "https";
+    private static final String FILE_PROTOCOL = "file";
+    private static final String JAR_PROTOCOL = "jar";
+
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
         return pathPrefix + (pathPrefix.endsWith(File.separator) ? "" : File.separator)
                 + pathSuffix;
@@ -85,7 +97,7 @@ public class FileUtil {
         CLASSLOADER_RESOURCE,
 
         /**
-         * Load a resource identified by an URI
+         * Load a resource identified by an URI. Supported protocols are https, file, and jar.
          */
         URL
     }
@@ -146,6 +158,9 @@ public class FileUtil {
             case URL:
                 try {
                     URL url = new URL(name);
+                    if (!isAllowedProtocol(url)) {
+                        break;
+                    }
                     URLConnection urlConnection = url.openConnection();
                     if (urlConnection instanceof HttpURLConnection) {
                         HttpURLConnection httpURLConnection = (HttpURLConnection)urlConnection;
@@ -168,5 +183,18 @@ public class FileUtil {
         }
 
         return in;
+    }
+
+    private static boolean isAllowedProtocol(URL url) {
+        String protocol = url.getProtocol();
+        String normalizedProtocol = protocol.toLowerCase(Locale.ROOT);
+        return HTTPS_PROTOCOL.equals(normalizedProtocol)
+                || FILE_PROTOCOL.equals(normalizedProtocol)
+                || JAR_PROTOCOL.equals(normalizedProtocol)
+                || (HTTP_PROTOCOL.equals(normalizedProtocol) && isHttpResourceLoadingEnabled());
+    }
+
+    private static boolean isHttpResourceLoadingEnabled() {
+        return Boolean.parseBoolean(System.getProperty(ALLOW_HTTP_URL_FOR_RESOURCE_LOADING, "false"));
     }
 }
