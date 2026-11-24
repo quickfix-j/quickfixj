@@ -27,7 +27,9 @@ import quickfix.NumbersCache;
  */
 public final class LongConverter {
 
-    private static final String LONG_MAX_STRING = String.valueOf(Long.MAX_VALUE);
+    private static final int FAST_PARSE_MAX_LENGTH = 18;
+    private static final long UNSIGNED_MULTIPLY_THRESHOLD = Long.divideUnsigned(-1L, 10L);
+    private static final int UNSIGNED_LAST_DIGIT_THRESHOLD = (int) Long.remainderUnsigned(-1L, 10L);
 
     /**
      * Convert an unsigned long to a String
@@ -37,7 +39,7 @@ public final class LongConverter {
      * @see NumbersCache#get(long)
      */
     public static String convert(long l) {
-        return NumbersCache.get(l);
+        return l >= 0 ? NumbersCache.get(l) : Long.toUnsignedString(l);
     }
 
     /**
@@ -56,26 +58,18 @@ public final class LongConverter {
                 throw new FieldConvertError("invalid unsigned long value: " + value);
             }
 
-            // Heuristic: since we have no range check in our parseLong() we only parse
-            // values which have at least one digit less than Long.MAX_VALUE and
-            // leave longer Strings to Long.parseLong().
-            // NB: we must not simply reject strings longer than MAX_VALUE since
-            // they could possibly include an arbitrary number of leading zeros.
-            if (value.length() < LONG_MAX_STRING.length()) {
-                return parseLong(value);
+            // Fast path for values that cannot overflow signed long during parse.
+            if (value.length() <= FAST_PARSE_MAX_LENGTH) {
+                return parseLongFast(value);
             } else {
-                try {
-                    return Long.parseLong(value);
-                } catch (NumberFormatException e) {
-                    throw new FieldConvertError("invalid unsigned long value: " + value + ": " + e);
-                }
+                return parseLongChecked(value);
             }
         } else {
             throw new FieldConvertError("invalid unsigned long value: empty string");
         }
     }
 
-    private static long parseLong(String value) throws FieldConvertError {
+    private static long parseLongFast(String value) throws FieldConvertError {
         long num = 0;
         for (int i = 0; i < value.length(); i++) {
             final char ch = value.charAt(i);
@@ -84,6 +78,23 @@ public final class LongConverter {
             } else {
                 throw new FieldConvertError("invalid unsigned long value: " + value);
             }
+        }
+        return num;
+    }
+
+    private static long parseLongChecked(String value) throws FieldConvertError {
+        long num = 0;
+        for (int i = 0; i < value.length(); i++) {
+            final char ch = value.charAt(i);
+            if (!IntConverter.isDigit(ch)) {
+                throw new FieldConvertError("invalid unsigned long value: " + value);
+            }
+            final int digit = ch - '0';
+            if (Long.compareUnsigned(num, UNSIGNED_MULTIPLY_THRESHOLD) > 0
+                    || (num == UNSIGNED_MULTIPLY_THRESHOLD && digit > UNSIGNED_LAST_DIGIT_THRESHOLD)) {
+                throw new FieldConvertError("invalid unsigned long value: " + value);
+            }
+            num = (num * 10) + digit;
         }
         return num;
     }

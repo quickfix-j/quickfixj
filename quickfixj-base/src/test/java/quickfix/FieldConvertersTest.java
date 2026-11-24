@@ -123,12 +123,17 @@ public class FieldConvertersTest {
         String longMaxValuePlus3 = "9223372036854775810";
         String longMaxValueMinus1 = "9223372036854775806";
         String longLargeValue = "999999999999999999";
+        String unsignedLongMax = "18446744073709551615";
+        String unsignedLongOverflow = "18446744073709551616";
         assertEquals(String.valueOf(Long.MAX_VALUE), LongConverter.convert(Long.MAX_VALUE));
+        assertEquals(unsignedLongMax, LongConverter.convert(-1L));
         assertEquals("0", LongConverter.convert(0L));
         assertEquals("123", LongConverter.convert(123L));
         assertEquals(123L, LongConverter.convert("123"));
         assertEquals(0L, LongConverter.convert("0"));
         assertEquals(Long.MAX_VALUE, LongConverter.convert(String.valueOf(Long.MAX_VALUE)));
+        assertEquals(Long.parseUnsignedLong(unsignedLongMax), LongConverter.convert(unsignedLongMax));
+        assertEquals(Long.parseUnsignedLong(longMaxValuePlus3), LongConverter.convert(longMaxValuePlus3));
         assertEquals(999999999999999999L, LongConverter.convert(longLargeValue));
         assertEquals(Long.MAX_VALUE - 1, LongConverter.convert(longMaxValueMinus1));
         assertEquals(23L, LongConverter.convert("00023"));
@@ -156,9 +161,8 @@ public class FieldConvertersTest {
         } catch (FieldConvertError e) {
             // expected
         }
-        // this should fail and not overflow
         try {
-            LongConverter.convert(longMaxValuePlus3);
+            LongConverter.convert(unsignedLongOverflow);
             fail();
         } catch (FieldConvertError e) {
             // expected
