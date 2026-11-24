@@ -164,6 +164,15 @@ class JdbcUtil {
         }
     }
 
+    static boolean determineFirstUnsentSeqNumSupport(DataSource dataSource, String tableName) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            String columnName = "first_unsent_seqnum";
+            return isColumn(metaData, tableName.toUpperCase(), columnName.toUpperCase())
+                    || isColumn(metaData, tableName, columnName);
+        }
+    }
+
     private static boolean isColumn(DatabaseMetaData metaData, String tableName, String columnName)
             throws SQLException {
         try (ResultSet columns = metaData.getColumns(null, null, tableName, columnName)) {
