@@ -123,4 +123,22 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         thread.interrupt();
         thread.join();
     }
+
+    public void testUncachedReadAfterSetWithoutSyncWrites() throws Exception {
+        SessionSettings settings = new SessionSettings(getConfigurationFileName());
+        settings.setString(getSessionID(), FileStoreFactory.SETTING_FILE_STORE_PATH,
+                settings.getString(FileStoreFactory.SETTING_FILE_STORE_PATH));
+        settings.setLong(getSessionID(), FileStoreFactory.SETTING_FILE_STORE_MAX_CACHED_MSGS, 0);
+
+        FileStore store = (FileStore) new FileStoreFactory(settings).create(getSessionID());
+        try {
+            assertTrue(store.set(1, "MESSAGE-1"));
+            List<String> messages = new ArrayList<>();
+            store.get(1, 1, messages);
+            assertEquals(1, messages.size());
+            assertEquals("MESSAGE-1", messages.get(0));
+        } finally {
+            store.closeAndDeleteFiles();
+        }
+    }
 }
