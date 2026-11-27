@@ -351,12 +351,18 @@ public class CachedFileStore implements MessageStore {
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);
-        headerDataOutputStream.flush();
         if (syncWrites) {
+            flushHeaderDataOutputStream();
             headerFileOutputStream.getFD().sync();
         }
         messageFileWriter.write(messageBytes);
         return true;
+    }
+
+    private void flushHeaderDataOutputStream() throws IOException {
+        if (headerDataOutputStream != null) {
+            headerDataOutputStream.flush();
+        }
     }
 
     private void storeSequenceNumbers() throws IOException {
@@ -479,6 +485,7 @@ public class CachedFileStore implements MessageStore {
             if (headerFile.exists()) {
                 DataInputStream headerDataInputStream = null;
                 try {
+                    flushHeaderDataOutputStream();
                     headerDataInputStream = new DataInputStream(new BufferedInputStream(
                             new FileInputStream(headerFile)));
                     while (headerDataInputStream.available() > 0) {
@@ -510,6 +517,7 @@ public class CachedFileStore implements MessageStore {
             if (headerFile.exists()) {
                 DataInputStream headerDataInputStream = null;
                 try {
+                    flushHeaderDataOutputStream();
                     headerDataInputStream = new DataInputStream(new BufferedInputStream(
                             new FileInputStream(headerFile)));
                     while (headerDataInputStream.available() > 0) {

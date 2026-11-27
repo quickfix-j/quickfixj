@@ -311,6 +311,7 @@ public class FileStore implements MessageStore, Closeable {
         }
 
         if (!uncachedOffsetMsgIds.isEmpty()) {
+            flushHeaderDataOutputStream();
             // parse the header file to find missing messages
             final File headerFile = new File(headerFileName);
             try (DataInputStream headerDataInputStream = new DataInputStream(
@@ -376,12 +377,18 @@ public class FileStore implements MessageStore, Closeable {
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);
-        headerDataOutputStream.flush();
         if (syncWrites) {
+            flushHeaderDataOutputStream();
             headerFileOutputStream.getFD().sync();
         }
         messageFileWriter.write(messageBytes);
         return true;
+    }
+
+    private void flushHeaderDataOutputStream() throws IOException {
+        if (headerDataOutputStream != null) {
+            headerDataOutputStream.flush();
+        }
     }
 
     private void storeSenderSequenceNumber() throws IOException {
