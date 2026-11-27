@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import javax.sql.DataSource;
 
 class JdbcStore implements MessageStore {
+    private static final String SQLSTATE_INTEGRITY_CONSTRAINT_VIOLATION_CLASS = "23";
     private final static String DEFAULT_SESSION_TABLE_NAME = "sessions";
     private final static String DEFAULT_MESSAGE_TABLE_NAME = "messages";
 
@@ -215,8 +216,11 @@ class JdbcStore implements MessageStore {
         Connection connection = null;
         PreparedStatement deleteMessages = null;
         PreparedStatement updateTime = null;
+        boolean previousAutoCommit = true;
         try {
             connection = dataSource.getConnection();
+            previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
             if (persistMessages) {
                 deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
                 setSessionIdParameters(deleteMessages, 1);
@@ -230,9 +234,12 @@ class JdbcStore implements MessageStore {
             updateTime.setInt(3, getNextSenderMsgSeqNum());
             setSessionIdParameters(updateTime, 4);
             updateTime.execute();
+            connection.commit();
         } catch (SQLException e) {
+            rollbackQuietly(connection);
             throw new IOException(e.getMessage(), e);
         } finally {
+            restoreAutoCommit(connection, previousAutoCommit);
             JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
             JdbcUtil.close(sessionID, connection);
@@ -250,6 +257,7 @@ class JdbcStore implements MessageStore {
             int offset = setSessionIdParameters(query, 1);
             query.setInt(offset++, startSequence);
             query.setInt(offset, endSequence);
+            query.setFetchSize(calculateFetchSize(startSequence, endSequence));
             rs = query.executeQuery();
             while (rs.next()) {
                 String message = rs.getString(1);
@@ -267,30 +275,29 @@ class JdbcStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         Connection connection = null;
         PreparedStatement insert = null;
+        PreparedStatement update = null;
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement(SQL_INSERT_MESSAGE);
             int offset = setSessionIdParameters(insert, 1);
             insert.setInt(offset++, sequence);
             insert.setString(offset, message);
-            insert.execute();
+            insert.executeUpdate();
         } catch (SQLException ex) {
-            if (connection != null) {
-                PreparedStatement update = null;
+            if (connection != null && isDuplicateKeyViolation(ex)) {
                 try {
                     update = connection.prepareStatement(SQL_UPDATE_MESSAGE);
                     update.setString(1, message);
                     int offset = setSessionIdParameters(update, 2);
                     update.setInt(offset, sequence);
-                    boolean status = update.execute();
-                    return !status && update.getUpdateCount() > 0;
+                    return update.executeUpdate() > 0;
                 } catch (SQLException e) {
                     throw new IOException(e.getMessage(), e);
-                } finally {
-                    JdbcUtil.close(sessionID, update);
                 }
             }
+            throw new IOException(ex.getMessage(), ex);
         } finally {
+            JdbcUtil.close(sessionID, update);
             JdbcUtil.close(sessionID, insert);
             JdbcUtil.close(sessionID, connection);
         }
@@ -334,5 +341,47 @@ class JdbcStore implements MessageStore {
 
     DataSource getDataSource() {
         return dataSource;
+    }
+
+    private static int calculateFetchSize(int startSequence, int endSequence) {
+        if (endSequence < startSequence) {
+            return 1;
+        }
+        return Math.min(1000, endSequence - startSequence + 1);
+    }
+
+    private static boolean isDuplicateKeyViolation(SQLException exception) {
+        final String sqlState = exception.getSQLState();
+        if (sqlState != null && sqlState.startsWith(SQLSTATE_INTEGRITY_CONSTRAINT_VIOLATION_CLASS)) {
+            return true;
+        }
+
+        final int vendorCode = exception.getErrorCode();
+        return vendorCode == 1      // Oracle ORA-00001
+                || vendorCode == 1062 // MySQL duplicate entry
+                || vendorCode == 2601 // SQL Server duplicate key index
+                || vendorCode == 2627; // SQL Server primary/unique key violation
+    }
+
+    private void rollbackQuietly(Connection connection) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.rollback();
+        } catch (SQLException rollbackException) {
+            LogUtil.logThrowable(sessionID, rollbackException.getMessage(), rollbackException);
+        }
+    }
+
+    private void restoreAutoCommit(Connection connection, boolean autoCommit) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.setAutoCommit(autoCommit);
+        } catch (SQLException autoCommitException) {
+            LogUtil.logThrowable(sessionID, autoCommitException.getMessage(), autoCommitException);
+        }
     }
 }
